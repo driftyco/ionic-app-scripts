@@ -4,8 +4,8 @@
 module.exports = {
   include: [
     {
-      src: 'src/assets',
-      dest: 'www/assets'
+      src: 'src/assets/',
+      dest: 'www/assets/'
     },
     {
       src: 'src/index.html',
