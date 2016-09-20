@@ -11,7 +11,6 @@ export { transpile, transpileUpdate } from './transpile';
 export { uglifyjs } from './uglifyjs';
 export { watch } from './watch';
 export * from './util';
-export * from './plugins/rollupNG2';
 
 
 export function run(task: string) {
