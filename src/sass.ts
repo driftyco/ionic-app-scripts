@@ -90,7 +90,7 @@ function generateSassData(context: BuildContext, sassConfig: SassConfig) {
   Logger.debug(`userSassVariableFiles: ${userSassVariableFiles.length}`);
   Logger.debug(`componentSassFiles: ${componentSassFiles.length}`);
 
-  const sassImports = userSassVariableFiles.concat(componentSassFiles).map(sassFile => '"' + sassFile + '"');
+  const sassImports = userSassVariableFiles.concat(componentSassFiles).map(sassFile => '"' + sassFile.replace(/\\/g, '\\\\') + '"');
 
   if (sassImports.length) {
     sassConfig.data = `@charset "UTF-8"; @import ${sassImports.join(',')};`;
