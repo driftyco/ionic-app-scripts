@@ -7,6 +7,9 @@ import { tmpdir } from 'os';
 export function bundle(context?: BuildContext, options?: BuildOptions, rollupConfig?: RollupConfig, useCache = true) {
   context = generateContext(context);
   options = generateBuildOptions(options);
+  if (options.isProd) {
+    ROLLUP_TASK_INFO.defaultConfigFilename = 'rollup.prod.config';
+  }  
   rollupConfig = fillConfigDefaults(context, rollupConfig, ROLLUP_TASK_INFO);
 
   const logger = new Logger('bundle');
@@ -27,10 +30,6 @@ export function bundleUpdate(event: string, path: string, context: BuildContext,
 
 
 function runBundle(context: BuildContext, options: BuildOptions, rollupConfig: RollupConfig, useCache: boolean): Promise<any> {
-  if (options.isProd) {
-    ROLLUP_TASK_INFO.defaultConfigFilename = 'rollup.prod.config';
-  }
-
   rollupConfig.dest = join(context.buildDir, rollupConfig.dest);
 
   if (useCache) {
