@@ -27,7 +27,7 @@ export function startWatchers(context: BuildContext, options: BuildOptions, watc
   watchConfig.watchers.forEach(watcher => {
     if (watcher.callback && watcher.paths) {
       let taskPromise = Promise.resolve();
-      let nextTask = null;
+      let nextTask: any = null;
       const watcherOptions = watcher.options || {};
       if (!watcherOptions.cwd) {
         watcherOptions.cwd = context.rootDir;
