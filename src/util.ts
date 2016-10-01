@@ -78,7 +78,8 @@ function getConfigFileData(fullName: string, shortName: string, envVarName: stri
 
   if (configFilePath) {
     try {
-      return require(configFilePath);
+      const config = require(configFilePath);
+      return Object.assign({}, config);
     } catch (e) {
       Logger.error(`Config file "${configFilePath}" not found. Using defaults instead.`);
       Logger.error(e);
@@ -158,10 +159,10 @@ function assignDefaults(userConfig: any, defaultConfig: any) {
 
 export function replacePathVars(context: BuildContext, filePath: string) {
   return filePath.replace('{{SRC}}', context.srcDir)
-                 .replace('{{WWW}}', context.wwwDir)
-                 .replace('{{TMP}}', context.tmpDir)
-                 .replace('{{ROOT}}', context.rootDir)
-                 .replace('{{BUILD}}', context.buildDir);
+    .replace('{{WWW}}', context.wwwDir)
+    .replace('{{TMP}}', context.tmpDir)
+    .replace('{{ROOT}}', context.rootDir)
+    .replace('{{BUILD}}', context.buildDir);
 }
 
 export function writeFileAsync(filePath: string, content: string): Promise<any> {
@@ -278,7 +279,7 @@ export class Logger {
     if (exception) {
       if (typeof exception === 'string') {
         Logger.error(exception);
-      } 
+      }
       if (exception.stack) {
         Logger.error(exception.stack);
       }

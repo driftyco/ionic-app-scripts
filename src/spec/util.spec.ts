@@ -1,4 +1,4 @@
-import { BuildContext, generateContext, generateBuildOptions, getConfigValueDefaults } from '../util';
+import { BuildContext, generateContext, generateBuildOptions, getConfigValueDefaults, fillConfigDefaults } from '../util';
 import { addArgv, setEnvVar, setProcessArgs, setProcessEnv, setCwd } from '../util';
 
 describe('util', () => {
@@ -74,6 +74,20 @@ describe('util', () => {
     it('should get default value', () => {
       const val = getConfigValueDefaults('--full', '-s', 'envVar', 'defaultValue', context);
       expect(val).toEqual('defaultValue');
+    });
+
+  });
+
+  describe('fillConfigDefaults', () => {
+
+    it('should not return same config instances', () => {
+      addArgv('-s');
+      addArgv('configFile');
+      const configStub = {};
+      spyOn(require('module'), '_load').and.returnValue(configStub);
+
+      const config = fillConfigDefaults({ rootDir: './' }, null, { fullArgConfig: '', shortArgConfig: '-s', defaultConfigFilename: '', envConfig: '' });
+      expect(config).not.toBe(configStub);
     });
 
   });
