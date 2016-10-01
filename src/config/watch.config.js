@@ -1,7 +1,7 @@
-var buildUpdate = require('../dist/build').buildUpdate;
-var templateUpdate = require('../dist/template').templateUpdate;
-var copyUpdate = require('../dist/copy').copyUpdate;
-var sassUpdate = require('../dist/sass').sassUpdate;
+var buildUpdate = require('../build').buildUpdate;
+var templateUpdate = require('../template').templateUpdate;
+var copyUpdate = require('../copy').copyUpdate;
+var sassUpdate = require('../sass').sassUpdate;
 
 
 // https://www.npmjs.com/package/chokidar

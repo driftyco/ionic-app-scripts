@@ -142,3 +142,13 @@ Example NPM Script:
 - [UglifyJS](http://lisperator.net/uglifyjs/)
 - [CleanCss](https://github.com/jakubpawlowicz/clean-css)
 - [TSLint](http://palantir.github.io/tslint/)
+
+
+## Development and publishing
+
+When ready to publish a new version, run the following commands in order:
+
+1.  npm version (patch|minor|major)
+2.  npm run build
+3.  cd dist
+4.  npm publish

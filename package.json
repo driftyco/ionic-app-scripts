@@ -1,28 +1,24 @@
 {
   "name": "@ionic/app-scripts",
-  "version": "0.0.23",
+  "version": "0.0.25",
   "description": "Scripts for Ionic Projects",
   "homepage": "http//ionicframework.com/",
   "author": "Ionic Team <hi@ionic.io> (http://ionic.io)",
   "license": "MIT",
-  "files": [
-    "bin/",
-    "config/",
-    "dist/",
-    "LICENSE",
-    "README.md"
-  ],
   "bin": {
     "ionic-app-scripts": "./bin/ionic-app-scripts.js"
   },
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc && npm run copy-package && npm run copy-content && npm run copy-config && npm run copy-bin",
+    "copy-package": "node ./scripts/copy-package",
+    "copy-content": "cp ./LICENSE ./dist/LICENSE && cp ./README.md ./dist/README.md",
+    "copy-config": "cp -R ./src/config ./dist/config",
+    "copy-bin": "node ./scripts/copy-bin",
     "clean": "rm -rf ./dist",
-    "prepublish": "npm run build",
     "test": "node node_modules/.bin/jasmine JASMINE_CONFIG_PATH=src/spec/jasmine.config.json || true",
     "watch": "npm run clean && tsc --watch"
   },
-  "main": "dist/index.js",
+  "main": "index.js",
   "dependencies": {
     "autoprefixer": "6.4.1",
     "chokidar": "1.6.0",

@@ -1,4 +1,4 @@
-var ngTemplate = require('../dist/plugins/ng-template').ngTemplate;
+var ngTemplate = require('../plugins/ng-template').ngTemplate;
 var nodeResolve = require('rollup-plugin-node-resolve');
 var commonjs = require('rollup-plugin-commonjs');
 

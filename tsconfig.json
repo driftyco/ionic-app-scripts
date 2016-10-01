@@ -3,12 +3,9 @@
     "declaration": true,
     "lib": ["dom", "es2015"],
     "module": "commonjs",
+    "noImplicitAny": true,
     "outDir": "./dist",
     "target": "es5",
-    "noImplicitAny": true,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
     "types": [
       "jasmine",
       "node"
@@ -16,8 +13,5 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
   ]
 }
