@@ -1,6 +1,8 @@
 var ngTemplate = require('../dist/plugins/ng-template').ngTemplate;
 var nodeResolve = require('rollup-plugin-node-resolve');
 var commonjs = require('rollup-plugin-commonjs');
+var globals = require('rollup-plugin-node-globals');
+var builtins = require('rollup-plugin-node-builtins');
 
 // https://github.com/rollup/rollup/wiki/JavaScript-API
 
@@ -41,7 +43,9 @@ var rollupConfig = {
       main: true,
       browser: true,
       extensions: ['.js']
-    })
+    }),
+    globals(),
+    builtins()
   ]
 
 };
