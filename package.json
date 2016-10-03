@@ -33,6 +33,7 @@
     "postcss": "5.2.0",
     "rollup": "0.36.1",
     "rollup-plugin-commonjs": "5.0.4",
+    "rollup-plugin-json": "2.0.2",
     "rollup-plugin-node-builtins": "1.2.1",
     "rollup-plugin-node-globals": "1.0.9",
     "rollup-plugin-node-resolve": "2.0.0",
