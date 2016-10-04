@@ -58,7 +58,7 @@ export function sass(context?: BuildContext, options?: BuildOptions, sassConfig?
 export function sassUpdate(event: string, path: string, context: BuildContext, options: BuildOptions, useCache: boolean = false) {
   Logger.debug(`sassUpdate, event: ${event}, path: ${path}`);
 
-  const sassConfig = fillConfigDefaults(context, {}, SASS_TASK_INFO);
+  const sassConfig = fillConfigDefaults(context, null, SASS_TASK_INFO);
   return sass(context, options, sassConfig, useCache);
 }
 

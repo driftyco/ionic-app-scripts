@@ -90,6 +90,42 @@ describe('util', () => {
       expect(config).not.toBe(configStub);
     });
 
+    it('should load config when null is passed for config object', () => {
+      const configFilePath = `dummyConfigFilePath`;
+      const requiredModules: string[] = [];
+      const config: any = null;
+
+      addArgv('-s');
+      addArgv(configFilePath);
+      spyOn(require('module'), '_load').and
+        .callFake((moduleName: string) => {
+          requiredModules.push(moduleName);
+          return {};
+        });
+
+      fillConfigDefaults({ rootDir: './' }, config, { fullArgConfig: '', shortArgConfig: '-s', defaultConfigFilename: '', envConfig: '' });
+
+      expect(requiredModules).toContain(configFilePath);
+    });
+
+    it('should not load config when empty object is passed for config object', () => {
+      const configFilePath = `dummyConfigFilePath`;
+      const requiredModules: string[] = [];
+      const config = {};
+
+      addArgv('-s');
+      addArgv(configFilePath);
+      spyOn(require('module'), '_load').and
+        .callFake((moduleName: string) => {
+          requiredModules.push(moduleName);
+          return {};
+        });
+
+      fillConfigDefaults({ rootDir: './' }, config, { fullArgConfig: '', shortArgConfig: '-s', defaultConfigFilename: '', envConfig: '' });
+
+      expect(requiredModules).not.toContain(configFilePath);
+    });
+
   });
 
   let context: BuildContext;

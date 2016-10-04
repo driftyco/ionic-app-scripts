@@ -20,7 +20,7 @@ export function copy(context?: BuildContext, copyConfig?: CopyConfig) {
 export function copyUpdate(event: string, path: string, context: BuildContext, options: BuildOptions) {
   Logger.debug(`copyUpdate, event: ${event}, path: ${path}`);
 
-  const copyConfig = fillConfigDefaults(context, {}, COPY_TASK_INFO);
+  const copyConfig = fillConfigDefaults(context, null, COPY_TASK_INFO);
   return runCopy(context, copyConfig);
 }
 

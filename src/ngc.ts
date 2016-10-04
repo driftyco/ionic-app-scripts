@@ -30,7 +30,7 @@ export function ngc(context?: BuildContext, options?: BuildOptions, ngcConfig?: 
 export function ngcUpdate(event: string, path: string, context: BuildContext, options: BuildOptions) {
   Logger.debug(`ngcUpdate, event: ${event}, path: ${path}`);
 
-  const ngcConfig = fillConfigDefaults(context, {}, NGC_TASK_INFO);
+  const ngcConfig = fillConfigDefaults(context, null, NGC_TASK_INFO);
   return runNgc(context, options, ngcConfig);
 }
 
