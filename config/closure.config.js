@@ -4,9 +4,10 @@
 module.exports = {
 
   /**
-   * executablePath: The full executable path to run the local
-   * install of closure's "compiler.jar" file.
+   * pathToJavaExecutable: The absolute path to the java executable
+   * Note: if the executable is on the OS's PATH, often times
+   * `java` will suffice. Verify by running `java --version`
    */
-  executable: null
+  pathToJavaExecutable: 'java'
 
 };
