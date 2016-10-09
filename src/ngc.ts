@@ -6,7 +6,6 @@ import { endsWith } from './util/helpers';
 import { Logger } from './util/logger';
 import { getTsConfig } from './transpile';
 
-
 export function ngc(context?: BuildContext, options?: BuildOptions, ngcConfig?: NgcConfig) {
   context = generateContext(context);
   options = generateBuildOptions(options);
@@ -127,7 +126,7 @@ function createTmpTsConfig(context: BuildContext, ngcConfig: NgcConfig) {
 
   // change baseUrl to support path mappings
   tsConfig.compilerOptions.baseUrl = ngcConfig.compilerOptions.baseUrl;
-  
+
   // save the modified copy into the tmp directory
   outputJsonSync(getTmpTsConfigPath(context), tsConfig);
 }
@@ -195,4 +194,7 @@ const NGC_TASK_INFO: TaskInfo = {
 
 export interface NgcConfig {
   include: string[];
+  compilerOptions: {
+    baseUrl: string;
+  };
 }
