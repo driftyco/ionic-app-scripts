@@ -125,6 +125,9 @@ function createTmpTsConfig(context: BuildContext, ngcConfig: NgcConfig) {
   // force where to look for ts files
   tsConfig.include = ngcConfig.include;
 
+  // change baseUrl to support path mappings
+  tsConfig.compilerOptions.baseUrl = ngcConfig.compilerOptions.baseUrl;
+  
   // save the modified copy into the tmp directory
   outputJsonSync(getTmpTsConfigPath(context), tsConfig);
 }
