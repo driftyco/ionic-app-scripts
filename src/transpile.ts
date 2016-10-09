@@ -191,6 +191,7 @@ export interface TsCompilerOptions {
   outDir: string;
   removeComments: boolean;
   target: string;
+  baseUrl: string;
 }
 
 const ION_COMPILER_COMMENT = '/* ion-compiler */';
