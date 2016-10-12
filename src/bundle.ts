@@ -75,6 +75,12 @@ function runRollup(context: BuildContext, options: BuildOptions, rollupConfig: R
     rollupConfig.plugins.unshift(
       ionCompiler(context, options)
     );
+
+    // add plugins that need to run before ion-compiler
+    if (rollupConfig.prependPlugins) {
+      rollupConfig.plugins.unshift(...rollupConfig.prependPlugins);
+      delete rollupConfig.prependPlugins;
+    }
   }
 
   if (useCache) {
@@ -227,6 +233,9 @@ export interface RollupConfig {
   dest?: string;
   cache?: RollupBundle;
   onwarn?: Function;
+
+  // augmentation; used by ionic-app-scripts only
+  prependPlugins?: any[];
 }
 
 
