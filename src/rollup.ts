@@ -102,13 +102,13 @@ export function rollupWorker(context: BuildContext, configFile: string): Promise
       }).catch((err: any) => {
         // ensure references are cleared up when there's an error
         bundle = cachedBundle = rollupConfig = rollupConfig.cache = rollupConfig.onwarn = rollupConfig.plugins = null;
-        throw new BuildError(err);
+        reject(err);
       });
 
     }).catch((err: any) => {
       // ensure references are cleared up when there's an error
       cachedBundle = rollupConfig = rollupConfig.cache = rollupConfig.onwarn = rollupConfig.plugins = null;
-      throw new BuildError(err);
+      reject(err);
     });
   });
 }
