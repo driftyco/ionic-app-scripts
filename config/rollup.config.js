@@ -50,7 +50,7 @@ var rollupConfig = {
     json(),
     replace({
       exclude: 'node_modules/**',
-      ENV: JSON.stringify(process.env.IONIC_ENV),
+      IONIC_ENV: JSON.stringify(process.env.IONIC_ENV),
     }),
   ]
 
