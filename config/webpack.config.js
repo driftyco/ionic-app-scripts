@@ -13,7 +13,7 @@ function getEntryPoint() {
   if (process.env.IONIC_ENV === 'prod') {
     return '{{TMP}}/app/main.prod.js';
   }
-  return '{{TMP}}/app/main.dev.js';
+  return '{{TMP}}/app/main.dev.ts';
 }
 
 function getPlugins() {
