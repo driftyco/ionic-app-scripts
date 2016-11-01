@@ -43,3 +43,4 @@ jspm_packages
 dist
 
 .vscode
+*.sw[mnpcod]

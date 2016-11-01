@@ -1,4 +1,4 @@
-import { accessSync, readJSONSync } from 'fs-extra';
+import { accessSync, readJSONSync, statSync } from 'fs-extra';
 import { BuildContext, TaskInfo } from './interfaces';
 import { join, resolve } from 'path';
 import { objectAssign } from './helpers';
@@ -102,12 +102,18 @@ export function fillConfigDefaults(userConfigFile: string, defaultConfigFile: st
 
   if (userConfigFile) {
     try {
+      // check if exists first, so we can print a more specific error message
+      // since required config could also throw MODULE_NOT_FOUND
+      statSync(userConfigFile);
       // create a fresh copy of the config each time
       userConfig = require(userConfigFile);
-
     } catch (e) {
-      console.error(`Config file "${userConfigFile}" not found. Using defaults instead.`);
-      console.error(e);
+      if (e.code === 'ENOENT') {
+        console.error(`Config file "${userConfigFile}" not found. Using defaults instead.`);
+      } else {
+        console.error(`There was an error in config file "${userConfigFile}". Using defaults instead.`);
+        console.error(e);
+      }
     }
   }
 
