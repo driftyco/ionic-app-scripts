@@ -1,5 +1,4 @@
 // Ionic Dev Server: Server Side Logger
-
 import { Diagnostic, Logger, TaskEvent } from '../util/logger';
 import { on, EventType } from '../util/events';
 import { Server as WebSocketServer } from 'ws';
@@ -15,7 +14,6 @@ export interface WsMessage {
 }
 
 export function createNotificationServer(config: ServeConfig) {
-
   on(EventType.TaskEvent, (taskEvent: TaskEvent) => {
     const msg: WsMessage = {
       category: 'taskEvent',

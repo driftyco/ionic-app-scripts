@@ -1,6 +1,6 @@
 {
   "name": "@ionic/app-scripts",
-  "version": "0.0.37",
+  "version": "0.0.39",
   "description": "Scripts for Ionic Projects",
   "homepage": "http://ionicframework.com/",
   "author": "Ionic Team <hi@ionic.io> (http://ionic.io)",
@@ -20,7 +20,6 @@
     "build-and-test": "npm run build && npm run test",
     "clean": "rimraf ./dist",
     "lint": "tslint -c ./tslint.json --project ./tsconfig.json",
-    "prepublish": "jasmine JASMINE_CONFIG_PATH=src/spec/jasmine.config.json && npm run build",
     "test": "jasmine JASMINE_CONFIG_PATH=src/spec/jasmine.config.json || true",
     "watch": "npm run clean && tsc --watch"
   },
@@ -33,9 +32,8 @@
     "cross-spawn": "4.0.0",
     "express": "^4.14.0",
     "fs-extra": "0.30.0",
-    "happypack": "^2.2.1",
     "json-loader": "^0.5.4",
-    "node-sass": "3.9.3",
+    "node-sass": "3.10.1",
     "postcss": "5.2.0",
     "proxy-middleware": "^0.15.0",
     "rollup": "0.36.3",

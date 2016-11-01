@@ -1,6 +1,6 @@
 import { build, fullBuildUpdate } from './build';
 import { BuildContext, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError, IgnorableError, Logger } from './util/logger';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars, setIonicEnvironment } from './util/config';
 import { join, normalize } from 'path';
 import * as chalk from 'chalk';
@@ -88,7 +88,10 @@ function startWatcher(index: number, watcher: Watcher, context: BuildContext, wa
       Logger.debug(`watch callback start, id: ${watchCount}, isProd: ${context.isProd}, event: ${event}, path: ${filePath}`);
 
       function taskDone() {
-        Logger.info(chalk.green('watch ready'));
+        // TODO - why is this the way it is?
+        console.log('');
+        Logger.info(chalk.green.bold('watch ready'));
+        console.log('');
       }
 
       const callbackToExecute = function(event: string, filePath: string, context: BuildContext, watcher: Watcher) {
@@ -108,7 +111,9 @@ function startWatcher(index: number, watcher: Watcher, context: BuildContext, wa
           Logger.debug(`watch callback error, id: ${watchCount}, isProd: ${context.isProd}, event: ${event}, path: ${filePath}`);
           Logger.debug(`${err}`);
           watchCount++;
-          taskDone();
+          if (!(err instanceof IgnorableError)) {
+            taskDone();
+          }
         });
     });
 

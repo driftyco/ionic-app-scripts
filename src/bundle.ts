@@ -1,5 +1,5 @@
 import { BuildContext } from './util/interfaces';
-import { BuildError } from './util/logger';
+import { BuildError, IgnorableError } from './util/logger';
 import { generateContext, BUNDLER_ROLLUP } from './util/config';
 import { rollup, rollupUpdate, getRollupConfig, getOutputDest as rollupGetOutputDest } from './rollup';
 import { webpack, webpackUpdate, getWebpackConfig, getOutputDest as webpackGetOutputDest } from './webpack';
@@ -34,6 +34,9 @@ export function bundleUpdate(event: string, filePath: string, context: BuildCont
 
   return webpackUpdate(event, filePath, context, null)
     .catch(err => {
+      if (err instanceof IgnorableError) {
+        throw err;
+      }
       throw new BuildError(err);
     });
 }

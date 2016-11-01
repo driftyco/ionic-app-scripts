@@ -37,7 +37,7 @@ export function cleancssWorker(context: BuildContext, configFile: string): Promi
         if (err) {
           reject(new BuildError(err));
 
-        } else if ( minified.errors && minified.errors.length > 0) {
+        } else if (minified.errors && minified.errors.length > 0) {
           // just return the first error for now I guess
           minified.errors.forEach(e => {
             Logger.error(e);

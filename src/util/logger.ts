@@ -36,8 +36,18 @@ export class BuildError extends Error {
       hasBeenLogged: this.hasBeenLogged
     };
   }
-
 }
+
+/* There are special cases where strange things happen where we don't want any logging, etc.
+ * For our sake, it is much easier to get off the happy path of code and just throw an exception
+ * and do nothing with it
+ */
+export class IgnorableError extends Error {
+  constructor(msg?: string) {
+    super(msg);
+  }
+}
+
 
 
 export class Logger {
@@ -107,15 +117,20 @@ export class Logger {
     Logger.info(msg);
   }
 
-  fail(err: BuildError) {
-    const taskEvent: TaskEvent = {
-      scope: this.scope.split(' ')[0],
-      type: 'failed',
-      msg: this.scope + ' failed'
-    };
-    emit(EventType.TaskEvent, taskEvent);
-
+  fail(err: Error) {
     if (err) {
+      if (err instanceof IgnorableError) {
+        return;
+      }
+
+      // only emit the event if it's a valid error
+      const taskEvent: TaskEvent = {
+        scope: this.scope.split(' ')[0],
+        type: 'failed',
+        msg: this.scope + ' failed'
+      };
+      emit(EventType.TaskEvent, taskEvent);
+
       if (err instanceof BuildError) {
         let failedMsg = `${this.scope} failed`;
         if (err.message) {
