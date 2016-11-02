@@ -24,4 +24,3 @@ export const EventType = {
   TaskEvent: 'TaskEvent',
   TranspileDiagnostics: 'TranspileDiagnostics'
 };
-

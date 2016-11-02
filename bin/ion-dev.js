@@ -212,7 +212,19 @@ window.IonicDevServer = {
     if (taskEvent.data && ['bundle', 'sass', 'transpile', 'template'].indexOf(taskEvent.data.scope) > -1) {
       this.consoleLog(taskEvent.data.msg);
     }
+    if (taskEvent.data && taskEvent.data.type === 'failed') {
+      Notification.requestPermission().then(function(result) {
+        var options = {
+          body: taskEvent.data.msg,
+          icon: IonicDevServerConfig.notificationIconPath
+        }
+        var notification = new Notification(taskEvent.data.scope, options);
+        setTimeout(notification.close.bind(n), 5000); 
+      });
+    }
   }
 };
+
+
 
 IonicDevServer.start();

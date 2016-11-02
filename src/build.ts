@@ -1,5 +1,5 @@
 import { BuildContext } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError, IgnorableError, Logger } from './util/logger';
 import { bundle, bundleUpdate } from './bundle';
 import { clean } from './clean';
 import { copy } from './copy';
@@ -144,6 +144,9 @@ function buildUpdateWorker(event: string, filePath: string, context: BuildContex
     }).then(() => {
       logger.finish();
     }).catch(err => {
+      if (err instanceof IgnorableError) {
+        throw err;
+      }
       throw logger.fail(err);
     });
 }

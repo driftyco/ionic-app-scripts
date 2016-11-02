@@ -16,7 +16,7 @@ export interface BuildContext {
   useTranspileCache?: boolean;
   useBundleCache?: boolean;
   useSassCache?: boolean;
-  tsFiles?: TsFiles;
+  fileCache?: Map<string, File>;
   successfulSass?: boolean;
   inlineTemplates?: boolean;
   webpackWatch?: any;
@@ -46,17 +46,6 @@ export interface TaskInfo {
   shortArgConfig: string;
   envConfig: string;
   defaultConfigFile: string;
-}
-
-
-export interface TsFile {
-  input?: string;
-  output?: string;
-  map?: any;
-}
-
-export interface TsFiles {
-  [sourcePath: string]: TsFile;
 }
 
 export interface File {

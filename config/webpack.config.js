@@ -1,14 +1,6 @@
 var path = require('path');
 var webpack = require('webpack');
 
-
-
-
-// for prod builds, we have already done AoT and AoT writes to disk
-// so read the JS file from disk
-// for dev buids, we actually want to pass in .ts files since we
-// don't have .js files on disk, they're exclusively in memory
-
 function getEntryPoint() {
   if (process.env.IONIC_ENV === 'prod') {
     return '{{TMP}}/app/main.prod.js';
@@ -21,6 +13,7 @@ function getPlugins() {
     return [
       // This helps ensure the builds are consistent if source hasn't changed:
       new webpack.optimize.OccurrenceOrderPlugin(),
+
       // Try to dedupe duplicated modules, if any:
       // Add this back in when Angular fixes the issue: https://github.com/angular/angular-cli/issues/1587
       //new DedupePlugin()
@@ -29,12 +22,27 @@ function getPlugins() {
   return [];
 }
 
+function getSourcemapLoader() {
+  if (process.env.IONIC_ENV === 'prod') {
+    // TODO figure out the disk loader, it's not working yet
+    return [];
+  }
+
+  return [
+    {
+      test: /\.js$/,
+      loader: path.resolve(path.join(process.cwd(), 'node_modules', '@ionic', 'app-scripts', 'dist', 'loaders', 'typescript-sourcemap-loader-memory.js'))
+    }
+  ];
+}
+
 module.exports = {
   entry: getEntryPoint(),
   output: {
     path: '{{BUILD}}',
     filename: 'main.js'
   },
+  devtool: 'source-map',
 
   resolve: {
     extensions: ['.js', '.json']
@@ -46,7 +54,7 @@ module.exports = {
         test: /\.json$/,
         loader: 'json'
       }
-    ]
+    ].concat(getSourcemapLoader())
   },
 
   plugins: getPlugins(),

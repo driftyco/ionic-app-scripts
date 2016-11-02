@@ -1,17 +1,19 @@
 // Ionic Dev Server: Server Side Logger
-
 import { Diagnostic, Logger, TaskEvent } from '../util/logger';
-import { getConfigValueDefault, hasConfigValue } from '../util/config';
 import { on, EventType } from '../util/events';
 import { Server as WebSocketServer } from 'ws';
-
+import { ServeConfig } from './serve-config';
 
 let wsServer: any;
 const msgToClient: WsMessage[] = [];
 
+export interface WsMessage {
+  category: string;
+  type: string;
+  data: any;
+}
 
-export function createDevServer() {
-
+export function createNotificationServer(config: ServeConfig) {
   on(EventType.TaskEvent, (taskEvent: TaskEvent) => {
     const msg: WsMessage = {
       category: 'taskEvent',
@@ -31,7 +33,7 @@ export function createDevServer() {
   });
 
   // create web socket server
-  const wss = new WebSocketServer({ port: getWsPort() });
+  const wss = new WebSocketServer({ port: config.notificationPort });
 
   wss.on('connection', (ws: any) => {
     wsServer = ws;
@@ -70,70 +72,43 @@ function drainMessageQueue() {
   }
 }
 
-
 function printClientMessage(msg: WsMessage) {
   if (msg.data) {
     switch (msg.category) {
-      case 'console':
-        printConsole(msg);
-        break;
+    case 'console':
+      printConsole(msg);
+      break;
 
-      case 'exception':
-        printException(msg);
-        break;
+    case 'exception':
+      printException(msg);
+      break;
     }
   }
 }
-
 
 function printConsole(msg: WsMessage) {
   const args = msg.data;
   args[0] = `console.${msg.type}: ${args[0]}`;
 
   switch (msg.type) {
-    case 'error':
-      Logger.error.apply(this, args);
-      break;
+  case 'error':
+    Logger.error.apply(this, args);
+    break;
 
-    case 'warn':
-      Logger.warn.apply(this, args);
-      break;
+  case 'warn':
+    Logger.warn.apply(this, args);
+    break;
 
-    case 'debug':
-      Logger.debug.apply(this, args);
-      break;
+  case 'debug':
+    Logger.debug.apply(this, args);
+    break;
 
-    default:
-      Logger.info.apply(this, args);
-      break;
+  default:
+    Logger.info.apply(this, args);
+    break;
   }
 }
-
 
 function printException(msg: WsMessage) {
 
-}
-
-
-export function sendClientConsoleLogs() {
-  return hasConfigValue('--consolelogs', '-c', 'ionic_consolelogs', false);
-}
-
-
-export function getWsPort() {
-  const port = getConfigValueDefault('--dev-logger-port', null, 'ionic_dev_logger_port', null);
-  if (port) {
-    return parseInt(port, 10);
-  }
-  return DEV_LOGGER_DEFAULT_PORT;
-}
-
-
-const DEV_LOGGER_DEFAULT_PORT = 53703;
-
-
-export interface WsMessage {
-  category: string;
-  type: string;
-  data: any;
 }

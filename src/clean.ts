@@ -18,4 +18,6 @@ export function clean(context?: BuildContext) {
   } catch (e) {
     throw logger.fail(new BuildError(`Error cleaning ${context.buildDir}, ${e}`));
   }
+
+  return Promise.resolve();
 }

@@ -1,7 +1,10 @@
+import { BuildContext } from './interfaces';
 import { outputJson, readFile, readJsonSync, writeFile } from 'fs-extra';
 import { BuildError, Logger } from './logger';
-import { join } from 'path';
+import { basename, dirname, extname, join } from 'path';
 import { tmpdir } from 'os';
+
+let _context: BuildContext;
 
 export const objectAssign = (Object.assign) ? Object.assign : function (target: any, source: any) {
   const output = Object(target);
@@ -88,4 +91,28 @@ export function getModulePathsCache(): string[] {
     Logger.debug(`Cached module paths not found: ${modulesCachePath}`);
   }
   return modulePaths;
+}
+
+export function setContext(context: BuildContext) {
+  _context = context;
+}
+
+export function getContext() {
+  return _context;
+}
+
+export function transformSrcPathToTmpPath(originalPath: string, context: BuildContext) {
+  return originalPath.replace(context.srcDir, context.tmpDir);
+}
+
+export function transformTmpPathToSrcPath(originalPath: string, context: BuildContext) {
+  return originalPath.replace(context.tmpDir, context.srcDir);
+}
+
+export function changeExtension(filePath: string, newExtension: string) {
+  const dir = dirname(filePath);
+  const extension = extname(filePath);
+  const extensionlessfileName = basename(filePath, extension);
+  const newFileName = extensionlessfileName + newExtension;
+  return join(dir, newFileName);
 }
