@@ -131,11 +131,11 @@ export function bundlerStrategy(context: BuildContext): string {
     return BUNDLER_ROLLUP;
   }
 
-  // 2) User provided both a rollup config env var and a webpack config env var
+  // 2) User provided both a rollup config and webpack config in package.json config
   val = getPackageJsonConfig(context, 'ionic_rollup');
   const webpackVal = getPackageJsonConfig(context, 'ionic_webpack');
   if (val && webpackVal) {
-    let bundler = getProcessEnvVar('ionic_bundler');
+    let bundler = getPackageJsonConfig(context, 'ionic_bundler');
     if (isValidBundler(bundler)) {
       return bundler;
     }
