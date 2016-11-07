@@ -158,3 +158,13 @@ Example NPM Script:
 - [UglifyJS](http://lisperator.net/uglifyjs/)
 - [CleanCss](https://github.com/jakubpawlowicz/clean-css)
 - [TSLint](http://palantir.github.io/tslint/)
+
+
+
+## Contributing
+
+### Publish a release
+
+Execute the following steps to publish a release:
+
+1. Run `npm run release`

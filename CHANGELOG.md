@@ -4,6 +4,8 @@ To get the latest `@ionic/app-scripts`, please run:
 npm install @ionic/app-scripts@latest --save-dev
 ```
 
+# 0.0.39 (2016-10-31)
+* Switch default bundler to Webpack
 
 # 0.0.36 (2016-10-15)
 
