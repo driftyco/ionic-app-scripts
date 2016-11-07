@@ -23,7 +23,7 @@
     "github-release": "node ./scripts/create-github-release.js",
     "lint": "tslint -c ./tslint.json --project ./tsconfig.json",
     "nightly": "npm run build && node ./scripts/publish-nightly.js",
-    "release": "npm run build && npm run test && npm version patch && npm changelog && npm run github-release && npm publish",
+    "release": "npm run build && npm run test && npm version patch && npm run changelog && npm run github-release && npm publish",
     "test": "jasmine JASMINE_CONFIG_PATH=src/spec/jasmine.config.json || true",
     "watch": "npm run clean && tsc --watch"
   },
