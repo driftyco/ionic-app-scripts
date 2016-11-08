@@ -240,12 +240,11 @@ export function runBuildUpdate(context: BuildContext, changedFiles: ChangedFile[
   }
 
   if (context.transpileState === BuildState.RequiresUpdate || context.transpileState === BuildState.RequiresBuild) {
-    if (context.bundleState === BuildState.SuccessfulBuild) {
+    if (context.bundleState === BuildState.SuccessfulBuild || context.bundleState === BuildState.RequiresUpdate) {
       // transpiling needs to happen
       // and there has already been a successful bundle before
       // so let's just do a bundle update
       context.bundleState = BuildState.RequiresUpdate;
-
     } else {
       // transpiling needs to happen
       // but we've never successfully bundled before
