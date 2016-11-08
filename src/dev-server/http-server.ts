@@ -64,9 +64,7 @@ function serveIndex(req: express.Request, res: express.Response)  {
       indexHtml = injectLiveReloadScript(indexHtml, config.host, config.liveReloadPort);
     }
 
-    if (config.useNotifier) {
-      indexHtml = injectNotificationScript(indexHtml, config.notifyOnConsoleLog, config.notificationPort);
-    }
+    indexHtml = injectNotificationScript(config.rootDir, indexHtml, config.notifyOnConsoleLog, config.notificationPort);
 
     indexHtml = injectDiagnosticsHtml(config.buildDir, indexHtml);
 

@@ -39,6 +39,7 @@
     "fs-extra": "0.30.0",
     "json-loader": "^0.5.4",
     "node-sass": "3.10.1",
+    "os-name": "^2.0.1",
     "postcss": "5.2.0",
     "proxy-middleware": "^0.15.0",
     "rollup": "0.36.3",

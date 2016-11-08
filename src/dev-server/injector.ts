@@ -1,12 +1,12 @@
-import { getAppScriptsVersion } from '../util/logger';
+import { getAppScriptsVersion, getSystemInfo } from '../util/helpers';
 import { LOGGER_DIR } from './serve-config';
 
 
 const LOGGER_HEADER = '<!-- Ionic Dev Server: Injected Logger Script -->';
 
-export function injectNotificationScript(content: any, notifyOnConsoleLog: boolean, notificationPort: Number): any {
+export function injectNotificationScript(rootDir: string, content: any, notifyOnConsoleLog: boolean, notificationPort: Number): any {
   let contentStr = content.toString();
-  const consoleLogScript = getConsoleLoggerScript(notifyOnConsoleLog, notificationPort);
+  const consoleLogScript = getDevLoggerScript(rootDir, notifyOnConsoleLog, notificationPort);
 
   if (contentStr.indexOf(LOGGER_HEADER) > -1) {
     // already added script somehow
@@ -26,12 +26,13 @@ export function injectNotificationScript(content: any, notifyOnConsoleLog: boole
   return contentStr;
 }
 
-function getConsoleLoggerScript(notifyOnConsoleLog: boolean, notificationPort: Number) {
+function getDevLoggerScript(rootDir: string, notifyOnConsoleLog: boolean, notificationPort: Number) {
   const appScriptsVersion = getAppScriptsVersion();
   const ionDevServer = JSON.stringify({
     sendConsoleLogs: notifyOnConsoleLog,
     wsPort: notificationPort,
-    appScriptsVersion: appScriptsVersion
+    appScriptsVersion: appScriptsVersion,
+    systemInfo: getSystemInfo(rootDir)
   });
 
   return `

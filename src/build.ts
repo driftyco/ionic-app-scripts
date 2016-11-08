@@ -118,7 +118,7 @@ function buildDev(context: BuildContext) {
 
 export function buildUpdate(event: string, filePath: string, context: BuildContext) {
   return new Promise(resolve => {
-    const logger = new Logger('build update');
+    const logger = new Logger('build');
 
     buildUpdateId++;
     emit(EventType.BuildUpdateStarted, buildUpdateId);
@@ -150,8 +150,7 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
           lintUpdate(event, filePath, context);
         }
 
-        Logger.newLine();
-        logger.ready('green', true);
+        logger.finish('green', true);
         Logger.newLine();
 
         // we did it!

@@ -1,8 +1,8 @@
 import { BuildContext } from './interfaces';
 import { Diagnostic, Logger, PrintLine } from './logger';
+import { titleCase } from './helpers';
 import { join } from 'path';
 import { readFileSync, unlinkSync, writeFileSync } from 'fs';
-import { titleCase } from './helpers';
 import * as chalk from 'chalk';
 
 
@@ -182,10 +182,6 @@ export function getDiagnosticsHtmlContent(buildDir: string) {
       diagnosticsHtml.push(diagnosticsHtmlCache[keys[i]]);
     }
   }
-
-  diagnosticsHtml.push(`<pre class="ion-diagnostics-system-info">`);
-  diagnosticsHtml.push(`${getSystemInfo().join('\n')}`);
-  diagnosticsHtml.push(`</pre>`);
 
   return diagnosticsHtml.join('\n');
 }
@@ -392,13 +388,6 @@ const JS_KEYWORDS = [
 
 function getDiagnosticsFileName(buildDir: string, type: string) {
   return join(buildDir, `.ion-diagnostic-${type}.html`);
-}
-
-
-export function getSystemInfo() {
-  const systemData: string[] = [];
-
-  return systemData;
 }
 
 

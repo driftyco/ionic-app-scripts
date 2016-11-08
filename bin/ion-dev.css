@@ -157,7 +157,8 @@
   color: #969896;
 }
 
-#ion-diagnostics .ion-diagnostics-system-info {
+#ion-diagnostics-system-info {
+  padding-bottom: 20px;
   font-size: 10px;
   color: #999;
 }

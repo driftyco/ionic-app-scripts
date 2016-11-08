@@ -1,3 +1,4 @@
+window.IonicDevServerConfig = window.IonicDevServerConfig || {};
 window.IonicDevServer = {
   start: function() {
     this.msgQueue = [];
@@ -6,17 +7,28 @@ window.IonicDevServer = {
     this.consoleError = console.error;
     this.consoleWarn = console.warn;
 
-    if (IonicDevServerConfig && IonicDevServerConfig.sendConsoleLogs) {
+    IonicDevServerConfig.systemInfo.push('Navigator Platform: ' + window.navigator.platform);
+    IonicDevServerConfig.systemInfo.push('User Agent: ' + window.navigator.userAgent);
+
+    if (IonicDevServerConfig.sendConsoleLogs) {
       this.patchConsole();
     }
-
-    console.log('dev server enabled');
 
     this.openConnection();
 
     this.bindKeyboardEvents();
 
     document.addEventListener("DOMContentLoaded", IonicDevServer.domReady);
+  },
+
+  domReady: function() {
+    document.removeEventListener("DOMContentLoaded", IonicDevServer.domReady);
+    var diagnosticsEle = document.getElementById('ion-diagnostics');
+    if (diagnosticsEle) {
+      IonicDevServer.buildStatus('error');
+    } else {
+      IonicDevServer.buildStatus('success');
+    }
   },
 
   handleError: function(err) {
@@ -291,15 +303,18 @@ window.IonicDevServer = {
     iconLink.type = 'image/png';
     iconLink.href = IonicDevServer[status + 'Icon'];
     document.head.appendChild(iconLink);
-  },
 
-  domReady: function() {
-    document.removeEventListener("DOMContentLoaded", IonicDevServer.domReady);
-    var diagnosticsEle = document.getElementById('ion-diagnostics');
-    if (diagnosticsEle) {
-      IonicDevServer.buildStatus('error');
-    } else {
-      IonicDevServer.buildStatus('success');
+    if (status === 'error') {
+      var diagnosticsEle = document.getElementById('ion-diagnostics');
+      if (diagnosticsEle) {
+        var systemInfoEle = diagnosticsEle.querySelector('#ion-diagnostics-system-info');
+        if (!systemInfoEle) {
+          systemInfoEle = document.createElement('pre');
+          systemInfoEle.id = 'ion-diagnostics-system-info';
+          systemInfoEle.innerHTML = IonicDevServerConfig.systemInfo.join('\n');
+          diagnosticsEle.appendChild(systemInfoEle);
+        }
+      }
     }
   },
 

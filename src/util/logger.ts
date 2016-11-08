@@ -150,15 +150,31 @@ export class Logger {
   }
 
   /**
-   * Prints out a dim colored timestamp prefix.
+   * Prints out a dim colored timestamp prefix, with optional color
+   * and bold message.
    */
-  static info(...msg: any[]) {
-    const lines = Logger.wordWrap(msg);
+  static info(msg: string, color?: string, bold?: boolean) {
+    const lines = Logger.wordWrap([msg]);
     if (lines.length) {
       let prefix = timePrefix();
-      lines[0] = chalk.dim(prefix) + lines[0].substr(prefix.length);
+      let lineOneMsg = lines[0].substr(prefix.length);
+      if (color) {
+        lineOneMsg = (<any>chalk)[color](lineOneMsg);
+      }
+      if (bold) {
+        lineOneMsg = chalk.bold(lineOneMsg);
+      }
+      lines[0] = chalk.dim(prefix) + lineOneMsg;
     }
-    lines.forEach(line => {
+    lines.forEach((line, lineIndex) => {
+      if (lineIndex > 0) {
+        if (color) {
+          line = (<any>chalk)[color](line);
+        }
+        if (bold) {
+          line = chalk.bold(line);
+        }
+      }
       console.log(line);
     });
   }
@@ -330,16 +346,6 @@ function timePrefix() {
 
 function memoryUsage() {
   return chalk.dim(` MEM: ${(process.memoryUsage().rss / 1000000).toFixed(1)}MB`);
-}
-
-
-export function getAppScriptsVersion() {
-  let rtn = '';
-  try {
-    const packageJson = readJSONSync(join(__dirname, '..', '..', 'package.json'));
-    rtn = packageJson.version || '';
-  } catch (e) {}
-  return rtn;
 }
 
 

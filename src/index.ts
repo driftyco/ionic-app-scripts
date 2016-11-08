@@ -14,13 +14,13 @@ export * from './util/config';
 export * from './util/helpers';
 export * from './util/interfaces';
 
-import { Logger, getAppScriptsVersion } from './util/logger';
-import * as chalk from 'chalk';
+import { getAppScriptsVersion } from './util/helpers';
+import { Logger } from './util/logger';
 
 
 export function run(task: string) {
   try {
-    Logger.info(chalk.cyan(`ionic-app-scripts ${getAppScriptsVersion()}`));
+    Logger.info(`ionic-app-scripts ${getAppScriptsVersion()}`, 'cyan');
   } catch (e) {}
 
   try {
