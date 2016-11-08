@@ -226,15 +226,6 @@ function getComponentDirectories(moduleDirectories: string[], sassConfig: SassCo
 function render(context: BuildContext, sassConfig: SassConfig): Promise<string> {
   return new Promise((resolve, reject) => {
 
-    if (lastRenderKey !== null) {
-      // if the sass data imports are same, don't bother
-      const renderKey = getRenderCacheKey(sassConfig);
-      if (renderKey === lastRenderKey) {
-        resolve(sassConfig.outFile);
-        return;
-      }
-    }
-
     sassConfig.omitSourceMapUrl = true;
 
     if (sassConfig.sourceMap) {
@@ -253,7 +244,6 @@ function render(context: BuildContext, sassConfig: SassConfig): Promise<string> 
       } else {
         // sass render success :)
         renderSassSuccess(context, sassResult, sassConfig).then(outFile => {
-          lastRenderKey = getRenderCacheKey(sassConfig);
           resolve(outFile);
 
         }).catch(err => {
@@ -434,17 +424,6 @@ function defaultSortComponentFilesFn(a: any, b: any): number {
 
   return (a > b) ? 1 : -1;
 }
-
-
-function getRenderCacheKey(sassConfig: SassConfig) {
-  return [
-    sassConfig.data,
-    sassConfig.file,
-  ].join('|');
-}
-
-
-let lastRenderKey: string = null;
 
 
 const taskInfo: TaskInfo = {
