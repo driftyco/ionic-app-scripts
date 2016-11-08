@@ -1,8 +1,36 @@
-To get the latest `@ionic/app-scripts`, please run:
+<a name="0.0.41"></a>
+## [0.0.41](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.40...v0.0.41) (2016-11-07)
 
-```
-npm install @ionic/app-scripts@latest --save-dev
-```
+
+### Bug Fixes
+
+* **webpack:** use source-maps instead of eval for prod builds ([fdd86be](https://github.com/driftyco/ionic-app-scripts/commit/fdd86be))
+
+
+
+<a name="0.0.40"></a>
+## 0.0.40 (2016-11-07)
+
+### Breaking Changes
+
+`ionic_source_map` variable is now used to drive the `devtool` (sourcemap) value for webpack. It now defaults to `eval` for faster builds. Set it to `source-map` for `typescript` sourcemaps.
+
+### Bug Fixes
+* **sourcemaps:** fix source maps for all files ([066de6d](https://github.com/driftyco/ionic-app-scripts/commit/066de6d))
+* **sourcemaps:** webpack .ts sourcemaps ([bfca1be](https://github.com/driftyco/ionic-app-scripts/commit/bfca1be))
+* **webpack:** modify config to use IONIC_APP_SCRIPTS_DIR variable ([2b7c606](https://github.com/driftyco/ionic-app-scripts/commit/2b7c606))
+
+
+### Features
+* **events:** emit bundler events ([8d73da9](https://github.com/driftyco/ionic-app-scripts/commit/8d73da9))
+* **exports:** add templateUpdate and fullBuildUpdate ([a31897d](https://github.com/driftyco/ionic-app-scripts/commit/a31897d))
+* **webpack source maps:** make it easy to configure source map type ([03565b7](https://github.com/driftyco/ionic-app-scripts/commit/03565b7))
+
+
+### Performance Improvements
+
+* **webpack:** speed up webpack build by not using file-system and watches ([23ad195](https://github.com/driftyco/ionic-app-scripts/commit/23ad195))
+
 
 # 0.0.39 (2016-10-31)
 * Switch default bundler to Webpack

@@ -1,4 +1,5 @@
-import { BuildContext, File } from '../util/interfaces';
+import { FileCache } from '../util/file-cache';
+import { BuildContext } from '../util/interfaces';
 import { dirname, join, resolve } from 'path';
 import { resolveId } from '../plugins/ion-compiler';
 
@@ -33,8 +34,7 @@ describe('ion-compiler', () => {
     it('should return null when importer is not found in list of files', () => {
       // arrange
       let context: BuildContext = {};
-      context.fileCache = new Map<string, File>();
-      context.fileCache.set(importer, null);
+      context.fileCache = new FileCache();
 
       // act
       const result = resolveId('importee', importer, context);
@@ -43,11 +43,30 @@ describe('ion-compiler', () => {
       expect(result).toEqual(null);
     });
 
-    it('should return null when importer content lacks output property', () => {
+    it('should return null when importer content is null', () => {
       // arrange
       let context: BuildContext = {};
-      context.fileCache = new Map<string, File>();
-      context.fileCache.set(importer, null);
+      context.fileCache = new FileCache();
+      context.fileCache.put(importer, {
+        path: importer,
+        content: null
+      });
+
+      // act
+      const result = resolveId('importee', importer, context);
+
+      // assert
+      expect(result).toEqual(null);
+    });
+
+    it('should return null when importer content is empty', () => {
+      // arrange
+      let context: BuildContext = {};
+      context.fileCache = new FileCache();
+      context.fileCache.put(importer, {
+        path: importer,
+        content: ''
+      });
 
       // act
       const result = resolveId('importee', importer, context);
@@ -59,8 +78,8 @@ describe('ion-compiler', () => {
     it('should return path to file when file is found with ref to forward dir', () => {
       // arrange
       let context: BuildContext = {};
-      context.fileCache = new Map<string, File>();
-      context.fileCache.set(importer, {
+      context.fileCache = new FileCache();
+      context.fileCache.put(importer, {
         path: importer,
         content: 'fake irrelevant data'
       });
@@ -69,7 +88,7 @@ describe('ion-compiler', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = resolve(join(importerBasename, importee)) + '.ts';
 
-       context.fileCache.set(importeeFullPath, {
+       context.fileCache.put(importeeFullPath, {
          path: importeeFullPath,
          content: 'someContent'
        });
@@ -85,8 +104,8 @@ describe('ion-compiler', () => {
 
       // arrange
       let context: BuildContext = {};
-      context.fileCache = new Map<string, File>();
-      context.fileCache.set(importer, {
+      context.fileCache = new FileCache();
+      context.fileCache.put(importer, {
         path: importer,
         content: 'fake irrelevant data'
       });
@@ -95,7 +114,7 @@ describe('ion-compiler', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = resolve(join(importerBasename, importee)) + '.ts';
 
-      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null});
+      context.fileCache.put(importeeFullPath, { path: importeeFullPath, content: null});
 
       // act
       const result = resolveId(importee, importer, context);
@@ -108,8 +127,8 @@ describe('ion-compiler', () => {
 
       // arrange
       let context: BuildContext = {};
-      context.fileCache = new Map<string, File>();
-      context.fileCache.set(importer, {
+      context.fileCache = new FileCache();
+      context.fileCache.put(importer, {
         path: importer,
         content: 'fake irrelevant data'
       });
@@ -118,7 +137,7 @@ describe('ion-compiler', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = join(resolve(join(importerBasename, importee)), 'index.ts');
 
-      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null });
+      context.fileCache.put(importeeFullPath, { path: importeeFullPath, content: null });
 
       // act
       const result = resolveId(importee, importer, context);
@@ -131,8 +150,8 @@ describe('ion-compiler', () => {
 
       // arrange
       let context: BuildContext = {};
-      context.fileCache = new Map<string, File>();
-      context.fileCache.set(importer, {
+      context.fileCache = new FileCache();
+      context.fileCache.put(importer, {
         path: importer,
         content: 'fake irrelevant data'
       });
@@ -141,7 +160,7 @@ describe('ion-compiler', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = join(resolve(join(importerBasename, importee)), 'index.ts');
 
-      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null});
+      context.fileCache.put(importeeFullPath, { path: importeeFullPath, content: null});
 
       // act
       const result = resolveId(importee, importer, context);
@@ -153,8 +172,8 @@ describe('ion-compiler', () => {
     it('should return null when importee isn\'t found in memory', () => {
       // arrange
       let context: BuildContext = {};
-      context.fileCache = new Map<string, File>();
-      context.fileCache.set(importer, {
+      context.fileCache = new FileCache();
+      context.fileCache.put(importer, {
         path: importer,
         content: 'fake irrelevant data'
       });

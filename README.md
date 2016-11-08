@@ -106,6 +106,7 @@ npm run build --rollup ./config/rollup.config.js
 | Config Values   | NPM Config Property | Cmd-line Flag | Defaults        |
 |-----------------|---------------------|---------------|-----------------|
 | bundler         | `ionic_bundler`     | `--bundler`   | `webpack`       |
+| source map type | `ionic_source_map`  | `--sourceMap` | `eval`          |
 | root directory  | `ionic_root_dir`    | `--rootDir`   | `process.cwd()` |
 | tmp directory   | `ionic_tmp_dir`     | `--tmpDir`    | `.tmp`          |
 | www directory   | `ionic_www_dir`     | `--wwwDir`    | `www`           |
@@ -144,6 +145,9 @@ Example NPM Script:
     "minify": "ionic-app-scripts minify"
   },
 ```
+
+## Tips
+1. The Webpack `devtool` setting is driven by the `ionic_source_map` variable. It defaults to `eval` for fast builds, but can provide the original source map by changing the value to `source-map`.
 
 
 ## The Stack

@@ -1,3 +1,4 @@
+import { FileCache } from './file-cache';
 
 export interface BuildContext {
   rootDir?: string;
@@ -11,12 +12,11 @@ export interface BuildContext {
   isWatch?: boolean;
   isUpdate?: boolean;
   fullBuildCompleted?: boolean;
-  fileChanged?: string;
   bundler?: string;
   useTranspileCache?: boolean;
   useBundleCache?: boolean;
   useSassCache?: boolean;
-  fileCache?: Map<string, File>;
+  fileCache?: FileCache;
   successfulSass?: boolean;
   inlineTemplates?: boolean;
   webpackWatch?: any;
@@ -52,4 +52,5 @@ export interface TaskInfo {
 export interface File {
   path: string;
   content: string;
+  timestamp?: number;
 }

@@ -1,6 +1,6 @@
 {
   "name": "@ionic/app-scripts",
-  "version": "0.0.39",
+  "version": "0.0.41",
   "description": "Scripts for Ionic Projects",
   "homepage": "http://ionicframework.com/",
   "author": "Ionic Team <hi@ionic.io> (http://ionic.io)",
@@ -19,10 +19,12 @@
     "build": "npm run clean && tsc",
     "build-and-test": "npm run build && npm run test",
     "changelog": "./node_modules/.bin/conventional-changelog -p angular -i CHANGELOG.md -s",
+    "changelog-and-commit": "npm run changelog && node ./scripts/commit-changelog.js",
     "clean": "rimraf ./dist",
     "github-release": "node ./scripts/create-github-release.js",
     "lint": "tslint -c ./tslint.json --project ./tsconfig.json",
-    "release": "npm run build && npm run test && npm version patch && npm changelog && npm run github-release && npm publish",
+    "nightly": "npm run build && node ./scripts/publish-nightly.js",
+    "release": "npm run build && npm run test && npm run changelog-and-commit && npm version patch && npm run github-release && npm publish",
     "test": "jasmine JASMINE_CONFIG_PATH=src/spec/jasmine.config.json || true",
     "watch": "npm run clean && tsc --watch"
   },

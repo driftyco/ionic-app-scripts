@@ -1,11 +1,14 @@
 var path = require('path');
 var webpack = require('webpack');
 
+var ionicWebpackFactoryPath = path.join(process.env.IONIC_APP_SCRIPTS_DIR, 'dist', 'webpack', 'ionic-webpack-factory.js');
+var ionicWebpackFactory = require(ionicWebpackFactoryPath);
+
 function getEntryPoint() {
   if (process.env.IONIC_ENV === 'prod') {
     return '{{TMP}}/app/main.prod.js';
   }
-  return '{{TMP}}/app/main.dev.js';
+  return '{{SRC}}/app/main.dev.ts';
 }
 
 function getPlugins() {
@@ -19,7 +22,11 @@ function getPlugins() {
       //new DedupePlugin()
     ];
   }
-  return [];
+
+  // for dev builds, use our custom environment
+  return [
+    ionicWebpackFactory.getIonicEnvironmentPlugin()
+  ];
 }
 
 function getSourcemapLoader() {
@@ -30,10 +37,19 @@ function getSourcemapLoader() {
 
   return [
     {
-      test: /\.js$/,
-      loader: path.join(process.env.IONIC_APP_SCRIPTS_DIR, 'dist', 'loaders', 'typescript-sourcemap-loader-memory.js')
+      test: /\.ts$/,
+      loader: path.join(process.env.IONIC_APP_SCRIPTS_DIR, 'dist', 'webpack', 'typescript-sourcemap-loader-memory.js')
     }
   ];
+}
+
+function getDevtool() {
+  if (process.env.IONIC_ENV === 'prod') {
+    // for now, just force source-map for prod builds
+    return 'source-map';
+  }
+
+  return process.env.IONIC_SOURCE_MAP;
 }
 
 module.exports = {
@@ -42,10 +58,10 @@ module.exports = {
     path: '{{BUILD}}',
     filename: 'main.js'
   },
-  devtool: 'source-map',
+  devtool: getDevtool(),
 
   resolve: {
-    extensions: ['.js', '.json']
+    extensions: ['.js', '.ts', '.json']
   },
 
   module: {

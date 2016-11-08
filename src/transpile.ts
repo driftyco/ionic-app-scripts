@@ -1,3 +1,4 @@
+import { FileCache } from './util/file-cache';
 import { BuildContext, File } from './util/interfaces';
 import { BuildError, Logger } from './util/logger';
 import { buildJsSourceMaps } from './bundle';
@@ -36,11 +37,8 @@ export function transpile(context?: BuildContext) {
 
 
 export function transpileUpdate(event: string, filePath: string, context: BuildContext) {
-  if (!filePath.endsWith('.ts') && cachedTsFiles) {
-    // however this ran, the changed file wasn't a .ts file
-    // so if we already have tsFiles then make sure the context
-    // has them and carry on
-    context.fileCache = cachedTsFiles;
+  if (!filePath.endsWith('.ts') ) {
+    // however this ran, the changed file wasn't a .ts file so carry on
     return Promise.resolve();
   }
 
@@ -68,10 +66,6 @@ export function transpileUpdate(event: string, filePath: string, context: BuildC
  * The full TS build for all app files.
  */
 export function transpileWorker(context: BuildContext, workerConfig: TranspileWorkerConfig) {
-  // forget any tsFiles we've already cached
-  if (workerConfig.writeInMemory) {
-    context.fileCache = null;
-  }
 
   // let's do this
   return new Promise((resolve, reject) => {
@@ -99,13 +93,11 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
     // let's start a new tsFiles object to cache all the transpiled files in
     const host = ts.createCompilerHost(tsConfig.options);
 
-    const cache = new Map<string, File>();
-
     const program = ts.createProgram(tsFileNames, tsConfig.options, host, cachedProgram);
     program.emit(undefined, (path: string, data: string, writeByteOrderMark: boolean, onError: Function, sourceFiles: ts.SourceFile[]) => {
       if (workerConfig.writeInMemory) {
-        writeSourceFiles(cache, sourceFiles);
-        writeTranspiledFilesCallback(cache, path, data, workerConfig.inlineTemplate);
+        writeSourceFiles(context.fileCache, sourceFiles);
+        writeTranspiledFilesCallback(context.fileCache, path, data, workerConfig.inlineTemplate);
       }
     });
 
@@ -117,7 +109,7 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
 
     if (diagnostics.length) {
       // transpile failed :(
-      cachedProgram = cachedTsFiles = null;
+      cachedProgram = null;
 
       const buildError = new BuildError();
       buildError.updatedDiagnostics = true;
@@ -127,14 +119,6 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
       // transpile success :)
       // cache the typescript program for later use
       cachedProgram = program;
-
-      if (workerConfig.writeInMemory) {
-        context.fileCache = cache;
-      }
-
-      if (workerConfig.cache) {
-        cachedTsFiles = cache;
-      }
 
       resolve();
     }
@@ -209,9 +193,9 @@ function transpileUpdateWorker(event: string, filePath: string, context: BuildCo
         const jsFile = { path: newPath, content: jsContent };
         const tsFile = { path: filePath, content: sourceText};
 
-        context.fileCache.set(sourceMapFile.path, sourceMapFile);
-        context.fileCache.set(jsFile.path, jsFile);
-        context.fileCache.set(tsFile.path, tsFile);
+        context.fileCache.put(sourceMapFile.path, sourceMapFile);
+        context.fileCache.put(jsFile.path, jsFile);
+        context.fileCache.put(tsFile.path, tsFile);
 
         // cool, the lil transpiling went through, but
         // let's still do the big transpiling (on another processor core)
@@ -251,13 +235,13 @@ function cleanFileNames(context: BuildContext, fileNames: string[]) {
   return fileNames.filter(f => (f.indexOf(removeFileName) === -1));
 }
 
-function writeSourceFiles(fileCache: Map<String, File>, sourceFiles: ts.SourceFile[]) {
+function writeSourceFiles(fileCache: FileCache, sourceFiles: ts.SourceFile[]) {
   for (const sourceFile of sourceFiles) {
-    fileCache.set(sourceFile.fileName, { path: sourceFile.fileName, content: sourceFile.text });
+    fileCache.put(sourceFile.fileName, { path: sourceFile.fileName, content: sourceFile.text });
   }
 }
 
-function writeTranspiledFilesCallback(fileCache: Map<String, File>, sourcePath: string, data: string, shouldInlineTemplate: boolean) {
+function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, data: string, shouldInlineTemplate: boolean) {
   sourcePath = normalize(sourcePath);
 
   if (endsWith(sourcePath, '.js')) {
@@ -274,7 +258,7 @@ function writeTranspiledFilesCallback(fileCache: Map<String, File>, sourcePath: 
       file.content = data;
     }
 
-    fileCache.set(sourcePath, file);
+    fileCache.put(sourcePath, file);
 
   } else if (endsWith(sourcePath, '.js.map')) {
 
@@ -285,7 +269,7 @@ function writeTranspiledFilesCallback(fileCache: Map<String, File>, sourcePath: 
     }
     file.content = data;
 
-    fileCache.set(sourcePath, file);
+    fileCache.put(sourcePath, file);
   }
 }
 
@@ -332,7 +316,6 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
 
 
 let cachedProgram: ts.Program = null;
-let cachedTsFiles: Map<string, File> = null;
 
 export function getTsConfigPath(context: BuildContext) {
   return join(context.rootDir, 'tsconfig.json');

@@ -83,7 +83,6 @@ function startWatcher(index: number, watcher: Watcher, context: BuildContext, wa
       filePath = join(context.rootDir, filePath);
 
       context.isUpdate = true;
-      context.fileChanged = filePath;
 
       Logger.debug(`watch callback start, id: ${watchCount}, isProd: ${context.isProd}, event: ${event}, path: ${filePath}`);
 
