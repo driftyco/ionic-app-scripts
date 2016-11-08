@@ -47,7 +47,7 @@ describe('ion-compiler', () => {
       // arrange
       let context: BuildContext = {};
       context.fileCache = new FileCache();
-      context.fileCache.put(importer, {
+      context.fileCache.set(importer, {
         path: importer,
         content: null
       });
@@ -63,7 +63,7 @@ describe('ion-compiler', () => {
       // arrange
       let context: BuildContext = {};
       context.fileCache = new FileCache();
-      context.fileCache.put(importer, {
+      context.fileCache.set(importer, {
         path: importer,
         content: ''
       });
@@ -79,7 +79,7 @@ describe('ion-compiler', () => {
       // arrange
       let context: BuildContext = {};
       context.fileCache = new FileCache();
-      context.fileCache.put(importer, {
+      context.fileCache.set(importer, {
         path: importer,
         content: 'fake irrelevant data'
       });
@@ -88,7 +88,7 @@ describe('ion-compiler', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = resolve(join(importerBasename, importee)) + '.ts';
 
-       context.fileCache.put(importeeFullPath, {
+       context.fileCache.set(importeeFullPath, {
          path: importeeFullPath,
          content: 'someContent'
        });
@@ -105,7 +105,7 @@ describe('ion-compiler', () => {
       // arrange
       let context: BuildContext = {};
       context.fileCache = new FileCache();
-      context.fileCache.put(importer, {
+      context.fileCache.set(importer, {
         path: importer,
         content: 'fake irrelevant data'
       });
@@ -114,7 +114,7 @@ describe('ion-compiler', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = resolve(join(importerBasename, importee)) + '.ts';
 
-      context.fileCache.put(importeeFullPath, { path: importeeFullPath, content: null});
+      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null});
 
       // act
       const result = resolveId(importee, importer, context);
@@ -128,7 +128,7 @@ describe('ion-compiler', () => {
       // arrange
       let context: BuildContext = {};
       context.fileCache = new FileCache();
-      context.fileCache.put(importer, {
+      context.fileCache.set(importer, {
         path: importer,
         content: 'fake irrelevant data'
       });
@@ -137,7 +137,7 @@ describe('ion-compiler', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = join(resolve(join(importerBasename, importee)), 'index.ts');
 
-      context.fileCache.put(importeeFullPath, { path: importeeFullPath, content: null });
+      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null });
 
       // act
       const result = resolveId(importee, importer, context);
@@ -151,7 +151,7 @@ describe('ion-compiler', () => {
       // arrange
       let context: BuildContext = {};
       context.fileCache = new FileCache();
-      context.fileCache.put(importer, {
+      context.fileCache.set(importer, {
         path: importer,
         content: 'fake irrelevant data'
       });
@@ -160,7 +160,7 @@ describe('ion-compiler', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = join(resolve(join(importerBasename, importee)), 'index.ts');
 
-      context.fileCache.put(importeeFullPath, { path: importeeFullPath, content: null});
+      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null});
 
       // act
       const result = resolveId(importee, importer, context);
@@ -173,7 +173,7 @@ describe('ion-compiler', () => {
       // arrange
       let context: BuildContext = {};
       context.fileCache = new FileCache();
-      context.fileCache.put(importer, {
+      context.fileCache.set(importer, {
         path: importer,
         content: 'fake irrelevant data'
       });

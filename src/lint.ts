@@ -4,7 +4,8 @@ import { BuildError, Logger } from './util/logger';
 import { generateContext, getUserConfigFile } from './util/config';
 import { join } from 'path';
 import { createProgram, findConfiguration, getFileNames } from 'tslint';
-import { runDiagnostics } from './util/logger-tslint';
+import { runTsLintDiagnostics } from './util/logger-tslint';
+import { printDiagnostics, DiagnosticsType } from './util/logger-diagnostics';
 import { runWorker } from './worker-client';
 import * as Linter from 'tslint';
 import * as fs from 'fs';
@@ -22,17 +23,10 @@ export function lint(context?: BuildContext, configFile?: string) {
 
 
 export function lintWorker(context: BuildContext, configFile: string) {
-  const logger = new Logger('lint');
   return getLintConfig(context, configFile).then(configFile => {
     // there's a valid tslint config, let's continue
     return lintApp(context, configFile);
-  }).then(() => {
-    // always finish and resolve
-    logger.finish();
-  }).catch(() => {
-    // always finish and resolve
-    logger.finish();
-  });
+  }).catch(() => {});
 }
 
 
@@ -101,7 +95,8 @@ function lintFile(context: BuildContext, program: ts.Program, filePath: string) 
 
         const lintResult = linter.lint();
         if (lintResult && lintResult.failures) {
-          runDiagnostics(context, <any>lintResult.failures);
+          const diagnostics = runTsLintDiagnostics(context, <any>lintResult.failures);
+          printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
         }
 
       } catch (e) {

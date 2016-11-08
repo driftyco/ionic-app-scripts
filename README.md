@@ -57,9 +57,9 @@ In many cases, the defaults which Ionic provides covers most of the scenarios re
 
 [Default Config Files](https://github.com/driftyco/ionic-app-scripts/tree/master/config)
 
-### NPM Config
+### package.json Config
 
-Within the `package.json` file, NPM also provides a handy [config](https://docs.npmjs.com/misc/config#per-package-config-settings) property. Below is an example of setting a custom config file using the `config` property in a project's `package.json`.
+Within the `package.json` file, there's also a handy [config](https://docs.npmjs.com/misc/config#per-package-config-settings) property which can be used. Below is an example of setting a custom config file using the `config` property in a project's `package.json`.
 
 ```
   "config": {
@@ -88,7 +88,7 @@ npm run build --rollup ./config/rollup.config.js
 
 ### Overriding Config Files
 
-| Config File | NPM Config Property | Cmd-line Flag         |
+| Config File | package.json Config | Cmd-line Flag         |
 |-------------|---------------------|-----------------------|
 | CleanCss    | `ionic_cleancss`    | `--cleancss` or `-e`  |
 | Copy        | `ionic_copy`        | `--copy` or `-y`      |
@@ -103,7 +103,7 @@ npm run build --rollup ./config/rollup.config.js
 
 ### Overriding Config Values
 
-| Config Values   | NPM Config Property | Cmd-line Flag | Defaults        |
+| Config Values   | package.json Config | Cmd-line Flag | Defaults        |
 |-----------------|---------------------|---------------|-----------------|
 | bundler         | `ionic_bundler`     | `--bundler`   | `webpack`       |
 | source map type | `ionic_source_map`  | `--sourceMap` | `eval`          |
@@ -113,9 +113,21 @@ npm run build --rollup ./config/rollup.config.js
 | build directory | `ionic_build_dir`   | `--buildDir`  | `build`         |
 
 
-### Ionic Environment Variable
+### Ionic Environment Variables
 
-The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` task is `prod`, and the `watch` task is `dev`. Note that `ionic serve` uses the `watch` task. Additionally, using the `--dev` command line flag will force the build to use `dev`.
+These environment variables are automatically set to [Node's `process.env`](https://nodejs.org/api/process.html#process_process_env) property. These variables can be useful from within custom configuration files, such as custom `webpack.config.js` file.
+
+| Environment Variable    | Description                                                          |
+|-------------------------|----------------------------------------------------------------------|
+| `IONIC_ENV`             | Value can be either `prod` or `dev`.                                 |
+| `IONIC_ROOT_DIR`        | The absolute path to the project's root directory.                   |
+| `IONIC_TMP_DIR`         | The absolute path to the project's temporary directory.              |
+| `IONIC_SRC_DIR`         | The absolute path to the app's source directory.                     |
+| `IONIC_WWW_DIR`         | The absolute path to the app's public distribution directory.        |
+| `IONIC_BUILD_DIR`       | The absolute path to the app's bundled js and css files.             |
+| `IONIC_APP_SCRIPTS_DIR` | The absolute path to the `@ionic/app-scripts` node_module directory. |
+
+The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` task is `prod`, and the `watch` and `serve` tasks are `dev`. Additionally, using the `--dev` command line flag will force the build to use `dev`.
 
 Please take a look at the bottom of the [default Rollup config file](https://github.com/driftyco/ionic-app-scripts/blob/master/config/rollup.config.js) to see how the `IONIC_ENV` environment variable is being used to conditionally change config values for production builds.
 

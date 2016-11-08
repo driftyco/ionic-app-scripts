@@ -35,9 +35,9 @@ export function serve(context?: BuildContext) {
     notifyOnConsoleLog: sendClientConsoleLogs(context)
   };
 
-  createHttpServer(config);
-  createLiveReloadServer(config);
   createNotificationServer(config);
+  createLiveReloadServer(config);
+  createHttpServer(config);
 
   return watch(context)
     .then(() => {

@@ -15,6 +15,8 @@ window.IonicDevServer = {
     this.openConnection();
 
     this.bindKeyboardEvents();
+
+    document.addEventListener("DOMContentLoaded", IonicDevServer.domReady);
   },
 
   handleError: function(err) {
@@ -141,8 +143,8 @@ window.IonicDevServer = {
         try {
           var msg = JSON.parse(ev.data);
           switch (msg.category) {
-            case 'taskEvent':
-              self.receiveTaskEvent(msg);
+            case 'buildUpdate':
+              self.buildUpdate(msg);
               break;
           }
         } catch (e) {
@@ -208,23 +210,99 @@ window.IonicDevServer = {
       }
     }
   },
-  receiveTaskEvent: function(taskEvent) {
-    if (taskEvent.data && ['bundle', 'sass', 'transpile', 'template'].indexOf(taskEvent.data.scope) > -1) {
-      this.consoleLog(taskEvent.data.msg);
-    }
-    if (taskEvent.data && taskEvent.data.type === 'failed') {
-      Notification.requestPermission().then(function(result) {
-        var options = {
-          body: taskEvent.data.msg,
-          icon: IonicDevServerConfig.notificationIconPath
+
+  buildUpdate: function(msg) {
+    var status = 'success';
+
+    if (msg.type === 'started') {
+      status = 'active';
+
+      var toastEle = document.getElementById('ion-diagnostics-toast');
+      if (!toastEle) {
+        toastEle = document.createElement('div');
+        toastEle.id = 'ion-diagnostics-toast';
+        var c = []
+        c.push('<div class="ion-diagnostics-toast-content">');
+        c.push('<div class="ion-diagnostics-toast-message">Building...</div>');
+        c.push('<div class="ion-diagnostics-toast-spinner">');
+        c.push('<svg viewBox="0 0 64 64"><circle transform="translate(32,32)" r="26"></circle></svg>');
+        c.push('</div>');
+        c.push('</div>');
+        toastEle.innerHTML = c.join('');
+        document.body.insertBefore(toastEle, document.body.firstChild);
+      }
+      IonicDevServer.toastTimerId = setTimeout(function() {
+        var toastEle = document.getElementById('ion-diagnostics-toast');
+        if (toastEle) {
+          toastEle.classList.add('ion-diagnostics-toast-active');
         }
-        var notification = new Notification(taskEvent.data.scope, options);
-        setTimeout(notification.close.bind(n), 5000); 
-      });
+      }, 50);
+
+    } else {
+      status = msg.data.diagnosticsHtml ? 'error' : 'success';
+
+      clearTimeout(IonicDevServer.toastTimerId);
+
+      var toastEle = document.getElementById('ion-diagnostics-toast');
+      if (toastEle) {
+        toastEle.classList.remove('ion-diagnostics-toast-active');
+      }
+
+      var diagnosticsEle = document.getElementById('ion-diagnostics');
+      if (diagnosticsEle && !msg.data.diagnosticsHtml) {
+        diagnosticsEle.classList.add('ion-diagnostics-fade-out');
+        IonicDevServer.diagnosticsTimerId = setTimeout(function() {
+          var diagnosticsEle = document.getElementById('ion-diagnostics');
+          if (diagnosticsEle) {
+            diagnosticsEle.parentElement.removeChild(diagnosticsEle);
+          }
+        }, 100);
+
+      } else if (msg.data.diagnosticsHtml) {
+        clearTimeout(IonicDevServer.diagnosticsTimerId);
+
+        if (!diagnosticsEle) {
+          diagnosticsEle = document.createElement('div');
+          diagnosticsEle.id = 'ion-diagnostics';
+          diagnosticsEle.className = 'ion-diagnostics-fade-out';
+          document.body.insertBefore(diagnosticsEle, document.body.firstChild);
+          IonicDevServer.diagnosticsTimerId = setTimeout(function() {
+            var diagnosticsEle = document.getElementById('ion-diagnostics');
+            if (diagnosticsEle) {
+              diagnosticsEle.classList.remove('ion-diagnostics-fade-out');
+            }
+          }, 24);
+        }
+        diagnosticsEle.innerHTML = msg.data.diagnosticsHtml;
+      }
+    }
+
+    IonicDevServer.buildStatus(status);
+  },
+
+  buildStatus: function (status) {
+    var iconLinks = document.querySelectorAll('link[rel="icon"]');
+    for (var i = 0; i < iconLinks.length; i++) {
+      iconLinks[i].parentElement.removeChild(iconLinks[i]);
+    }
+
+    var iconLink = document.createElement('link');
+    iconLink.rel = 'icon';
+    iconLink.type = 'image/png';
+    iconLink.href = '__ion-dev-server/ion-build-' + status + '.png?v=' + IonicDevServerConfig.appScriptsVersion;
+    document.head.appendChild(iconLink);
+  },
+
+  domReady: function() {
+    document.removeEventListener("DOMContentLoaded", IonicDevServer.domReady);
+    var diagnosticsEle = document.getElementById('ion-diagnostics');
+    if (diagnosticsEle) {
+      IonicDevServer.buildStatus('error');
+    } else {
+      IonicDevServer.buildStatus('success');
     }
   }
+
 };
-
-
 
 IonicDevServer.start();

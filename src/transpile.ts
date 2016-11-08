@@ -1,15 +1,16 @@
 import { FileCache } from './util/file-cache';
-import { BuildContext, File } from './util/interfaces';
+import { BuildContext, BuildState } from './util/interfaces';
 import { BuildError, Logger } from './util/logger';
 import { buildJsSourceMaps } from './bundle';
-import { changeExtension, endsWith } from './util/helpers';
+import { changeExtension } from './util/helpers';
+import { EventEmitter } from 'events';
 import { generateContext } from './util/config';
 import { inlineTemplate } from './template';
-import { join, normalize, resolve } from 'path';
-import { lintUpdate } from './lint';
 import { readFileSync } from 'fs';
-import { runDiagnostics, clearTypeScriptDiagnostics } from './util/logger-typescript';
-import { runWorker } from './worker-client';
+import { runTypeScriptDiagnostics } from './util/logger-typescript';
+import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './util/logger-diagnostics';
+import { fork, ChildProcess } from 'child_process';
+import * as path from 'path';
 import * as ts from 'typescript';
 
 
@@ -28,20 +29,17 @@ export function transpile(context?: BuildContext) {
 
   return transpileWorker(context, workerConfig)
     .then(() => {
+      context.transpileState = BuildState.SuccessfulBuild;
       logger.finish();
     })
     .catch(err => {
+      context.transpileState = BuildState.RequiresBuild;
       throw logger.fail(err);
     });
 }
 
 
 export function transpileUpdate(event: string, filePath: string, context: BuildContext) {
-  if (!filePath.endsWith('.ts') ) {
-    // however this ran, the changed file wasn't a .ts file so carry on
-    return Promise.resolve();
-  }
-
   const workerConfig: TranspileWorkerConfig = {
     configFile: getTsConfigPath(context),
     writeInMemory: true,
@@ -54,9 +52,11 @@ export function transpileUpdate(event: string, filePath: string, context: BuildC
 
   return transpileUpdateWorker(event, filePath, context, workerConfig)
     .then(tsFiles => {
+      context.transpileState = BuildState.SuccessfulBuild;
       logger.finish();
     })
     .catch(err => {
+      context.transpileState = BuildState.RequiresBuild;
       throw logger.fail(err);
     });
 }
@@ -70,7 +70,7 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
   // let's do this
   return new Promise((resolve, reject) => {
 
-    clearTypeScriptDiagnostics(context);
+    clearDiagnostics(context, DiagnosticsType.TypeScript);
 
     // get the tsconfig data
     const tsConfig = getTsConfig(context, workerConfig.configFile);
@@ -101,28 +101,34 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
       }
     });
 
+    // cache the typescript program for later use
+    cachedProgram = program;
+
     const tsDiagnostics = program.getSyntacticDiagnostics()
                           .concat(program.getSemanticDiagnostics())
                           .concat(program.getOptionsDiagnostics());
 
-    const diagnostics = runDiagnostics(context, tsDiagnostics);
+    const diagnostics = runTypeScriptDiagnostics(context, tsDiagnostics);
 
     if (diagnostics.length) {
-      // transpile failed :(
-      cachedProgram = null;
+      // darn, we've got some things wrong, transpile failed :(
+      printDiagnostics(context, DiagnosticsType.TypeScript, diagnostics, true, true);
 
-      const buildError = new BuildError();
-      buildError.updatedDiagnostics = true;
-      reject(buildError);
+      reject(new BuildError());
 
     } else {
       // transpile success :)
-      // cache the typescript program for later use
-      cachedProgram = program;
-
       resolve();
     }
   });
+}
+
+
+export function canRunTranspileUpdate(event: string, filePath: string, context: BuildContext) {
+  if (event === 'change' && context.fileCache) {
+    return context.fileCache.has(path.resolve(filePath));
+  }
+  return false;
 }
 
 
@@ -131,101 +137,116 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
  * something errors out then it falls back to do the full build.
  */
 function transpileUpdateWorker(event: string, filePath: string, context: BuildContext, workerConfig: TranspileWorkerConfig) {
-  clearTypeScriptDiagnostics(context);
+  return new Promise((resolve, reject) => {
+    clearDiagnostics(context, DiagnosticsType.TypeScript);
 
-  filePath = resolve(filePath);
+    filePath = path.resolve(filePath);
 
-  // let's run tslint on this one file too, but run it in another
-  // processor core and don't let it's results hang anything up
-  lintUpdate(event, filePath, context);
+    // an existing ts file we already know about has changed
+    // let's "TRY" to do a single module build for this one file
+    const tsConfig = getTsConfig(context, workerConfig.configFile);
 
-  let file: File = null;
-  if (context.fileCache) {
-    file = context.fileCache.get(filePath);
-  }
-  if (event === 'change' && file) {
-    try {
-      // an existing ts file we already know about has changed
-      // let's "TRY" to do a single module build for this one file
-      const tsConfig = getTsConfig(context, workerConfig.configFile);
+    // build the ts source maps if the bundler is going to use source maps
+    tsConfig.options.sourceMap = buildJsSourceMaps(context);
 
-      // build the ts source maps if the bundler is going to use source maps
-      tsConfig.options.sourceMap = buildJsSourceMaps(context);
+    const transpileOptions: ts.TranspileOptions = {
+      compilerOptions: tsConfig.options,
+      fileName: filePath,
+      reportDiagnostics: true
+    };
 
-      const transpileOptions: ts.TranspileOptions = {
-        compilerOptions: tsConfig.options,
-        fileName: filePath,
-        reportDiagnostics: true
-      };
+    // let's manually transpile just this one ts file
+    // load up the source text for this one module
+    const sourceText = readFileSync(filePath, 'utf8');
 
-      // let's manually transpile just this one ts file
-      // load up the source text for this one module
-      const sourceText = readFileSync(filePath, 'utf8');
+    // transpile this one module
+    const transpileOutput = ts.transpileModule(sourceText, transpileOptions);
 
-      // transpile this one module
-      const transpileOutput = ts.transpileModule(sourceText, transpileOptions);
+    const diagnostics = runTypeScriptDiagnostics(context, transpileOutput.diagnostics);
 
-      const diagnostics = runDiagnostics(context, transpileOutput.diagnostics);
+    if (diagnostics.length) {
+      printDiagnostics(context, DiagnosticsType.TypeScript, diagnostics, false, true);
 
-      if (diagnostics.length) {
-        // darn, we've got some errors with this transpiling :(
-        // but at least we reported the errors like really really fast, so there's that
-        Logger.debug(`transpileUpdateWorker: transpileModule, diagnostics: ${diagnostics.length}`);
+      // darn, we've got some errors with this transpiling :(
+      // but at least we reported the errors like really really fast, so there's that
+      Logger.debug(`transpileUpdateWorker: transpileModule, diagnostics: ${diagnostics.length}`);
 
-        const buildError = new BuildError();
-        buildError.updatedDiagnostics = true;
-        return Promise.reject(buildError);
+      reject(new BuildError());
 
-      } else if (!transpileOutput.outputText) {
-        // derp, not sure how there's no output text, just do a full build
-        Logger.debug(`transpileUpdateWorker: transpileModule, missing output text`);
+    } else {
+      // convert the path to have a .js file extension for consistency
+      const newPath = changeExtension(filePath, '.js');
 
-      } else {
-        // convert the path to have a .js file extension for consistency
-        const newPath = changeExtension(filePath, '.js');
-
-        const sourceMapFile = { path: newPath + '.map', content: transpileOutput.sourceMapText };
-        let jsContent: string = transpileOutput.outputText;
-        if (workerConfig.inlineTemplate) {
-          // use original path for template inlining
-          jsContent = inlineTemplate(transpileOutput.outputText, filePath);
-        }
-        const jsFile = { path: newPath, content: jsContent };
-        const tsFile = { path: filePath, content: sourceText};
-
-        context.fileCache.put(sourceMapFile.path, sourceMapFile);
-        context.fileCache.put(jsFile.path, jsFile);
-        context.fileCache.put(tsFile.path, tsFile);
-
-        // cool, the lil transpiling went through, but
-        // let's still do the big transpiling (on another processor core)
-        // and if there's anything wrong it'll print out messages
-        // however, it doesn't hang anything up
-        // also make sure it does a little as possible
-        const fullBuildWorkerConfig: TranspileWorkerConfig = {
-          configFile: workerConfig.configFile,
-          writeInMemory: false,
-          sourceMaps: false,
-          cache: false,
-          inlineTemplate: false
-        };
-        runWorker('transpile', 'transpileWorker', context, fullBuildWorkerConfig);
-
-        return Promise.resolve();
+      const sourceMapFile = { path: newPath + '.map', content: transpileOutput.sourceMapText };
+      let jsContent: string = transpileOutput.outputText;
+      if (workerConfig.inlineTemplate) {
+        // use original path for template inlining
+        jsContent = inlineTemplate(transpileOutput.outputText, filePath);
       }
+      const jsFile = { path: newPath, content: jsContent };
+      const tsFile = { path: filePath, content: sourceText };
 
-    } catch (e) {
-      // umm, oops. Yeah let's just do a full build then
-      Logger.debug(`transpileModule error: ${e}`);
-      throw new BuildError(e);
+      context.fileCache.set(sourceMapFile.path, sourceMapFile);
+      context.fileCache.set(jsFile.path, jsFile);
+      context.fileCache.set(tsFile.path, tsFile);
+
+      resolve();
     }
+  });
+}
+
+
+export function transpileDiagnosticsOnly(context: BuildContext) {
+  return new Promise(resolve => {
+    workerEvent.once('DiagnosticsWorkerDone', () => {
+      resolve();
+    });
+
+    runDiagnosticsWorker(context);
+  });
+}
+
+const workerEvent = new EventEmitter();
+let diagnosticsWorker: ChildProcess = null;
+
+function runDiagnosticsWorker(context: BuildContext) {
+  if (!diagnosticsWorker) {
+    const workerModule = path.join(__dirname, 'transpile-worker.js');
+    diagnosticsWorker = fork(workerModule, [], { env: { FORCE_COLOR: true } });
+
+    Logger.debug(`diagnosticsWorker created, pid: ${diagnosticsWorker.pid}`);
+
+    diagnosticsWorker.on('error', (err: any) => {
+      Logger.error(`diagnosticsWorker error, pid: ${diagnosticsWorker.pid}, error: ${err}`);
+      workerEvent.emit('DiagnosticsWorkerDone');
+    });
+
+    diagnosticsWorker.on('exit', (code: number) => {
+      Logger.debug(`diagnosticsWorker exited, pid: ${diagnosticsWorker.pid}`);
+      diagnosticsWorker = null;
+    });
+
+    diagnosticsWorker.on('message', (msg: TranspileWorkerMessage) => {
+      workerEvent.emit('DiagnosticsWorkerDone');
+    });
   }
 
-  // do a full build if it wasn't an existing file that changed
-  // or we haven't transpiled the whole thing yet
-  // or there were errors trying to transpile just the one module
-  Logger.debug(`transpileUpdateWorker: full build, context.tsFiles ${!!context.fileCache}, event: ${event}, file: ${filePath}`);
-  return transpileWorker(context, workerConfig);
+  const msg: TranspileWorkerMessage = {
+    rootDir: context.rootDir,
+    buildDir: context.buildDir,
+    isProd: context.isProd,
+    configFile: getTsConfigPath(context)
+  };
+  diagnosticsWorker.send(msg);
+}
+
+
+export interface TranspileWorkerMessage {
+  rootDir?: string;
+  buildDir?: string;
+  isProd?: boolean;
+  configFile?: string;
+  transpileSuccess?: boolean;
 }
 
 
@@ -237,14 +258,14 @@ function cleanFileNames(context: BuildContext, fileNames: string[]) {
 
 function writeSourceFiles(fileCache: FileCache, sourceFiles: ts.SourceFile[]) {
   for (const sourceFile of sourceFiles) {
-    fileCache.put(sourceFile.fileName, { path: sourceFile.fileName, content: sourceFile.text });
+    fileCache.set(sourceFile.fileName, { path: sourceFile.fileName, content: sourceFile.text });
   }
 }
 
 function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, data: string, shouldInlineTemplate: boolean) {
-  sourcePath = normalize(sourcePath);
+  sourcePath = path.normalize(sourcePath);
 
-  if (endsWith(sourcePath, '.js')) {
+  if (sourcePath.endsWith('.js')) {
     sourcePath = sourcePath.substring(0, sourcePath.length - 3) + '.js';
 
     let file = fileCache.get(sourcePath);
@@ -258,9 +279,9 @@ function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, 
       file.content = data;
     }
 
-    fileCache.put(sourcePath, file);
+    fileCache.set(sourcePath, file);
 
-  } else if (endsWith(sourcePath, '.js.map')) {
+  } else if (sourcePath.endsWith('.js.map')) {
 
     sourcePath = sourcePath.substring(0, sourcePath.length - 7) + '.js.map';
     let file = fileCache.get(sourcePath);
@@ -269,7 +290,7 @@ function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, 
     }
     file.content = data;
 
-    fileCache.put(sourcePath, file);
+    fileCache.set(sourcePath, file);
   }
 }
 
@@ -295,12 +316,11 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
                                 ts.sys, context.rootDir,
                                 {}, tsConfigPath);
 
-    const diagnostics = runDiagnostics(context, parsedConfig.errors);
+    const diagnostics = runTypeScriptDiagnostics(context, parsedConfig.errors);
 
     if (diagnostics.length) {
-      const buildError = new BuildError();
-      buildError.updatedDiagnostics = true;
-      throw buildError;
+      printDiagnostics(context, DiagnosticsType.TypeScript, diagnostics, true, true);
+      throw new BuildError();
     }
 
     config = {
@@ -318,7 +338,7 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
 let cachedProgram: ts.Program = null;
 
 export function getTsConfigPath(context: BuildContext) {
-  return join(context.rootDir, 'tsconfig.json');
+  return path.join(context.rootDir, 'tsconfig.json');
 }
 
 export interface TsConfig {

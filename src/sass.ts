@@ -1,11 +1,11 @@
 import { basename, dirname, join, sep } from 'path';
-import { BuildContext, TaskInfo } from './util/interfaces';
+import { BuildContext, BuildState, TaskInfo } from './util/interfaces';
 import { BuildError, Logger } from './util/logger';
-import { emit, EventType } from './util/events';
+import { bundle } from './bundle';
 import { ensureDirSync, readdirSync, writeFile } from 'fs-extra';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
-import { getModulePathsCache } from './util/helpers';
-import { runDiagnostics, clearSassDiagnostics } from './util/logger-sass';
+import { runSassDiagnostics } from './util/logger-sass';
+import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './util/logger-diagnostics';
 import { SassError, render as nodeSassRender, Result } from 'node-sass';
 import * as postcss from 'postcss';
 import * as autoprefixer from 'autoprefixer';
@@ -17,14 +17,14 @@ export function sass(context?: BuildContext, configFile?: string) {
 
   const logger = new Logger('sass');
 
-  context.successfulSass = false;
-
   return sassWorker(context, configFile)
-    .then(() => {
-      context.successfulSass = true;
+    .then(outFile => {
+      context.sassState = BuildState.SuccessfulBuild;
       logger.finish();
+      return outFile;
     })
     .catch(err => {
+      context.sassState = BuildState.RequiresBuild;
       throw logger.fail(err);
     });
 }
@@ -36,29 +36,28 @@ export function sassUpdate(event: string, filePath: string, context: BuildContex
   const logger = new Logger('sass update');
 
   return sassWorker(context, configFile)
-    .then(() => {
+    .then(outFile => {
+      context.sassState = BuildState.SuccessfulBuild;
       logger.finish();
+      return outFile;
     })
     .catch(err => {
+      context.sassState = BuildState.RequiresBuild;
       throw logger.fail(err);
     });
 }
 
 
 export function sassWorker(context: BuildContext, configFile: string) {
-  return new Promise((resolve, reject) => {
-    if (!context.moduleFiles) {
-      // we haven't already gotten the moduleFiles in this process
-      // see if we have it cached
-      context.moduleFiles = getModulePathsCache();
-      if (!context.moduleFiles) {
-        reject(new BuildError('Cannot generate Sass files without first bundling JavaScript ' +
-                    'files in order to know all used modules. Please build JS files first.'));
-        return;
-      }
-    }
+  const bundlePromise: Promise<any>[] = [];
+  if (!context.moduleFiles) {
+    // sass must always have a list of all the used module files
+    // so ensure we bundle if moduleFiles are currently unknown
+    bundlePromise.push(bundle(context));
+  }
 
-    clearSassDiagnostics(context);
+  return Promise.all(bundlePromise).then(() => {
+    clearDiagnostics(context, DiagnosticsType.Sass);
 
     const sassConfig: SassConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
 
@@ -84,15 +83,7 @@ export function sassWorker(context: BuildContext, configFile: string) {
       generateSassData(context, sassConfig);
     }
 
-    return render(context, sassConfig)
-      .then(() => {
-        resolve(true);
-      }, (reason: any) => {
-        reject(reason);
-      })
-      .catch(err => {
-        reject(new BuildError(err));
-      });
+    return render(context, sassConfig);
   });
 }
 
@@ -219,8 +210,11 @@ function getComponentDirectories(moduleDirectories: string[], sassConfig: SassCo
   // filter out module directories we know wouldn't have sibling component sass file
   // just a way to reduce the amount of lookups to be done later
   return moduleDirectories.filter(moduleDirectory => {
+    // normalize this directory is using / between directories
+    moduleDirectory = moduleDirectory.replace(/\\/g, '/');
+
     for (var i = 0; i < sassConfig.excludeModules.length; i++) {
-      if (moduleDirectory.indexOf(sassConfig.excludeModules[i]) > -1) {
+      if (moduleDirectory.indexOf('/node_modules/' + sassConfig.excludeModules[i] + '/') > -1) {
         return false;
       }
     }
@@ -229,14 +223,14 @@ function getComponentDirectories(moduleDirectories: string[], sassConfig: SassCo
 }
 
 
-function render(context: BuildContext, sassConfig: SassConfig) {
+function render(context: BuildContext, sassConfig: SassConfig): Promise<string> {
   return new Promise((resolve, reject) => {
 
-    if (context.useSassCache && lastRenderKey !== null) {
+    if (lastRenderKey !== null) {
       // if the sass data imports are same, don't bother
       const renderKey = getRenderCacheKey(sassConfig);
       if (renderKey === lastRenderKey) {
-        resolve();
+        resolve(sassConfig.outFile);
         return;
       }
     }
@@ -249,20 +243,18 @@ function render(context: BuildContext, sassConfig: SassConfig) {
     }
 
     nodeSassRender(sassConfig, (sassError: SassError, sassResult: Result) => {
-      const diagnostics = runDiagnostics(context, sassError);
+      const diagnostics = runSassDiagnostics(context, sassError);
 
       if (diagnostics.length) {
+        printDiagnostics(context, DiagnosticsType.Sass, diagnostics, true, true);
         // sass render error :(
-        const buildError = new BuildError();
-        buildError.updatedDiagnostics = true;
-        emit(EventType.UpdatedDiagnostics);
-        reject(buildError);
+        reject(new BuildError());
 
       } else {
         // sass render success :)
-        renderSassSuccess(context, sassResult, sassConfig).then(() => {
+        renderSassSuccess(context, sassResult, sassConfig).then(outFile => {
           lastRenderKey = getRenderCacheKey(sassConfig);
-          resolve();
+          resolve(outFile);
 
         }).catch(err => {
           reject(new BuildError(err));
@@ -273,7 +265,7 @@ function render(context: BuildContext, sassConfig: SassConfig) {
 }
 
 
-function renderSassSuccess(context: BuildContext, sassResult: Result, sassConfig: SassConfig): Promise<any> {
+function renderSassSuccess(context: BuildContext, sassResult: Result, sassConfig: SassConfig): Promise<string> {
   if (sassConfig.autoprefixer) {
     // with autoprefixer
 
@@ -361,7 +353,7 @@ function generateSourceMaps(sassResult: Result, sassConfig: SassConfig) {
 }
 
 
-function writeOutput(context: BuildContext, sassConfig: SassConfig, cssOutput: string, mappingsOutput: string) {
+function writeOutput(context: BuildContext, sassConfig: SassConfig, cssOutput: string, mappingsOutput: string): Promise<string> {
   return new Promise((resolve, reject) => {
 
     Logger.debug(`sass start write output: ${sassConfig.outFile}`);
@@ -393,12 +385,9 @@ function writeOutput(context: BuildContext, sassConfig: SassConfig, cssOutput: s
           });
         }
 
-        // notify a file has changed
-        emit(EventType.SassFinished, sassConfig.outFile);
-
         // css file all saved
         // note that we're not waiting on the css map to finish saving
-        resolve();
+        resolve(sassConfig.outFile);
       }
     });
   });

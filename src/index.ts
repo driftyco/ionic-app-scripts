@@ -1,4 +1,4 @@
-export { build, buildUpdate, fullBuildUpdate } from './build';
+export { build, buildUpdate } from './build';
 export { bundle, bundleUpdate } from './bundle';
 export { clean } from './clean';
 export { cleancss } from './cleancss';
@@ -8,7 +8,6 @@ export { minify } from './minify';
 export { ngc } from './ngc';
 export { sass, sassUpdate } from './sass';
 export { transpile } from './transpile';
-export { templateUpdate } from './template';
 export { uglifyjs } from './uglifyjs';
 export { watch } from './watch';
 export * from './util/config';

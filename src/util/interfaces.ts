@@ -10,16 +10,23 @@ export interface BuildContext {
   moduleFiles?: string[];
   isProd?: boolean;
   isWatch?: boolean;
-  isUpdate?: boolean;
-  fullBuildCompleted?: boolean;
+
   bundler?: string;
-  useTranspileCache?: boolean;
-  useBundleCache?: boolean;
-  useSassCache?: boolean;
   fileCache?: FileCache;
-  successfulSass?: boolean;
   inlineTemplates?: boolean;
   webpackWatch?: any;
+
+  sassState?: BuildState;
+  transpileState?: BuildState;
+  templateState?: BuildState;
+  bundleState?: BuildState;
+}
+
+
+export enum BuildState {
+  SuccessfulBuild,
+  RequiresUpdate,
+  RequiresBuild
 }
 
 
@@ -48,6 +55,7 @@ export interface TaskInfo {
   packageConfig: string;
   defaultConfigFile: string;
 }
+
 
 export interface File {
   path: string;

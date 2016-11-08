@@ -1,4 +1,6 @@
+import { getAppScriptsVersion } from '../util/logger';
 import { LOGGER_DIR } from './serve-config';
+
 
 const LOGGER_HEADER = '<!-- Ionic Dev Server: Injected Logger Script -->';
 
@@ -25,16 +27,17 @@ export function injectNotificationScript(content: any, notifyOnConsoleLog: boole
 }
 
 function getConsoleLoggerScript(notifyOnConsoleLog: boolean, notificationPort: Number) {
+  const appScriptsVersion = getAppScriptsVersion();
   const ionDevServer = JSON.stringify({
     sendConsoleLogs: notifyOnConsoleLog,
     wsPort: notificationPort,
-    notificationIconPath: `${LOGGER_DIR}/ionic.png`
+    appScriptsVersion: appScriptsVersion
   });
 
   return `
   ${LOGGER_HEADER}
   <script>var IonicDevServerConfig=${ionDevServer};</script>
-  <link href="${LOGGER_DIR}/ion-dev.css" rel="stylesheet">
-  <script src="${LOGGER_DIR}/ion-dev.js"></script>
+  <link href="${LOGGER_DIR}/ion-dev.css?v=${appScriptsVersion}" rel="stylesheet">
+  <script src="${LOGGER_DIR}/ion-dev.js?v=${appScriptsVersion}"></script>
   `;
 }

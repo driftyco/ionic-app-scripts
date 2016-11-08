@@ -6,12 +6,10 @@ import * as fs from 'fs';
 import * as url from 'url';
 import { ServeConfig, LOGGER_DIR } from './serve-config';
 import { Logger } from '../util/logger';
-import { promisify } from '../util/promisify';
 import * as proxyMiddleware from 'proxy-middleware';
-import { readDiagnosticsHtmlSync } from '../util/logger-diagnostics';
+import { injectDiagnosticsHtml } from '../util/logger-diagnostics';
 import { getProjectJson, IonicProject } from '../util/ionic-project';
 
-const readFilePromise = promisify<Buffer, string>(fs.readFile);
 
 /**
  * Create HTTP server
@@ -58,31 +56,27 @@ function setupProxies(app: express.Application) {
  */
 function serveIndex(req: express.Request, res: express.Response)  {
   const config: ServeConfig = req.app.get('serveConfig');
-  let htmlFile = path.join(config.wwwDir, 'index.html');
-  let diagnosticsHtml = readDiagnosticsHtmlSync(config.buildDir);
 
-  function httpResponse(content: any) {
+  // respond with the index.html file
+  const indexFileName = path.join(config.wwwDir, 'index.html');
+  fs.readFile(indexFileName, (err, indexHtml) => {
     if (config.useLiveReload) {
-      content = injectLiveReloadScript(content, config.host, config.liveReloadPort);
+      indexHtml = injectLiveReloadScript(indexHtml, config.host, config.liveReloadPort);
     }
+
     if (config.useNotifier) {
-      content = injectNotificationScript(content, config.notifyOnConsoleLog, config.notificationPort);
+      indexHtml = injectNotificationScript(indexHtml, config.notifyOnConsoleLog, config.notificationPort);
     }
 
-    // File found so lets send it back to the response
-    res.set('Content-Type', 'text/html');
-    res.send(content);
-  }
+    indexHtml = injectDiagnosticsHtml(config.buildDir, indexHtml);
 
-  if (diagnosticsHtml) {
-    httpResponse(diagnosticsHtml);
-  } else {
-    readFilePromise(htmlFile).then(httpResponse);
-  }
+    res.set('Content-Type', 'text/html');
+    res.send(indexHtml);
+  });
 }
 
 /**
- * http responder for cordova.js fiel
+ * http responder for cordova.js file
  */
 function serveCordovaJS(req: express.Request, res: express.Response) {
   res.set('Content-Type', 'application/javascript');

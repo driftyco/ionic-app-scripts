@@ -31,7 +31,7 @@
   "dependencies": {
     "autoprefixer": "6.4.1",
     "chalk": "1.1.3",
-    "chokidar": "1.6.0",
+    "chokidar": "1.6.1",
     "clean-css": "3.4.19",
     "conventional-changelog-cli": "^1.2.0",
     "cross-spawn": "4.0.0",
