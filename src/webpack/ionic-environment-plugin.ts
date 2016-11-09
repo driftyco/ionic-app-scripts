@@ -1,5 +1,5 @@
 import { FileCache } from '../util/file-cache';
-import { Logger } from '../util/Logger';
+import { Logger } from '../util/logger';
 import { HybridFileSystem } from './hybrid-file-system';
 import { WatchMemorySystem } from './watch-memory-system';
 
