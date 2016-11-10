@@ -2,7 +2,6 @@ import { BuildContext } from './util/interfaces';
 import { generateContext, getConfigValue, hasConfigValue } from './util/config';
 import { Logger } from './util/logger';
 import { watch } from './watch';
-import * as chalk from 'chalk';
 import open from './util/open';
 import { createNotificationServer } from './dev-server/notification-server';
 import { createHttpServer } from './dev-server/http-server';
@@ -21,6 +20,7 @@ export function serve(context?: BuildContext) {
   const config: ServeConfig = {
     httpPort: getHttpServerPort(context),
     host: getHttpServerHost(context),
+    rootDir: context.rootDir,
     wwwDir: context.wwwDir,
     buildDir: context.buildDir,
     launchBrowser: launchBrowser(context),
@@ -30,14 +30,13 @@ export function serve(context?: BuildContext) {
     liveReloadPort: getLiveReloadServerPort(context),
     notificationPort: getNotificationPort(context),
     useServerLogs: useServerLogs(context),
-    useNotifier: true,
     useProxy: useProxy(context),
     notifyOnConsoleLog: sendClientConsoleLogs(context)
   };
 
-  createHttpServer(config);
-  createLiveReloadServer(config);
   createNotificationServer(config);
+  createLiveReloadServer(config);
+  createHttpServer(config);
 
   return watch(context)
     .then(() => {
@@ -59,7 +58,8 @@ function onReady(config: ServeConfig, context: BuildContext) {
 
     open(openOptions.join(''), browserToLaunch(context));
   }
-  Logger.info(chalk.green(`dev server running: http://${config.host}:${config.httpPort}/`));
+  Logger.info(`dev server running: http://${config.host}:${config.httpPort}/`, 'green', true);
+  Logger.newLine();
 }
 
 function getHttpServerPort(context: BuildContext) {

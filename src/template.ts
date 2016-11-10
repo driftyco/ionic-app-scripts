@@ -1,62 +1,56 @@
-import { emit, EventType } from './util/events';
-import { BUNDLER_WEBPACK } from './util/config';
-import { BuildContext } from './util/interfaces';
-import { BuildError, IgnorableError, Logger } from './util/logger';
-import { bundleUpdate, getJsOutputDest } from './bundle';
-import { dirname, extname, join, parse, resolve } from 'path';
-import { readdirSync, readFileSync, writeFileSync } from 'fs';
-import { sassUpdate } from './sass';
-import { buildUpdate } from './build';
+import { BuildContext, BuildState } from './util/interfaces';
+import { Logger } from './util/logger';
+import { getJsOutputDest } from './bundle';
+import { join, parse, resolve } from 'path';
+import { readFileSync, writeFile } from 'fs';
 
 
-export function templateUpdate(event: string, filePath: string, context: BuildContext) {
-  const logger = new Logger('template update');
+export function templateUpdate(event: string, htmlFilePath: string, context: BuildContext) {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const bundleOutputDest = getJsOutputDest(context);
 
-  return templateUpdateWorker(event, filePath, context)
-    .then(() => {
-      logger.finish();
-    })
-    .catch(err => {
-      if (err instanceof IgnorableError) {
-        throw err;
-      }
-      throw logger.fail(err);
-    });
-}
-
-
-function templateUpdateWorker(event: string, filePath: string, context: BuildContext) {
-  Logger.debug(`templateUpdate, event: ${event}, path: ${filePath}`);
-
-  if (event === 'change') {
-    if (context.bundler === BUNDLER_WEBPACK) {
-      Logger.debug(`templateUpdate: updating webpack file`);
-      const typescriptFile = getTemplatesTypescriptFile(context, filePath);
-      if (typescriptFile && typescriptFile.length > 0) {
-        return buildUpdate(event, typescriptFile, context);
-      }
-    } else if (updateBundledJsTemplate(context, filePath)) {
-      Logger.debug(`templateUpdate, updated js bundle, path: ${filePath}`);
-      // technically, the bundle has changed so emit an event saying so
-      emit(EventType.BundleFinished, getJsOutputDest(context));
-      return Promise.resolve();
+    function failed() {
+      context.transpileState = BuildState.RequiresBuild;
+      context.bundleState = BuildState.RequiresUpdate;
+      resolve();
     }
-  }
 
-  Logger.debug('templateUpdateWorker: Can\'t update template, doing a full rebuild');
-  // not sure how it changed, just do a full rebuild without the bundle cache
-  context.useBundleCache = false;
-  return bundleUpdate(event, filePath, context)
-    .then(() => {
-      context.useSassCache = true;
-      return sassUpdate(event, filePath, context);
-    })
-    .catch(err => {
-      if (err instanceof IgnorableError) {
-        throw err;
+    try {
+      let bundleSourceText = readFileSync(bundleOutputDest, 'utf8');
+      let newTemplateContent = readFileSync(htmlFilePath, 'utf8');
+
+      bundleSourceText = replaceBundleJsTemplate(bundleSourceText, newTemplateContent, htmlFilePath);
+
+      if (bundleSourceText) {
+        // awesome, all good and template updated in the bundle file
+        const logger = new Logger(`template update`);
+        logger.setStartTime(start);
+
+        writeFile(bundleOutputDest, bundleSourceText, { encoding: 'utf8'}, (err) => {
+          if (err) {
+            // eww, error saving
+            logger.fail(err);
+            failed();
+
+          } else {
+            // congrats, all gud
+            Logger.debug(`updateBundledJsTemplate, updated: ${htmlFilePath}`);
+            context.templateState = BuildState.SuccessfulBuild;
+            logger.finish();
+            resolve();
+          }
+        });
+
+      } else {
+        failed();
       }
-      throw new BuildError(err);
-    });
+
+    } catch (e) {
+      Logger.debug(`updateBundledJsTemplate error: ${e}`);
+      failed();
+    }
+  });
 }
 
 
@@ -111,94 +105,38 @@ export function replaceTemplateUrl(match: TemplateUrlMatch, htmlFilePath: string
 }
 
 
-function updateBundledJsTemplate(context: BuildContext, htmlFilePath: string) {
-  Logger.debug(`updateBundledJsTemplate, start: ${htmlFilePath}`);
-
-  const outputDest = getJsOutputDest(context);
-
-  try {
-    let bundleSourceText = readFileSync(outputDest, 'utf8');
-    let newTemplateContent = readFileSync(htmlFilePath, 'utf8');
-
-    bundleSourceText = replaceBundleJsTemplate(bundleSourceText, newTemplateContent, htmlFilePath);
-
-    if (bundleSourceText) {
-      writeFileSync(outputDest, bundleSourceText, { encoding: 'utf8'});
-      Logger.debug(`updateBundledJsTemplate, updated: ${htmlFilePath}`);
-      return true;
-    }
-
-  } catch (e) {
-    Logger.debug(`updateBundledJsTemplate error: ${e}`);
-  }
-
-  return false;
-}
-
-function getTemplatesTypescriptFile(context: BuildContext, templatePath: string) {
-  try {
-    const srcDirName = dirname(templatePath);
-    const files = readdirSync(srcDirName);
-    const typescriptFilesNames = files.filter(file => {
-      return extname(file) === '.ts';
-    });
-    for (const fileName of typescriptFilesNames) {
-      const fullPath = join(srcDirName, fileName);
-      const fileContent = readFileSync(fullPath).toString();
-      const isMatch = tryToMatchTemplateUrl(fileContent, fullPath, srcDirName, templatePath);
-      if (isMatch) {
-        return fullPath;
-      }
-    }
-    return null;
-  } catch (ex) {
-    Logger.debug('getTemplatesTypescriptFile: Error occurred - ', ex.message);
-    return null;
-  }
-}
-
-function tryToMatchTemplateUrl(fileContent: string, filePath: string, componentDirPath: string, templateFilePath: string) {
-  let lastMatch: string = null;
-  let match: TemplateUrlMatch;
-
-  while (match = getTemplateMatch(fileContent)) {
-    if (match.component === lastMatch) {
-      // panic! we don't want to melt any machines if there's a bug
-      Logger.debug(`Error matching component: ${match.component}`);
-      return false;
-    }
-    lastMatch = match.component;
-
-    if (!match.templateUrl || match.templateUrl === '') {
-      Logger.error(`Error @Component templateUrl missing in: "${filePath}"`);
-      return false;
-    }
-
-    const templatUrlPath = resolve(join(componentDirPath, match.templateUrl));
-    if (templatUrlPath === templateFilePath) {
-      return true;
-    }
-  }
-  return false;
-}
-
 export function replaceBundleJsTemplate(bundleSourceText: string, newTemplateContent: string, htmlFilePath: string): string {
-  const prefix = getTemplatePrefix(htmlFilePath);
-  const startIndex = bundleSourceText.indexOf(prefix);
+  let prefix = getTemplatePrefix(htmlFilePath);
+  let startIndex = bundleSourceText.indexOf(prefix);
 
+  let isStringified = false;
+
+  if (startIndex === -1) {
+    prefix = stringify(prefix);
+    isStringified = true;
+  }
+
+  startIndex = bundleSourceText.indexOf(prefix);
   if (startIndex === -1) {
     return null;
   }
 
-  const suffix = getTemplateSuffix(htmlFilePath);
-  const endIndex = bundleSourceText.indexOf(suffix, startIndex + 1);
+  let suffix = getTemplateSuffix(htmlFilePath);
+  if (isStringified) {
+    suffix = stringify(suffix);
+  }
 
+  const endIndex = bundleSourceText.indexOf(suffix, startIndex + 1);
   if (endIndex === -1) {
     return null;
   }
 
   const oldTemplate = bundleSourceText.substring(startIndex, endIndex + suffix.length);
-  const newTemplate = getTemplateFormat(htmlFilePath, newTemplateContent);
+  let newTemplate = getTemplateFormat(htmlFilePath, newTemplateContent);
+
+  if (isStringified) {
+    newTemplate = stringify(newTemplate);
+  }
 
   let lastChange: string = null;
   while (bundleSourceText.indexOf(oldTemplate) > -1 && bundleSourceText !== lastChange) {
@@ -206,6 +144,11 @@ export function replaceBundleJsTemplate(bundleSourceText: string, newTemplateCon
   }
 
   return bundleSourceText;
+}
+
+function stringify(str: string) {
+  str = JSON.stringify(str);
+  return str.substr(1, str.length - 2);
 }
 
 

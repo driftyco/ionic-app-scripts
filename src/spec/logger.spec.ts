@@ -16,7 +16,6 @@ describe('Logger', () => {
 
       const json = buildErrorCopy.toJson();
       expect(json.hasBeenLogged).toEqual(buildError.hasBeenLogged);
-      expect(json.updatedDiagnostics).toEqual(buildError.updatedDiagnostics);
       expect(json.message).toEqual(buildError.message);
       expect(json.name).toEqual(buildError.name);
       expect(json.stack).toEqual(buildError.stack);
@@ -30,7 +29,6 @@ describe('Logger', () => {
       buildError.stack = 'stack';
       const json = buildError.toJson();
       expect(json.hasBeenLogged).toEqual(buildError.hasBeenLogged);
-      expect(json.updatedDiagnostics).toEqual(buildError.updatedDiagnostics);
       expect(json.message).toEqual(buildError.message);
       expect(json.name).toEqual(buildError.name);
       expect(json.stack).toEqual(buildError.stack);

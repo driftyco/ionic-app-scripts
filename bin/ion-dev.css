@@ -1,3 +1,272 @@
+#ion-diagnostics * {
+  box-sizing: border-box;
+}
+
+#ion-diagnostics {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 99999;
+  margin: 0;
+  padding: 15px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #fff;
+  word-wrap: break-word;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-size-adjust: none;
+  overflow: auto;
+}
+
+#ion-diagnostics .ion-diagnostic {
+  margin-bottom: 40px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+
+#ion-diagnostics .ion-diagnostic-masthead {
+  padding: 8px 12px 0 12px;
+}
+
+#ion-diagnostics .ion-diagnostic-header {
+  margin: 0;
+  font-size: 18px;
+  color: #222222;
+}
+
+#ion-diagnostics .ion-diagnostic-message {
+  margin-top: 4px;
+  color: #666666;
+}
+
+#ion-diagnostics .ion-diagnostic-file {
+  position: relative;
+  margin-top: 16px;
+  border-top: 1px solid #ddd;
+}
+
+#ion-diagnostics .ion-diagnostic-file-header {
+  padding: 5px 10px;
+  border-bottom: 1px solid #d8d8d8;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  background-color: #f7f7f7;
+}
+
+#ion-diagnostics .ion-diagnostic-blob {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+
+#ion-diagnostics .ion-diagnostic-table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  -moz-tab-size: 2;
+  -o-tab-size: 2;
+  tab-size: 2;
+}
+
+#ion-diagnostics .ion-diagnostic-table td,
+#ion-diagnostics .ion-diagnostic-table th {
+  padding: 0;
+}
+
+#ion-diagnostics .ion-diagnostic-blob-num {
+  padding-right: 10px;
+  padding-left: 10px;
+  width: 1%;
+  min-width: 50px;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+  line-height: 20px;
+  color: rgba(0,0,0,0.3);
+  text-align: right;
+  white-space: nowrap;
+  vertical-align: top;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border: solid #eee;
+  border-width: 0 1px 0 0;
+}
+
+#ion-diagnostics .ion-diagnostic-blob-num::before {
+  content: attr(data-line-number);
+}
+
+#ion-diagnostics .ion-diagnostic-error-line .ion-diagnostic-blob-num {
+  background-color: #ffdddd;
+  border-color: #f1c0c0;
+}
+
+#ion-diagnostics .ion-diagnostic-error-line .ion-diagnostic-blob-code {
+  background: rgba(255, 221, 221, 0.3);
+  z-index: -1;
+}
+
+#ion-diagnostics .ion-diagnostics-error-chr {
+  position: relative;
+}
+
+#ion-diagnostics .ion-diagnostics-error-chr::before {
+  position: absolute;
+  z-index: -1;
+  top: -3px;
+  left: 0px;
+  width: 8px;
+  height: 20px;
+  background-color: #ffdddd;
+  content: "";
+}
+
+#ion-diagnostics .ion-diagnostic-blob-code {
+  position: relative;
+  padding-right: 10px;
+  padding-left: 10px;
+  line-height: 20px;
+  vertical-align: top;
+  overflow: visible;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+  color: #333;
+  word-wrap: normal;
+  white-space: pre;
+}
+
+#ion-diagnostics .ion-diagnostic-blob-code::before {
+  content: "";
+}
+
+#ion-diagnostics .js-keyword,
+#ion-diagnostics .css-prop {
+  color: #183691;
+}
+
+#ion-diagnostics .js-comment,
+#ion-diagnostics .sass-comment {
+  color: #969896;
+}
+
+#ion-diagnostics-system-info {
+  padding-bottom: 20px;
+  font-size: 10px;
+  color: #999;
+}
+
+#ion-diagnostics {
+  -webkit-transition: opacity 150ms ease-out;
+  transition: opacity 150ms ease-out;
+}
+
+#ion-diagnostics.ion-diagnostics-fade-out {
+  opacity: 0;
+}
+
+#ion-diagnostics-toast {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  left: 10px;
+  z-index: 999999;
+  display: block;
+  margin: auto;
+  max-width: 700px;
+  border-radius: 3px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  background: rgba(0,0,0,.9);
+  -webkit-transform: translate3d(0px, -60px, 0px);
+  transform: translate3d(0px, -60px, 0px);
+  -webkit-transition: -webkit-transform 75ms ease-out;
+  transition: transform 75ms ease-out;
+  pointer-events: none;
+}
+
+#ion-diagnostics-toast.ion-diagnostics-toast-active {
+  -webkit-transform: translate3d(0px, 0px, 0px);
+  transform: translate3d(0px, 0px, 0px);
+}
+
+#ion-diagnostics-toast .ion-diagnostics-toast-content {
+  display: flex;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  pointer-events: auto;
+}
+
+#ion-diagnostics-toast .ion-diagnostics-toast-message {
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  padding: 15px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 14px;
+  color: #fff;
+}
+
+#ion-diagnostics-toast .ion-diagnostics-toast-spinner {
+  position: relative;
+  display: inline-block;
+  width: 56px;
+  height: 28px;
+}
+
+#ion-diagnostics-toast svg:not(:root) {
+  overflow: hidden;
+}
+
+#ion-diagnostics-toast svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation: ion-diagnostics-spinner-rotate 600ms linear infinite;
+  animation: ion-diagnostics-spinner-rotate 600ms linear infinite;
+}
+
+@-webkit-keyframes ion-diagnostics-spinner-rotate {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ion-diagnostics-spinner-rotate {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+#ion-diagnostics-toast circle {
+  fill: transparent;
+  stroke: white;
+  stroke-width: 4px;
+  stroke-dasharray: 128px;
+  stroke-dashoffset: 82px;
+}
+
 ._ionic-error-view {
   position: fixed;
   top: 0;

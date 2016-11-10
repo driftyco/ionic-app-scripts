@@ -1,15 +1,16 @@
-import { BuildContext } from './util/interfaces';
-import { BuildError, IgnorableError, Logger } from './util/logger';
+import { BuildContext, BuildState } from './util/interfaces';
+import { BuildError, Logger } from './util/logger';
 import { bundle, bundleUpdate } from './bundle';
 import { clean } from './clean';
 import { copy } from './copy';
 import { emit, EventType } from './util/events';
 import { generateContext } from './util/config';
-import { lint } from './lint';
+import { lint, lintUpdate } from './lint';
 import { minifyCss, minifyJs } from './minify';
 import { ngc } from './ngc';
 import { sass, sassUpdate } from './sass';
-import { transpile, transpileUpdate } from './transpile';
+import { templateUpdate } from './template';
+import { transpile, transpileUpdate, transpileDiagnosticsOnly } from './transpile';
 
 
 export function build(context: BuildContext) {
@@ -20,8 +21,6 @@ export function build(context: BuildContext) {
   return buildWorker(context)
     .then(() => {
       // congrats, we did it!  (•_•) / ( •_•)>⌐■-■ / (⌐■_■)
-      context.fullBuildCompleted = true;
-      emit(EventType.BuildFinished);
       logger.finish();
     })
     .catch(err => {
@@ -48,7 +47,6 @@ function buildProd(context: BuildContext) {
   // async tasks
   // these can happen all while other tasks are running
   const copyPromise = copy(context);
-  const lintPromise = lint(context);
 
   // kick off ngc to run the Ahead of Time compiler
   return ngc(context)
@@ -72,10 +70,13 @@ function buildProd(context: BuildContext) {
       ]);
     })
     .then(() => {
+      // kick off the tslint after everything else
+      // nothing needs to wait on its completion
+      lint(context);
+
       // ensure the async tasks have fully completed before resolving
       return Promise.all([
-        copyPromise,
-        lintPromise
+        copyPromise
       ]);
     })
     .catch(err => {
@@ -91,7 +92,6 @@ function buildDev(context: BuildContext) {
   // async tasks
   // these can happen all while other tasks are running
   const copyPromise = copy(context);
-  const lintPromise = lint(context);
 
   // just bundle, and if that passes then do the rest at the same time
   return transpile(context)
@@ -101,55 +101,175 @@ function buildDev(context: BuildContext) {
     .then(() => {
       return Promise.all([
         sass(context),
-        copyPromise,
-        lintPromise
+        copyPromise
       ]);
+    })
+    .then(() => {
+      // kick off the tslint after everything else
+      // nothing needs to wait on its completion
+      lint(context);
+      return Promise.resolve();
     })
     .catch(err => {
       throw new BuildError(err);
     });
 }
 
-export function fullBuildUpdate(event: string, filePath: string, context: BuildContext) {
-  return buildUpdateWorker(event, filePath, context, true).then(() => {
-    context.fullBuildCompleted = true;
+
+export function buildUpdate(event: string, filePath: string, context: BuildContext) {
+  return new Promise(resolve => {
+    const logger = new Logger('build');
+
+    buildUpdateId++;
+    emit(EventType.BuildUpdateStarted, buildUpdateId);
+
+    function buildTasksDone(resolveValue: BuildTaskResolveValue) {
+      // all build tasks have been resolved or one of them
+      // bailed early, stopping all others to not run
+
+      parallelTasksPromise.then(() => {
+        // all parallel tasks are also done
+        // so now we're done done
+        emit(EventType.BuildUpdateCompleted, buildUpdateId);
+
+        if (resolveValue.requiresRefresh) {
+          // emit that we need to do a full page refresh
+          emit(EventType.ReloadApp);
+
+        } else {
+          // just emit that only a certain file changed
+          // this one is useful when only a sass changed happened
+          // and the webpack only needs to livereload the css
+          // but does not need to do a full page refresh
+          emit(EventType.FileChange, resolveValue.changedFile);
+        }
+
+        if (filePath.endsWith('.ts')) {
+          // a ts file changed, so let's lint it too, however
+          // this task should run as an after thought
+          lintUpdate(event, filePath, context);
+        }
+
+        logger.finish('green', true);
+        Logger.newLine();
+
+        // we did it!
+        resolve();
+      });
+    }
+
+    // kick off all the build tasks
+    // and the tasks that can run parallel to all the build tasks
+    const buildTasksPromise = buildUpdateTasks(event, filePath, context);
+    const parallelTasksPromise = buildUpdateParallelTasks(event, filePath, context);
+
+    // whether it was resolved or rejected, we need to do the same thing
+    buildTasksPromise
+      .then(buildTasksDone)
+      .catch(() => {
+        buildTasksDone({
+          requiresRefresh: false,
+          changedFile: filePath
+        });
+      });
   });
 }
 
-export function buildUpdate(event: string, filePath: string, context: BuildContext) {
-  return buildUpdateWorker(event, filePath, context, false);
-}
+/**
+ * Collection of all the build tasks than need to run
+ * Each task will only run if it's set with eacn BuildState.
+ */
+function buildUpdateTasks(event: string, filePath: string, context: BuildContext) {
+  const resolveValue: BuildTaskResolveValue = {
+    requiresRefresh: false,
+    changedFile: filePath
+  };
 
-function buildUpdateWorker(event: string, filePath: string, context: BuildContext, fullBuild: boolean) {
-  const logger = new Logger(`build update`);
-
-  let transpilePromise: Promise<void> = null;
-  if (fullBuild) {
-    transpilePromise = transpile(context);
-  } else {
-    transpilePromise = transpileUpdate(event, filePath, context);
-  }
-  return transpilePromise
+  return Promise.resolve()
     .then(() => {
-      if (fullBuild) {
+      // TEMPLATE
+      if (context.templateState === BuildState.RequiresUpdate) {
+        resolveValue.requiresRefresh = true;
+        return templateUpdate(event, filePath, context);
+      }
+      // no template updates required
+      return Promise.resolve();
+
+    })
+    .then(() => {
+      // TRANSPILE
+      if (context.transpileState === BuildState.RequiresUpdate) {
+        resolveValue.requiresRefresh = true;
+        // we've already had a successful transpile once, only do an update
+        // not that we've also already started a transpile diagnostics only
+        // build that only needs to be completed by the end of buildUpdate
+        return transpileUpdate(event, filePath, context);
+
+      } else if (context.transpileState === BuildState.RequiresBuild) {
+        // run the whole transpile
+        resolveValue.requiresRefresh = true;
+        return transpile(context);
+      }
+      // no transpiling required
+      return Promise.resolve();
+
+    })
+    .then(() => {
+      // BUNDLE
+      if (context.bundleState === BuildState.RequiresUpdate) {
+        // we need to do a bundle update
+        resolveValue.requiresRefresh = true;
+        return bundleUpdate(event, filePath, context);
+
+      } else if (context.bundleState === BuildState.RequiresBuild) {
+        // we need to do a full bundle build
+        resolveValue.requiresRefresh = true;
         return bundle(context);
       }
-      return bundleUpdate(event, filePath, context);
-    }).then(() => {
-      if (fullBuild) {
-        return sass(context);
-      } else if (event !== 'change' || !context.successfulSass) {
-        // if just the TS file changed, then there's no need to do a sass update
-        // however, if a new TS file was added or was deleted, then we should do a sass update
-        return sassUpdate(event, filePath, context);
+      // no bundling required
+      return Promise.resolve();
+
+    })
+    .then(() => {
+      // SASS
+      if (context.sassState === BuildState.RequiresUpdate) {
+        // we need to do a sass update
+        return sassUpdate(event, filePath, context).then(outputCssFile => {
+          resolveValue.changedFile = outputCssFile;
+        });
+
+      } else if (context.sassState === BuildState.RequiresBuild) {
+        // we need to do a full sass build
+        return sass(context).then(outputCssFile => {
+          resolveValue.changedFile = outputCssFile;
+        });
       }
-    }).then(() => {
-      emit(EventType.BuildFinished);
-      logger.finish();
-    }).catch(err => {
-      if (err instanceof IgnorableError) {
-        throw err;
-      }
-      throw logger.fail(err);
+      // no sass build required
+      return Promise.resolve();
+    })
+    .then(() => {
+      return resolveValue;
     });
 }
+
+interface BuildTaskResolveValue {
+  requiresRefresh: boolean;
+  changedFile: string;
+}
+
+/**
+ * parallelTasks are for any tasks that can run parallel to the entire
+ * build, but we still need to make sure they've completed before we're
+ * all done, it's also possible there are no parallelTasks at all
+ */
+function buildUpdateParallelTasks(event: string, filePath: string, context: BuildContext) {
+  const parallelTasks: Promise<any>[] = [];
+
+  if (context.transpileState === BuildState.RequiresUpdate) {
+    parallelTasks.push(transpileDiagnosticsOnly(context));
+  }
+
+  return Promise.all(parallelTasks);
+}
+
+let buildUpdateId = 0;

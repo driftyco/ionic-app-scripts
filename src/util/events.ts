@@ -17,16 +17,13 @@ export function emit(eventType: string, val?: any) {
 
 
 export const EventType = {
-  BuildFinished: 'BuildFinished',
-  SassFinished: 'SassFinished',
-  BundleFinished: 'BundleFinished',
-  FileChange: 'FileChange',
+  BuildUpdateCompleted: 'BuildUpdateCompleted',
+  BuildUpdateStarted: 'BuildUpdateStarted',
   FileAdd: 'FileAdd',
+  FileChange: 'FileChange',
   FileDelete: 'FileDelete',
   DirectoryAdd: 'DirectoryAdd',
   DirectoryDelete: 'DirectoryDelete',
-  TaskEvent: 'TaskEvent',
-  UpdatedDiagnostics: 'UpdatedDiagnostics',
-
+  ReloadApp: 'ReloadApp',
   WebpackFilesChanged: 'WebpackFilesChanged'
 };

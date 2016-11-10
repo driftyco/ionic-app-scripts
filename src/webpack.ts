@@ -1,7 +1,7 @@
 import { FileCache } from './util/file-cache';
-import { BuildContext, File, TaskInfo } from './util/interfaces';
+import { BuildContext, BuildState, File, TaskInfo } from './util/interfaces';
 import { BuildError, IgnorableError, Logger } from './util/logger';
-import { changeExtension, readFileAsync, setContext, setModulePathsCache } from './util/helpers';
+import { changeExtension, readFileAsync, setContext } from './util/helpers';
 import { emit, EventType } from './util/events';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
 import { extname, join } from 'path';
@@ -34,9 +34,11 @@ export function webpack(context: BuildContext, configFile: string) {
 
   return webpackWorker(context, configFile)
     .then(() => {
+      context.bundleState = BuildState.SuccessfulBuild;
       logger.finish();
     })
     .catch(err => {
+      context.bundleState = BuildState.RequiresBuild;
       throw logger.fail(err);
     });
 }
@@ -69,8 +71,10 @@ export function webpackUpdate(event: string, path: string, context: BuildContext
       Logger.debug('webpackUpdate: Incremental Build Done, processing Data');
       return webpackBuildComplete(stats, context, webpackConfig);
     }).then(() => {
+      context.bundleState = BuildState.SuccessfulBuild;
       return logger.finish();
     }).catch(err => {
+      context.bundleState = BuildState.RequiresBuild;
       if (err instanceof IgnorableError) {
         throw err;
       }
@@ -112,11 +116,6 @@ function webpackBuildComplete(stats: any, context: BuildContext, webpackConfig: 
 
   context.moduleFiles = files;
 
-  // async cache all the module paths so we don't need
-  // to always bundle to know which modules are used
-  setModulePathsCache(context.moduleFiles);
-
-  emit(EventType.BundleFinished, getOutputDest(context, webpackConfig));
   return Promise.resolve();
 }
 

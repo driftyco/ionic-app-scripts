@@ -1,10 +1,71 @@
 import { BuildContext } from './interfaces';
-import { outputJson, readFile, readJsonSync, writeFile } from 'fs-extra';
-import { BuildError, Logger } from './logger';
+import { readFile, readJsonSync, writeFile } from 'fs-extra';
+import { BuildError } from './logger';
 import { basename, dirname, extname, join } from 'path';
-import { tmpdir } from 'os';
+import * as osName from 'os-name';
 
 let _context: BuildContext;
+
+
+
+let cachedAppScriptsPackageJson: any;
+export function getAppScriptsPackageJson() {
+  if (!cachedAppScriptsPackageJson) {
+    try {
+      cachedAppScriptsPackageJson = readJsonSync(join(__dirname, '..', '..', 'package.json'));
+    } catch (e) {}
+  }
+  return cachedAppScriptsPackageJson;
+}
+
+
+export function getAppScriptsVersion() {
+  const appScriptsPackageJson = getAppScriptsPackageJson();
+  return (appScriptsPackageJson && appScriptsPackageJson.version) ? appScriptsPackageJson.version : '';
+}
+
+function getUserPackageJson(userRootDir: string) {
+  try {
+    return readJsonSync(join(userRootDir, 'package.json'));
+  } catch (e) {}
+  return null;
+}
+
+export function getSystemInfo(userRootDir: string) {
+  const d: string[] = [];
+
+  let ionicAppScripts = getAppScriptsVersion();
+  let ionicFramework: string = null;
+  let ionicNative: string = null;
+  let angularCore: string = null;
+  let angularCompilerCli: string = null;
+
+  try {
+    const userPackageJson = getUserPackageJson(userRootDir);
+    if (userPackageJson) {
+      const userDependencies = userPackageJson.dependencies;
+      if (userDependencies) {
+        ionicFramework = userDependencies['ionic-angular'];
+        ionicNative = userDependencies['ionic-native'];
+        angularCore = userDependencies['@angular/core'];
+        angularCompilerCli = userDependencies['@angular/compiler-cli'];
+      }
+    }
+  } catch (e) {}
+
+  d.push(`Ionic Framework: ${ionicFramework}`);
+  if (ionicNative) {
+    d.push(`Ionic Native: ${ionicNative}`);
+  }
+  d.push(`Ionic App Scripts: ${ionicAppScripts}`);
+  d.push(`Angular Core: ${angularCore}`);
+  d.push(`Angular Compiler CLI: ${angularCompilerCli}`);
+  d.push(`Node: ${process.version.replace('v', '')}`);
+  d.push(`OS Platform: ${osName()}`);
+
+  return d;
+}
+
 
 export const objectAssign = (Object.assign) ? Object.assign : function (target: any, source: any) {
   const output = Object(target);
@@ -22,14 +83,6 @@ export const objectAssign = (Object.assign) ? Object.assign : function (target: 
 
   return output;
 };
-
-
-export function endsWith(str: string, tail: string) {
-  if (str && tail) {
-    return !tail.length || str.slice(-tail.length).toLowerCase() === tail.toLowerCase();
-  }
-  return false;
-}
 
 
 export function titleCase(str: string) {
@@ -60,42 +113,6 @@ export function readFileAsync(filePath: string): Promise<string> {
       }
     });
   });
-}
-
-export function setModulePathsCache(modulePaths: string[]) {
-  // async save the module paths for later lookup
-  const modulesCachePath = getModulesPathsCachePath();
-
-  Logger.debug(`Cached module paths: ${modulePaths && modulePaths.length}, ${modulesCachePath}`);
-
-  outputJson(modulesCachePath, modulePaths, (err) => {
-    if (err) {
-      Logger.error(`Error writing module paths cache: ${err}`);
-    }
-  });
-}
-
-
-export function getModulesPathsCachePath(): string {
-  // make a unique tmp directory for this project's module paths cache file
-  let cwd = process.cwd().replace(/-|:|\/|\\|\.|~|;|\s/g, '').toLowerCase();
-  if (cwd.length > 40) {
-    cwd = cwd.substr(cwd.length - 40);
-  }
-  return join(tmpdir(), cwd, 'modulepaths.json');
-}
-
-export function getModulePathsCache(): string[] {
-  // sync get the cached array of module paths (if they exist)
-  let modulePaths: string[] = null;
-  const modulesCachePath = getModulesPathsCachePath();
-  try {
-    modulePaths = readJsonSync(modulesCachePath, <any>{ throws: false });
-    Logger.debug(`Cached module paths: ${modulePaths && modulePaths.length}, ${modulesCachePath}`);
-  } catch (e) {
-    Logger.debug(`Cached module paths not found: ${modulesCachePath}`);
-  }
-  return modulePaths;
 }
 
 export function setContext(context: BuildContext) {

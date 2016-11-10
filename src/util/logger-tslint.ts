@@ -1,16 +1,11 @@
 import { BuildContext } from './interfaces';
-import { printDiagnostics } from './logger-diagnostics';
 import { Diagnostic, Logger, PrintLine } from './logger';
 
 
-export function runDiagnostics(context: BuildContext, failures: RuleFailure[]) {
-  const diagnostics = failures.map(failure => {
+export function runTsLintDiagnostics(context: BuildContext, failures: RuleFailure[]) {
+  return failures.map(failure => {
     return loadDiagnostic(context, failure);
   });
-
-  printDiagnostics(context, 'tslint', diagnostics);
-
-  return diagnostics;
 }
 
 

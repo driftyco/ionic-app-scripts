@@ -1,4 +1,3 @@
-import { emit, EventType } from './events';
 import { join } from 'path';
 import { isDebugMode } from './config';
 import { readJSONSync } from 'fs-extra';
@@ -7,7 +6,6 @@ import * as chalk from 'chalk';
 
 export class BuildError extends Error {
   hasBeenLogged = false;
-  updatedDiagnostics = false;
 
   constructor(err?: any) {
     super();
@@ -26,9 +24,6 @@ export class BuildError extends Error {
       if (typeof err.hasBeenLogged === 'boolean') {
         this.hasBeenLogged = err.hasBeenLogged;
       }
-      if (typeof err.updatedDiagnostics === 'boolean') {
-        this.updatedDiagnostics = err.updatedDiagnostics;
-      }
     }
   }
 
@@ -37,8 +32,7 @@ export class BuildError extends Error {
       message: this.message,
       name: this.name,
       stack: this.stack,
-      hasBeenLogged: this.hasBeenLogged,
-      updatedDiagnostics: this.updatedDiagnostics
+      hasBeenLogged: this.hasBeenLogged
     };
   }
 }
@@ -67,53 +61,41 @@ export class Logger {
       msg += memoryUsage();
     }
     Logger.info(msg);
-
-    const taskEvent: TaskEvent = {
-      scope: this.scope.split(' ')[0],
-      type: 'start',
-      msg: `${scope} started ...`
-    };
-    emit(EventType.TaskEvent, taskEvent);
   }
 
-  ready(chalkColor?: Function) {
-    this.completed('ready', chalkColor);
+  ready(color?: string, bold?: boolean) {
+    this.completed('ready', color, bold);
   }
 
-  finish(chalkColor?: Function) {
-    this.completed('finished', chalkColor);
+  finish(color?: string, bold?: boolean) {
+    this.completed('finished', color, bold);
   }
 
-  private completed(type: string, chalkColor: Function) {
+  private completed(type: string, color: string, bold: boolean) {
+    const duration = Date.now() - this.start;
+    let time: string;
 
-    const taskEvent: TaskEvent = {
-      scope: this.scope.split(' ')[0],
-      type: type
-    };
-
-    taskEvent.duration = Date.now() - this.start;
-
-    if (taskEvent.duration > 1000) {
-      taskEvent.time = 'in ' + (taskEvent.duration / 1000).toFixed(2) + ' s';
+    if (duration > 1000) {
+      time = 'in ' + (duration / 1000).toFixed(2) + ' s';
 
     } else {
-      let ms = parseFloat((taskEvent.duration).toFixed(3));
+      let ms = parseFloat((duration).toFixed(3));
       if (ms > 0) {
-        taskEvent.time = 'in ' + taskEvent.duration + ' ms';
+        time = 'in ' + duration + ' ms';
       } else {
-        taskEvent.time = 'in less than 1 ms';
+        time = 'in less than 1 ms';
       }
     }
 
-    taskEvent.msg = `${this.scope} ${taskEvent.type} ${taskEvent.time}`;
-    emit(EventType.TaskEvent, taskEvent);
-
     let msg = `${this.scope} ${type}`;
-    if (chalkColor) {
-      msg = chalkColor(msg);
+    if (color) {
+      msg = (<any>chalk)[color](msg);
+    }
+    if (bold) {
+      msg = chalk.bold(msg);
     }
 
-    msg += ' ' + chalk.dim(taskEvent.time);
+    msg += ' ' + chalk.dim(time);
 
     if (isDebugMode()) {
       msg += memoryUsage();
@@ -127,14 +109,6 @@ export class Logger {
       if (err instanceof IgnorableError) {
         return;
       }
-
-      // only emit the event if it's a valid error
-      const taskEvent: TaskEvent = {
-        scope: this.scope.split(' ')[0],
-        type: 'failed',
-        msg: this.scope + ' failed'
-      };
-      emit(EventType.TaskEvent, taskEvent);
 
       if (err instanceof BuildError) {
         let failedMsg = `${this.scope} failed`;
@@ -161,6 +135,10 @@ export class Logger {
     return err;
   }
 
+  setStartTime(startTime: number) {
+    this.start = startTime;
+  }
+
   /**
    * Does not print out a time prefix or color any text. Only prefix
    * with whitespace so the message is lined up with timestamped logs.
@@ -172,15 +150,31 @@ export class Logger {
   }
 
   /**
-   * Prints out a dim colored timestamp prefix.
+   * Prints out a dim colored timestamp prefix, with optional color
+   * and bold message.
    */
-  static info(...msg: any[]) {
-    const lines = Logger.wordWrap(msg);
+  static info(msg: string, color?: string, bold?: boolean) {
+    const lines = Logger.wordWrap([msg]);
     if (lines.length) {
       let prefix = timePrefix();
-      lines[0] = chalk.dim(prefix) + lines[0].substr(prefix.length);
+      let lineOneMsg = lines[0].substr(prefix.length);
+      if (color) {
+        lineOneMsg = (<any>chalk)[color](lineOneMsg);
+      }
+      if (bold) {
+        lineOneMsg = chalk.bold(lineOneMsg);
+      }
+      lines[0] = chalk.dim(prefix) + lineOneMsg;
     }
-    lines.forEach(line => {
+    lines.forEach((line, lineIndex) => {
+      if (lineIndex > 0) {
+        if (color) {
+          line = (<any>chalk)[color](line);
+        }
+        if (bold) {
+          line = chalk.bold(line);
+        }
+      }
       console.log(line);
     });
   }
@@ -352,25 +346,6 @@ function timePrefix() {
 
 function memoryUsage() {
   return chalk.dim(` MEM: ${(process.memoryUsage().rss / 1000000).toFixed(1)}MB`);
-}
-
-
-export function getAppScriptsVersion() {
-  let rtn = '';
-  try {
-    const packageJson = readJSONSync(join(__dirname, '..', '..', 'package.json'));
-    rtn = packageJson.version || '';
-  } catch (e) {}
-  return rtn;
-}
-
-
-export interface TaskEvent {
-  scope: string;
-  type: string;
-  duration?: number;
-  time?: string;
-  msg?: string;
 }
 
 

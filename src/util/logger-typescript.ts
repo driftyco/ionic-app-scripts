@@ -1,5 +1,4 @@
 import { BuildContext } from './interfaces';
-import { printDiagnostics, clearDiagnosticsHtmlSync } from './logger-diagnostics';
 import { Diagnostic, Logger, PrintLine } from './logger';
 import * as ts from 'typescript';
 
@@ -9,19 +8,10 @@ import * as ts from 'typescript';
  * error reporting within a terminal. So, yeah, let's code it up, shall we?
  */
 
-export function runDiagnostics(context: BuildContext, tsDiagnostics: ts.Diagnostic[]) {
-  const diagnostics = tsDiagnostics.map(tsDiagnostic => {
+export function runTypeScriptDiagnostics(context: BuildContext, tsDiagnostics: ts.Diagnostic[]) {
+  return tsDiagnostics.map(tsDiagnostic => {
     return loadDiagnostic(context, tsDiagnostic);
   });
-
-  printDiagnostics(context, 'typescript', diagnostics);
-
-  return diagnostics;
-}
-
-
-export function clearTypeScriptDiagnostics(context: BuildContext) {
-  clearDiagnosticsHtmlSync(context, 'typescript');
 }
 
 

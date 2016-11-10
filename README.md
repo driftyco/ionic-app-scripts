@@ -51,19 +51,20 @@ npm run build
 ```
 
 
-## Custom Config Files
+## Custom Configuration
 
-In many cases, the defaults which Ionic provides covers most of the scenarios required by developers. However, Ionic App Scripts does provide multiple ways to configure and override the defaults for each of the various tasks. Note that Ionic will always apply its defaults for any property that was not provided by custom configurations.
+In many cases, the defaults which Ionic provides covers most of the scenarios required by developers. However, Ionic App Scripts does provide multiple ways to configure and override the defaults for each of the various tasks. Note that Ionic will always apply its defaults for any property that was not provided by custom configuration.
 
 [Default Config Files](https://github.com/driftyco/ionic-app-scripts/tree/master/config)
 
-### NPM Config
+### package.json Config
 
-Within the `package.json` file, NPM also provides a handy [config](https://docs.npmjs.com/misc/config#per-package-config-settings) property. Below is an example of setting a custom config file using the `config` property in a project's `package.json`.
+Ionic projects use the `package.json` file for configuration. There's a handy [config](https://docs.npmjs.com/misc/config#per-package-config-settings) property which can be used. Below is an example of setting a custom config file using the `config` property in a project's `package.json`.
 
 ```
   "config": {
-    "ionic_rollup": "./config/rollup.config.js",
+    "ionic_bundler": "rollup",
+    "ionic_source_map": "source-map",
     "ionic_cleancss": "./config/cleancss.config.js"
   },
 ```
@@ -88,7 +89,7 @@ npm run build --rollup ./config/rollup.config.js
 
 ### Overriding Config Files
 
-| Config File | NPM Config Property | Cmd-line Flag         |
+| Config File | package.json Config | Cmd-line Flag         |
 |-------------|---------------------|-----------------------|
 | CleanCss    | `ionic_cleancss`    | `--cleancss` or `-e`  |
 | Copy        | `ionic_copy`        | `--copy` or `-y`      |
@@ -103,19 +104,33 @@ npm run build --rollup ./config/rollup.config.js
 
 ### Overriding Config Values
 
-| Config Values   | NPM Config Property | Cmd-line Flag | Defaults        |
-|-----------------|---------------------|---------------|-----------------|
-| bundler         | `ionic_bundler`     | `--bundler`   | `webpack`       |
-| source map type | `ionic_source_map`  | `--sourceMap` | `eval`          |
-| root directory  | `ionic_root_dir`    | `--rootDir`   | `process.cwd()` |
-| tmp directory   | `ionic_tmp_dir`     | `--tmpDir`    | `.tmp`          |
-| www directory   | `ionic_www_dir`     | `--wwwDir`    | `www`           |
-| build directory | `ionic_build_dir`   | `--buildDir`  | `build`         |
+| Config Values   | package.json Config | Cmd-line Flag | Defaults        | Details        |
+|-----------------|---------------------|---------------|-----------------|----------------|
+| bundler         | `ionic_bundler`     | `--bundler`   | `webpack`       | Chooses which bundler to use: `webpack` or `rollup` |
+| source map type | `ionic_source_map`  | `--sourceMap` | `eval`          | Chooses the webpack `devtool` option. We recommend `eval` or `source-map` |
+| root directory  | `ionic_root_dir`    | `--rootDir`   | `process.cwd()` | The directory path of the Ionic app |
+| tmp directory   | `ionic_tmp_dir`     | `--tmpDir`    | `.tmp`          | A temporary directory for codegen'd files using the Angular `ngc` AoT compiler |
+| src directory   | `ionic_src_dir`     | `--srcDir`    | `src`           | The directory holding the Ionic src code |
+| www directory   | `ionic_www_dir`     | `--wwwDir`    | `www`           | The deployable directory containing everything needed to run the app |
+| build directory | `ionic_build_dir`   | `--buildDir`  | `build`         | The build process uses this directory to store generated files, etc |
 
 
-### Ionic Environment Variable
+### Ionic Environment Variables
 
-The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` task is `prod`, and the `watch` task is `dev`. Note that `ionic serve` uses the `watch` task. Additionally, using the `--dev` command line flag will force the build to use `dev`.
+These environment variables are automatically set to [Node's `process.env`](https://nodejs.org/api/process.html#process_process_env) property. These variables can be useful from within custom configuration files, such as custom `webpack.config.js` file.
+
+| Environment Variable    | Description                                                          |
+|-------------------------|----------------------------------------------------------------------|
+| `IONIC_ENV`             | Value can be either `prod` or `dev`.                                 |
+| `IONIC_ROOT_DIR`        | The absolute path to the project's root directory.                   |
+| `IONIC_TMP_DIR`         | The absolute path to the project's temporary directory.              |
+| `IONIC_SRC_DIR`         | The absolute path to the app's source directory.                     |
+| `IONIC_WWW_DIR`         | The absolute path to the app's public distribution directory.        |
+| `IONIC_BUILD_DIR`       | The absolute path to the app's bundled js and css files.             |
+| `IONIC_APP_SCRIPTS_DIR` | The absolute path to the `@ionic/app-scripts` node_module directory. |
+| `IONIC_SOURCE_MAP`      | The Webpack `devtool` setting. We recommend `eval` or `source-map`.  |
+
+The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` task is `prod`, and the `watch` and `serve` tasks are `dev`. Additionally, using the `--dev` command line flag will force the build to use `dev`.
 
 Please take a look at the bottom of the [default Rollup config file](https://github.com/driftyco/ionic-app-scripts/blob/master/config/rollup.config.js) to see how the `IONIC_ENV` environment variable is being used to conditionally change config values for production builds.
 
@@ -163,9 +178,9 @@ Example NPM Script:
 - [CleanCss](https://github.com/jakubpawlowicz/clean-css)
 - [TSLint](http://palantir.github.io/tslint/)
 
-
-
 ## Contributing
+
+We welcome any PRs, issues, and feedback! Please be respectful and follow the [Code of Conduct](https://github.com/driftyco/ionic/blob/master/CODE_OF_CONDUCT.md).
 
 ### Publish a release
 

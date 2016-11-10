@@ -1,3 +1,50 @@
+<a name="0.0.42"></a>
+## [0.0.42](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.41...v0.0.42) (2016-11-09)
+
+## Upgrade Steps
+To use this version of `@ionic/app-scripts`, follow these steps to upgrade:
+
+1. Install the latest version of the ionic cli
+
+  ```
+    npm install ionic@latest -g
+  ```
+
+  Note: sudo may be required depending on your workstation set-up
+
+2. Update the project's `package.json` file's `script` section to look like this:
+
+  ```
+  ...
+  "scripts" : {
+    "ionic:build": "ionic-app-scripts build",
+    "ionic:serve": "ionic-app-scripts serve"
+  }
+  ...
+  ```
+
+  Note: This is removing several deprecated Ionic scripts. If you have any of your own custom scripts, don't remove them.
+
+
+3. Install the latest version of `@ionic/app-scripts`
+
+  ```
+  npm install @ionic/app-scripts@latest --save-dev
+  ```
+
+### Bug Fixes
+
+* **bundling:** execute bundle updates if full bundle has completed at least once ([fbe56dc](https://github.com/driftyco/ionic-app-scripts/commit/fbe56dc))
+* **sass:** remove broken sass caching ([91faf0b](https://github.com/driftyco/ionic-app-scripts/commit/91faf0b))
+
+
+### Features
+
+* **error:** use datauri for favicon build status ([892cf4a](https://github.com/driftyco/ionic-app-scripts/commit/892cf4a))
+* **errors:** overlay build errors during development ([87f7648](https://github.com/driftyco/ionic-app-scripts/commit/87f7648))
+
+
+
 <a name="0.0.41"></a>
 ## [0.0.41](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.40...v0.0.41) (2016-11-07)
 

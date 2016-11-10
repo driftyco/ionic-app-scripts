@@ -1,5 +1,5 @@
 import { File } from './interfaces';
-import { emit, EventType } from './events';
+
 
 export class FileCache {
 
@@ -9,19 +9,21 @@ export class FileCache {
     this.map = new Map<string, File>();
   }
 
-  put(key: string, file: File) {
+  set(key: string, file: File) {
     file.timestamp = Date.now();
     this.map.set(key, file);
-    // emit(EventType.DanFileChanged, key);
   }
 
   get(key: string): File {
     return this.map.get(key);
   }
 
+  has(key: string) {
+    return this.map.has(key);
+  }
+
   remove(key: string): Boolean {
     const result = this.map.delete(key);
-    // emit(EventType.DanFileDeleted, key);
     return result;
   }
 

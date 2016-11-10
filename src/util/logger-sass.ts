@@ -1,25 +1,10 @@
 import { BuildContext } from './interfaces';
 import { Diagnostic, Logger, PrintLine } from './logger';
-import { printDiagnostics, clearDiagnosticsHtmlSync } from './logger-diagnostics';
 import { readFileSync } from 'fs';
 import { SassError } from 'node-sass';
 
 
-export function runDiagnostics(context: BuildContext, sassError: SassError) {
-  const diagnostics = loadDiagnostic(context, sassError);
-
-  printDiagnostics(context, 'sass', diagnostics);
-
-  return diagnostics;
-}
-
-
-export function clearSassDiagnostics(context: BuildContext) {
-  clearDiagnosticsHtmlSync(context, 'sass');
-}
-
-
-function loadDiagnostic(context: BuildContext, sassError: SassError) {
+export function runSassDiagnostics(context: BuildContext, sassError: SassError) {
   if (!sassError) {
     return [];
   }

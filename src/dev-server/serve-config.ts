@@ -1,6 +1,7 @@
 export interface ServeConfig {
   httpPort: number;
   host: string;
+  rootDir: string;
   wwwDir: string;
   buildDir: string;
   launchBrowser: boolean;
@@ -9,7 +10,6 @@ export interface ServeConfig {
   useLiveReload: boolean;
   liveReloadPort: Number;
   notificationPort: Number;
-  useNotifier: boolean;
   useServerLogs: boolean;
   notifyOnConsoleLog: boolean;
   useProxy: boolean;
