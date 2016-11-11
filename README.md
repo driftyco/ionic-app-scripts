@@ -151,7 +151,7 @@ These tasks are available within `ionic-app-scripts` and can be added to NPM scr
 | `minify`   | Minifies the output JS bundle and compresses the compiled CSS.                                      |
 | `ngc`      | Runs just the `ngc` portion of the production build.                                                |
 | `sass`     | Sass compilation of used modules. Bundling must have as least ran once before Sass compilation.     |
-| `tsc`      | Runs just the `tsc` portion of the dev build.                                                       |
+| `transpile`| Runs just the `tsc` portion of the dev build.                                                       |
 | `watch`    | Runs watch for dev builds.                                                                          |
 
 Example NPM Script:
