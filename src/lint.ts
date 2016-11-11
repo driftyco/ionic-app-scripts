@@ -1,11 +1,12 @@
 import { access } from 'fs';
 import { BuildContext, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
+import { createProgram, findConfiguration, getFileNames } from 'tslint';
 import { generateContext, getUserConfigFile } from './util/config';
 import { join } from 'path';
-import { createProgram, findConfiguration, getFileNames } from 'tslint';
-import { runTsLintDiagnostics } from './util/logger-tslint';
-import { printDiagnostics, DiagnosticsType } from './util/logger-diagnostics';
+import { Logger } from './logger/logger';
+import { printDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
+import { runTsLintDiagnostics } from './logger/logger-tslint';
 import { runWorker } from './worker-client';
 import * as Linter from 'tslint';
 import * as fs from 'fs';

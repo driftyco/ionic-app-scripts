@@ -1,7 +1,8 @@
 import { join } from 'path';
 import { BuildContext, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
 import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
+import { Logger } from './logger/logger';
 import { readFileAsync, writeFileAsync } from './util/helpers';
 import { runWorker } from './worker-client';
 import * as cleanCss from 'clean-css';

@@ -1,5 +1,5 @@
 import { BuildContext, BuildState } from './util/interfaces';
-import { Logger } from './util/logger';
+import { Logger } from './logger/logger';
 import { getJsOutputDest } from './bundle';
 import { join, parse, resolve } from 'path';
 import { readFileSync, writeFile } from 'fs';

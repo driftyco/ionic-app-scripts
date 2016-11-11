@@ -1,9 +1,11 @@
 import { BuildContext, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
 import { emit, EventType } from './util/events';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
-import * as fs from 'fs-extra';
 import { join as pathJoin, resolve as pathResolve, sep as pathSep } from 'path';
+import { Logger } from './logger/logger';
+import * as fs from 'fs-extra';
+
 
 export function copy(context?: BuildContext, configFile?: string) {
   context = generateContext(context);

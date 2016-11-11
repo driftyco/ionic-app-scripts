@@ -1,4 +1,4 @@
-import { hasDiagnostics } from '../util/logger-diagnostics';
+import { hasDiagnostics } from '../logger/logger-diagnostics';
 import * as path from 'path';
 import * as tinylr from 'tiny-lr';
 import { ServeConfig } from './serve-config';

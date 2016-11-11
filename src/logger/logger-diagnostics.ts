@@ -1,8 +1,8 @@
-import { BuildContext } from './interfaces';
+import { BuildContext } from '../util/interfaces';
 import { Diagnostic, Logger, PrintLine } from './logger';
-import { titleCase } from './helpers';
-import { join } from 'path';
+import { join, resolve , normalize} from 'path';
 import { readFileSync, unlinkSync, writeFileSync } from 'fs';
+import { splitLineBreaks, titleCase } from '../util/helpers';
 import * as chalk from 'chalk';
 
 
@@ -116,7 +116,7 @@ export function clearDiagnostics(context: BuildContext, type: string) {
 
 
 export function hasDiagnostics(buildDir: string) {
-  loadDiagnosticsHtml(buildDir);
+  loadBuildDiagnosticsHtml(buildDir);
 
   const keys = Object.keys(diagnosticsHtmlCache);
   for (var i = 0; i < keys.length; i++) {
@@ -129,7 +129,7 @@ export function hasDiagnostics(buildDir: string) {
 }
 
 
-function loadDiagnosticsHtml(buildDir: string) {
+function loadBuildDiagnosticsHtml(buildDir: string) {
   try {
     if (diagnosticsHtmlCache[DiagnosticsType.TypeScript] === undefined) {
       diagnosticsHtmlCache[DiagnosticsType.TypeScript] = readFileSync(getDiagnosticsFileName(buildDir, DiagnosticsType.TypeScript), 'utf8');
@@ -155,35 +155,52 @@ export function injectDiagnosticsHtml(buildDir: string, content: any) {
 
   let contentStr = content.toString();
 
-  const diagnosticsHtml: string[] = [];
-  diagnosticsHtml.push(`<div id="ion-diagnostics">`);
-  diagnosticsHtml.push(getDiagnosticsHtmlContent(buildDir));
-  diagnosticsHtml.push(`</div>`);
+  const c: string[] = [];
+  c.push(`<div id="ion-diagnostics">`);
+
+  // diagnostics content
+  c.push(getDiagnosticsHtmlContent(buildDir));
+
+  c.push(`</div>`); // #ion-diagnostics
 
   let match = contentStr.match(/<body>(?![\s\S]*<body>)/i);
   if (match) {
-    contentStr = contentStr.replace(match[0], match[0] + '\n' + diagnosticsHtml.join('\n'));
+    contentStr = contentStr.replace(match[0], match[0] + '\n' + c.join('\n'));
   } else {
-    contentStr = diagnosticsHtml.join('\n') + contentStr;
+    contentStr = c.join('\n') + contentStr;
   }
 
   return contentStr;
 }
 
 
-export function getDiagnosticsHtmlContent(buildDir: string) {
-  loadDiagnosticsHtml(buildDir);
+export function getDiagnosticsHtmlContent(buildDir: string, includeDiagnosticsHtml?: string) {
+  const c: string[] = [];
 
-  const diagnosticsHtml: string[] = [];
+  // diagnostics header
+  c.push(`
+    <div class="ion-diagnostics-header">
+      <div class="ion-diagnostics-header-inner">Error</div>
+      <div class="ion-diagnostics-buttons">
+        <button class="ion-diagnostic-close">Close</button>
+      </div>
+    </div>
+  `);
+
+  if (includeDiagnosticsHtml) {
+    c.push(includeDiagnosticsHtml);
+  }
+
+  loadBuildDiagnosticsHtml(buildDir);
 
   const keys = Object.keys(diagnosticsHtmlCache);
   for (var i = 0; i < keys.length; i++) {
     if (typeof diagnosticsHtmlCache[keys[i]] === 'string') {
-      diagnosticsHtml.push(diagnosticsHtmlCache[keys[i]]);
+      c.push(diagnosticsHtmlCache[keys[i]]);
     }
   }
 
-  return diagnosticsHtml.join('\n');
+  return c.join('\n');
 }
 
 
@@ -194,12 +211,23 @@ function generateDiagnosticHtml(d: Diagnostic) {
 
   c.push(`<div class="ion-diagnostic-masthead" title="${escapeHtml(d.type)} error: ${escapeHtml(d.code)}">`);
 
-  const header = `${titleCase(d.type)} ${titleCase(d.level)}`;
-  c.push(`<div class="ion-diagnostic-header">${escapeHtml(header)}</div>`);
+  const title = `${titleCase(d.type)} ${titleCase(d.level)}`;
+  c.push(`<div class="ion-diagnostic-title">${escapeHtml(title)}</div>`);
 
   c.push(`<div class="ion-diagnostic-message" data-error-code="${escapeHtml(d.type)}-${escapeHtml(d.code)}">${escapeHtml(d.messageText)}</div>`);
 
   c.push(`</div>`); // .ion-diagnostic-masthead
+
+  c.push(generateCodeBlock(d));
+
+  c.push(`</div>`); // .ion-diagnostic
+
+  return c.join('\n');
+}
+
+
+function generateCodeBlock(d: Diagnostic) {
+  const c: string[] = [];
 
   c.push(`<div class="ion-diagnostic-file">`);
 
@@ -238,10 +266,112 @@ function generateDiagnosticHtml(d: Diagnostic) {
 
   c.push(`</div>`); // .ion-diagnostic-file
 
-  c.push(`</div>`); // .ion-diagnostic
-
   return c.join('\n');
 }
+
+
+export function generateRuntimeDiagnosticContent(rootDir: string, buildDir: string, runtimeErrorMessage: string, runtimeErrorStack: string) {
+  let c: string[] = [];
+
+  c.push('<div class="ion-diagnostic">');
+  c.push('<div class="ion-diagnostic-masthead">');
+  c.push('<div class="ion-diagnostic-header">Runtime Error</div>');
+  if (runtimeErrorMessage) {
+    c.push('<div class="ion-diagnostic-message">' + escapeHtml(runtimeErrorMessage) + '</div>');
+  }
+  c.push('</div>'); // .ion-diagnostic-masthead
+
+  const diagnosticsHtmlCache = generateRuntimeStackDiagnostics(rootDir, runtimeErrorStack);
+  diagnosticsHtmlCache.forEach(d => {
+    c.push(generateCodeBlock(d));
+  });
+
+  if (runtimeErrorStack) {
+    c.push('<div class="ion-diagnostic-stack-header">Stack</div>');
+    c.push('<div class="ion-diagnostic-stack">' + escapeHtml(runtimeErrorStack) + '</div>');
+  }
+
+  c.push('</div>'); // .ion-diagnostic
+
+  return getDiagnosticsHtmlContent(buildDir, c.join('\n'));
+}
+
+
+export function generateRuntimeStackDiagnostics(rootDir: string, stack: string) {
+  const diagnostics: Diagnostic[] = [];
+
+  if (stack) {
+    splitLineBreaks(stack).forEach(stackLine => {
+      try {
+        const match = WEBPACK_FILE_REGEX.exec(stackLine);
+        if (!match) return;
+
+        const fileSplit = match[1].split('?');
+        if (fileSplit.length !== 2) return;
+
+        const linesSplit = fileSplit[1].split(':');
+        if (linesSplit.length !== 3) return;
+
+        const fileName = fileSplit[0];
+        const errorLineIndex = parseInt(linesSplit[1], 10);
+        const errorCharIndex = parseInt(linesSplit[2], 10);
+
+        const d: Diagnostic = {
+          level: 'error',
+          syntax: 'js',
+          type: 'runtime',
+          header: '',
+          code: 'runtime',
+          messageText: '',
+          absFileName: resolve(rootDir, fileName),
+          relFileName: normalize(fileName),
+          lines: []
+        };
+
+        const srcLines = splitLineBreaks(readFileSync(d.absFileName, 'utf8'));
+        if (!srcLines.length || errorLineIndex >= srcLines.length) return;
+
+        const errorLine: PrintLine = {
+          lineIndex: errorLineIndex,
+          lineNumber: errorLineIndex + 1,
+          text: srcLines[errorLineIndex],
+          errorCharStart: errorCharIndex,
+          errorLength: 1
+        };
+        d.lines.push(errorLine);
+
+        if (errorLine.lineIndex > 0) {
+          const beforeLine: PrintLine = {
+            lineIndex: errorLine.lineIndex - 1,
+            lineNumber: errorLine.lineNumber - 1,
+            text: srcLines[errorLine.lineIndex - 1],
+            errorCharStart: -1,
+            errorLength: -1
+          };
+          d.lines.unshift(beforeLine);
+        }
+
+        if (errorLine.lineIndex < srcLines.length) {
+          const beforeLine: PrintLine = {
+            lineIndex: errorLine.lineIndex + 1,
+            lineNumber: errorLine.lineNumber + 1,
+            text: srcLines[errorLine.lineIndex + 1],
+            errorCharStart: -1,
+            errorLength: -1
+          };
+          d.lines.push(beforeLine);
+        }
+
+        diagnostics.push(d);
+
+      } catch (e) {}
+    });
+  }
+
+  return diagnostics;
+};
+
+const WEBPACK_FILE_REGEX = /\(webpack:\/\/\/(.*?)\)/;
 
 
 function htmlHighlightError(errorLine: string, errorCharStart: number, errorLength: number) {
@@ -301,6 +431,7 @@ function cssConsoleSyntaxHighlight(text: string, errorCharStart: number) {
   return chars.join('');
 }
 
+
 function escapeHtml(unsafe: string) {
     return unsafe
          .replace(/&/g, '&amp;')
@@ -308,8 +439,7 @@ function escapeHtml(unsafe: string) {
          .replace(/>/g, '&gt;')
          .replace(/"/g, '&quot;')
          .replace(/'/g, '&#039;');
- }
-
+}
 
 
 function removeWhitespaceIndent(orgLines: PrintLine[]) {

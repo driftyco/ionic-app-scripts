@@ -55,7 +55,7 @@ export function generateContext(context?: BuildContext): BuildContext {
   setIonicEnvironment(context.isProd);
 
   if (typeof context.isWatch !== 'boolean') {
-    context.isWatch = hasArg('--watch', '-w');
+    context.isWatch = hasArg('--watch');
   }
 
   context.inlineTemplates = true;

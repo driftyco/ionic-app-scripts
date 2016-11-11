@@ -1,15 +1,16 @@
 import { FileCache } from './util/file-cache';
 import { BuildContext, BuildState } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
 import { buildJsSourceMaps } from './bundle';
 import { changeExtension } from './util/helpers';
 import { EventEmitter } from 'events';
+import { fork, ChildProcess } from 'child_process';
 import { generateContext } from './util/config';
 import { inlineTemplate } from './template';
+import { Logger } from './logger/logger';
 import { readFileSync } from 'fs';
-import { runTypeScriptDiagnostics } from './util/logger-typescript';
-import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './util/logger-diagnostics';
-import { fork, ChildProcess } from 'child_process';
+import { runTypeScriptDiagnostics } from './logger/logger-typescript';
+import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
 import * as path from 'path';
 import * as ts from 'typescript';
 

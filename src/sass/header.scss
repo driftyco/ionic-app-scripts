@@ -1,0 +1,50 @@
+
+.ion-diagnostics-header {
+  display: flex;
+  overflow: hidden;
+
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  min-height: 44px;
+
+  background: $header-background;
+  border-bottom: 0.5px solid $header-border-color;
+  color: $header-text-color;
+}
+
+.ion-diagnostics-header-inner {
+  flex: 1;
+  display: flex;
+  padding: 0 20px;
+  font-size: 20px;
+}
+
+.ion-diagnostics-buttons {
+  flex: 0;
+  padding: 0 0 0 20px;
+  display: flex;
+}
+
+.ion-diagnostic-close {
+  margin: 0;
+  padding: 10px 20px;
+  border: 0;
+  outline: none;
+  background: transparent;
+
+  font-size: 14px;
+  color: $ionic-blue;
+
+  -moz-appearance: none;
+  -ms-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.ion-diagnostic-close:hover {
+  opacity: 0.7;
+}

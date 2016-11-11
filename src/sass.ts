@@ -1,11 +1,12 @@
 import { basename, dirname, join, sep } from 'path';
 import { BuildContext, BuildState, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
 import { bundle } from './bundle';
 import { ensureDirSync, readdirSync, writeFile } from 'fs-extra';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
-import { runSassDiagnostics } from './util/logger-sass';
-import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './util/logger-diagnostics';
+import { Logger } from './logger/logger';
+import { runSassDiagnostics } from './logger/logger-sass';
+import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
 import { SassError, render as nodeSassRender, Result } from 'node-sass';
 import * as postcss from 'postcss';
 import * as autoprefixer from 'autoprefixer';

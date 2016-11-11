@@ -1,6 +1,6 @@
 import { BuildContext } from './util/interfaces';
 import { generateContext, getConfigValue, hasConfigValue } from './util/config';
-import { Logger } from './util/logger';
+import { Logger } from './logger/logger';
 import { watch } from './watch';
 import open from './util/open';
 import { createNotificationServer } from './dev-server/notification-server';
@@ -51,7 +51,7 @@ export function serve(context?: BuildContext) {
 
 function onReady(config: ServeConfig, context: BuildContext) {
   if (config.launchBrowser || config.launchLab) {
-    const openOptions: string[] = [`http://${config.host}:${config.httpPort}/`]
+    const openOptions: string[] = [`http://${config.host}:${config.httpPort}`]
       .concat(launchLab(context) ? [IONIC_LAB_URL] : [])
       .concat(browserOption(context) ? [browserOption(context)] : [])
       .concat(platformOption(context) ? ['?ionicplatform=', platformOption(context)] : []);

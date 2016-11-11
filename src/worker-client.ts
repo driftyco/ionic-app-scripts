@@ -1,5 +1,6 @@
 import { BuildContext, WorkerProcess, WorkerMessage } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
+import { Logger } from './logger/logger';
 import { fork, ChildProcess } from 'child_process';
 import { join } from 'path';
 

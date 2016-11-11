@@ -1,3 +1,15 @@
+<a name="0.0.43"></a>
+## [0.0.43](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.42...v0.0.43) (2016-11-10)
+
+
+### Bug Fixes
+
+* **rollup:** removing rollup metadata prefix for paths ([350a288](https://github.com/driftyco/ionic-app-scripts/commit/350a288))
+* **watch:** remove shorthand arg for watch ([0685c0b](https://github.com/driftyco/ionic-app-scripts/commit/0685c0b)), closes [#290](https://github.com/driftyco/ionic-app-scripts/issues/290)
+* **webpack:** typo in import, close [#326](https://github.com/driftyco/ionic-app-scripts/issues/326) ([#341](https://github.com/driftyco/ionic-app-scripts/issues/341)) ([6b89fa2](https://github.com/driftyco/ionic-app-scripts/commit/6b89fa2))
+
+
+
 <a name="0.0.42"></a>
 ## [0.0.42](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.41...v0.0.42) (2016-11-09)
 

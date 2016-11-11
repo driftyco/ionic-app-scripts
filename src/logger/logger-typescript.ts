@@ -1,5 +1,6 @@
-import { BuildContext } from './interfaces';
+import { BuildContext } from '../util/interfaces';
 import { Diagnostic, Logger, PrintLine } from './logger';
+import { splitLineBreaks } from '../util/helpers';
 import * as ts from 'typescript';
 
 
@@ -32,7 +33,7 @@ function loadDiagnostic(context: BuildContext, tsDiagnostic: ts.Diagnostic) {
     d.absFileName = tsDiagnostic.file.fileName;
     d.relFileName = Logger.formatFileName(context.rootDir, d.absFileName);
 
-    const srcLines = tsDiagnostic.file.getText().replace(/\\r/g, '\n').split('\n');
+    const srcLines = splitLineBreaks(tsDiagnostic.file.getText());
     const posData = tsDiagnostic.file.getLineAndCharacterOfPosition(tsDiagnostic.start);
 
     const errorLine: PrintLine = {

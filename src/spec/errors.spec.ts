@@ -1,7 +1,7 @@
-import { BuildError } from '../util/logger';
+import { BuildError } from '../util/errors';
 
 
-describe('Logger', () => {
+describe('Errors', () => {
 
   describe('BuildError', () => {
 

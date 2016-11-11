@@ -1,11 +1,12 @@
 import { BuildContext, BuildState } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
 import { bundle, bundleUpdate } from './bundle';
 import { clean } from './clean';
 import { copy } from './copy';
 import { emit, EventType } from './util/events';
 import { generateContext } from './util/config';
 import { lint, lintUpdate } from './lint';
+import { Logger } from './logger/logger';
 import { minifyCss, minifyJs } from './minify';
 import { ngc } from './ngc';
 import { sass, sassUpdate } from './sass';

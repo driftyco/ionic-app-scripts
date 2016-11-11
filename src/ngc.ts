@@ -1,10 +1,11 @@
 import { basename, join } from 'path';
 import { BuildContext, TaskInfo } from './util/interfaces';
+import { BuildError } from './util/errors';
 import { copy as fsCopy, emptyDirSync, outputJsonSync, readFileSync, statSync } from 'fs-extra';
-import { objectAssign } from './util/helpers';
 import { fillConfigDefaults, generateContext, getUserConfigFile, getNodeBinExecutable } from './util/config';
 import { getTsConfigPath } from './transpile';
-import { BuildError, Logger } from './util/logger';
+import { Logger } from './logger/logger';
+import { objectAssign } from './util/helpers';
 import * as ts from 'typescript';
 
 

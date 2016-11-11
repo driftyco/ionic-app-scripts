@@ -1,8 +1,9 @@
 import { BuildContext, BuildState, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
 import { ionCompiler } from './plugins/ion-compiler';
-import { join, isAbsolute, normalize } from 'path';
+import { join, isAbsolute, normalize, sep } from 'path';
+import { Logger } from './logger/logger';
 import * as rollupBundler from 'rollup';
 
 
@@ -82,7 +83,14 @@ export function rollupWorker(context: BuildContext, configFile: string): Promise
 
         // set the module files used in this bundle
         // this reference can be used elsewhere in the build (sass)
-        context.moduleFiles = bundle.modules.map((m) => m.id);
+        context.moduleFiles = bundle.modules.map((m) => {
+          // sometimes, Rollup appends weird prefixes to the path like commonjs:proxy
+          const index = m.id.indexOf(sep);
+          if (index >= 0) {
+            return m.id.substring(index);
+          }
+          return m.id;
+        });
 
         // cache our bundle for later use
         if (context.isWatch) {

@@ -1,7 +1,8 @@
 import { BuildContext, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
 import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
 import { join } from 'path';
+import { Logger } from './logger/logger';
 import { runWorker } from './worker-client';
 import { writeFileAsync } from './util/helpers';
 import * as uglify from 'uglify-js';

@@ -1,4 +1,4 @@
-import { Logger } from '../util/logger';
+import { Logger } from '../logger/logger';
 import { inlineTemplate, replaceTemplateUrl, updateTemplate } from '../template';
 import { getTemplateMatch, getTemplateFormat, replaceBundleJsTemplate } from '../template';
 import { resolve } from 'path';

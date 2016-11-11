@@ -1,6 +1,6 @@
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { generateContext, getUserConfigFile } from './util/config';
-import { Logger } from './util/logger';
+import { Logger } from './logger/logger';
 import { runWorker } from './worker-client';
 
 

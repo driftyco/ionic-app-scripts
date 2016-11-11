@@ -13,12 +13,13 @@ module.exports = {
       paths: [
         '{{SRC}}/**/*.(ts|html|scss)'
       ],
-      options: { ignored: '{{SRC}}/**/*.spec.ts' },
+      options: { ignored: ['{{SRC}}/**/*.spec.ts', '**/*.DS_Store'] },
       callback: watch.buildUpdate
     },
 
     {
       paths: copyConfig.include.map(f => f.src),
+      options: { ignored: '**/*.DS_Store' },
       callback: copy.copyUpdate
     }
 

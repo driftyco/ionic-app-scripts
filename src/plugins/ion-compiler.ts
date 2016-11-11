@@ -1,6 +1,6 @@
 import { changeExtension } from '../util/helpers';
 import { BuildContext } from '../util/interfaces';
-import { Logger } from '../util/logger';
+import { Logger } from '../logger/logger';
 import { dirname, join, resolve } from 'path';
 import * as pluginutils from 'rollup-pluginutils';
 

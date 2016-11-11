@@ -1,7 +1,8 @@
-import { BuildContext } from './interfaces';
+import { BuildContext } from '../util/interfaces';
 import { Diagnostic, Logger, PrintLine } from './logger';
 import { readFileSync } from 'fs';
 import { SassError } from 'node-sass';
+import { splitLineBreaks } from '../util/helpers';
 
 
 export function runSassDiagnostics(context: BuildContext, sassError: SassError) {
@@ -28,7 +29,7 @@ export function runSassDiagnostics(context: BuildContext, sassError: SassError) 
 
     if (sassError.line > -1) {
       try {
-        const srcLines = readFileSync(d.absFileName, 'utf8').replace(/\\r/g, '\n').split('\n');
+        const srcLines = splitLineBreaks(readFileSync(d.absFileName, 'utf8'));
 
         const errorLine: PrintLine = {
           lineIndex: sassError.line - 1,

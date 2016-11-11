@@ -1,0 +1,86 @@
+
+#ion-diagnostics .ion-diagnostic-blob {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+
+#ion-diagnostics .ion-diagnostic-table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  -moz-tab-size: $tab-size;
+  tab-size: $tab-size;
+}
+
+#ion-diagnostics .ion-diagnostic-table td,
+#ion-diagnostics .ion-diagnostic-table th {
+  padding: 0;
+}
+
+#ion-diagnostics  td.ion-diagnostic-blob-num {
+  padding-right: 10px;
+  padding-left: 10px;
+  width: 1%;
+  min-width: 50px;
+  font-family: $code-font-family;
+  font-size: 12px;
+  line-height: 20px;
+  color: rgba(0,0,0,0.3);
+  text-align: right;
+  white-space: nowrap;
+  vertical-align: top;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border: solid #eee;
+  border-width: 0 1px 0 0;
+}
+
+#ion-diagnostics .ion-diagnostic-blob-num::before {
+  content: attr(data-line-number);
+}
+
+#ion-diagnostics .ion-diagnostic-error-line .ion-diagnostic-blob-num {
+  background-color: $code-error-highlight;
+  border-color: darken($code-error-highlight, 4%);
+}
+
+#ion-diagnostics .ion-diagnostic-error-line .ion-diagnostic-blob-code {
+  background: $code-error-background;
+  z-index: -1;
+}
+
+#ion-diagnostics .ion-diagnostics-error-chr {
+  position: relative;
+}
+
+#ion-diagnostics .ion-diagnostics-error-chr::before {
+  position: absolute;
+  z-index: -1;
+  top: -3px;
+  left: 0px;
+  width: 8px;
+  height: 20px;
+  background-color: $code-error-highlight;
+  content: "";
+}
+
+#ion-diagnostics td.ion-diagnostic-blob-code {
+  position: relative;
+  padding-right: 10px;
+  padding-left: 10px;
+  line-height: 20px;
+  vertical-align: top;
+  overflow: visible;
+  font-family: $code-font-family;
+  font-size: 12px;
+  color: #333;
+  word-wrap: normal;
+  white-space: pre;
+}
+
+#ion-diagnostics .ion-diagnostic-blob-code::before {
+  content: "";
+}

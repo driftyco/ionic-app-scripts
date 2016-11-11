@@ -1,5 +1,5 @@
 import { BuildContext } from './util/interfaces';
-import { BuildError, IgnorableError } from './util/logger';
+import { BuildError, IgnorableError } from './util/errors';
 import { generateContext, BUNDLER_ROLLUP } from './util/config';
 import { rollup, rollupUpdate, getRollupConfig, getOutputDest as rollupGetOutputDest } from './rollup';
 import { webpack, webpackUpdate, getWebpackConfig, getOutputDest as webpackGetOutputDest } from './webpack';

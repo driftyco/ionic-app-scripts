@@ -1,4 +1,5 @@
 window.IonicDevServerConfig = window.IonicDevServerConfig || {};
+
 window.IonicDevServer = {
   start: function() {
     this.msgQueue = [];
@@ -15,132 +16,94 @@ window.IonicDevServer = {
     }
 
     this.openConnection();
-
     this.bindKeyboardEvents();
 
-    document.addEventListener("DOMContentLoaded", IonicDevServer.domReady);
-  },
-
-  domReady: function() {
-    document.removeEventListener("DOMContentLoaded", IonicDevServer.domReady);
-    var diagnosticsEle = document.getElementById('ion-diagnostics');
-    if (diagnosticsEle) {
-      IonicDevServer.buildStatus('error');
-    } else {
-      IonicDevServer.buildStatus('success');
-    }
+    var self = this;
+    document.addEventListener("DOMContentLoaded", function() {
+      var diagnosticsEle = document.getElementById('ion-diagnostics');
+      if (diagnosticsEle) {
+        self.buildStatus('error');
+      } else {
+        self.buildStatus('success');
+      }
+    });
   },
 
   handleError: function(err) {
-    var self = this;
+    if (!err) return;
 
-    console.error('Handling error', err);
+    if (this.socketReady) {
+      var msg = {
+        category: 'runtimeError',
+        type: 'runtimeError',
+        data: {
+          message: err.message ? err.message.toString() : null,
+          stack: err.stack ? err.stack.toString() : null
+        }
+      };
+      this.queueMessageSend(msg);
 
-    var existing = document.querySelector('._ionic-error-view');
-    if(existing) {
-      document.body.removeChild(existing);
-    }
+    } else {
+      var c = [];
 
-    this._errorWindow = this._makeErrorWindow(err);
-    document.body.appendChild(this._errorWindow);
+      c.push('<div class="ion-diagnostics-header">');
+      c.push('<div class="ion-diagnostics-header-inner">Error</div>');
+      c.push('<div class="ion-diagnostics-buttons">');
+      c.push('<button class="ion-diagnostic-close">Close</button>');
+      c.push('</div>');
+      c.push('</div>');
 
-    setTimeout(function() {
-      window.requestAnimationFrame(function() {
-        self._errorWindow.classList.add('show');
+      c.push('<div class="ion-diagnostic">');
+      c.push('<div class="ion-diagnostic-masthead">');
+      c.push('<div class="ion-diagnostic-header">Runtime Error</div>');
+      c.push('<div class="ion-diagnostic-message">' + err.message + '</div>');
+      c.push('</div>');
+      c.push('<div class="ion-diagnostic-stack-header">Stack</div>');
+      c.push('<div class="ion-diagnostic-stack">' + err.stack + '</div>');
+      c.push('</div>');
+
+      this.buildUpdate({
+        type: 'clientError',
+        data: {
+          diagnosticsHtml: c.join('')
+        }
       });
-    }, 500);
-
-  },
-
-  _closeErrorWindow: function() {
-    var self = this;
-    window.requestAnimationFrame(function() {
-      self._errorWindow.classList.remove('show');
-      setTimeout(function() {
-        document.body.removeChild(self._errorWindow);
-        self._errorWindow = null;
-      }, 500);
-    });
-  },
-
-  _makeErrorWindow: function(err) {
-    var self = this;
-
-    var isInCordova = !!window.cordova;
-
-    var d = document.createElement('div');
-    d.className = '_ionic-error-view';
-
-    if(isInCordova) {
-      d.classList.add('_ionic-error-in-cordova');
     }
-
-    d.innerHTML = '<div style="position: relative"><div class="_ionic-error-navbar"><h1 class="_title">App Runtime Error</h1><div class="_close">Close</div></div><div class="_ionic-error-content"><div class="message">' + err.message + '</div><h4>Stacktrace</h4><textarea class="stack">' + err.stack + '</textarea><!--<div class="_button" action="copy">Copy</div>-->' + this._makeErrorButtonsHtml() + '</div></div>';
-
-    d.querySelector('._close').addEventListener('click', function(e) {
-      closeWindow(d);
-    });
-    /*
-    d.querySelector('[action="copy"]').addEventListener('click', function(e) {
-      if(window.IonicDevtools) {
-        window.IonicDevtools.copyErrorToClipboard(err);
-      }
-    });
-    */
-
-    return d;
   },
-  _makeErrorButtonsHtml: function() {
-    var d = document.createElement('div');
-    d.className = '_ion-error-buttons';
 
-    var b1 = document.createElement('button');
-    b1.innerHTML = 'Close (ESC)';
-    b1.className = '_button';
-
-    var b2 = document.createElement('button');
-    b2.innerHTML = 'Reload (&#8984;)';
-    b2.className = '_button';
-
-    //d.appendChild(b1);
-    //d.appendChild(b2);
-
-    return d.innerHTML;
-  },
   reloadApp: function() {
-    if(window.cordova) {
-      window.location.reload(true);
-    }
+    window.location.reload(true);
   },
-  showDebugMenu: function() {
-    if(window.IonicDevtools) {
-      window.IonicDevtools.showDebugMenu();
-    }
-  },
+
   bindKeyboardEvents: function() {
     var self = this;
 
-    document.addEventListener('keyup', function(event) {
-      var key = event.keyCode || event.charCode || 0;
+    document.addEventListener('keyup', function(ev) {
+      var key = ev.keyCode || ev.charCode || 0;
 
-      if(key == 27 && self._errorWindow) {
+      if (key == 27 && self._errorWindow) {
         self._closeErrorWindow();
       }
     });
-    document.addEventListener('keydown', function(event) {
-      var key = event.keyCode || event.charCode || 0;
+
+    document.addEventListener('keydown', function(ev) {
+      var key = ev.keyCode || ev.charCode || 0;
 
       // Check for reload command (cmd/ctrl+R)
-      if(key == 82 && (event.metaKey || event.ctrlKey)) {
+      if (key == 82 && (ev.metaKey || ev.ctrlKey)) {
         self.reloadApp();
       }
+    });
 
-      // Check for debugger command (cmd/ctrl+D)
-      /*
-      if(key == 68 && (event.metaKey || event.ctrlKey)) {
-        self.showDebugMenu();
+    document.addEventListener('click', function(ev) {
+      if (ev.target && ev.target.classList.contains('ion-diagnostic-close')) {
+        self.buildUpdate({
+          type: 'closeDiagnostics',
+          data: {
+            diagnosticsHtml: null
+          }
+        });
       }
-      */
     });
   },
 
@@ -164,8 +127,9 @@ window.IonicDevServer = {
         }
       };
 
-      self.socket.onclose = () => {
+      self.socket.onclose = function() {
         self.consoleLog('Dev server logger closed');
+        self.socketReady = false;
       };
 
       self.drainMessageQueue();
@@ -184,7 +148,7 @@ window.IonicDevServer = {
         try {
           this.socket.send(JSON.stringify(msg));
         } catch(e) {
-          if(e instanceof TypeError) {
+          if (e instanceof TypeError) {
 
           } else {
             this.consoleError('ws error: ' + e);
@@ -243,7 +207,8 @@ window.IonicDevServer = {
         toastEle.innerHTML = c.join('');
         document.body.insertBefore(toastEle, document.body.firstChild);
       }
-      IonicDevServer.toastTimerId = setTimeout(function() {
+
+      this.toastTimerId = setTimeout(function() {
         var toastEle = document.getElementById('ion-diagnostics-toast');
         if (toastEle) {
           toastEle.classList.add('ion-diagnostics-toast-active');
@@ -253,7 +218,7 @@ window.IonicDevServer = {
     } else {
       status = msg.data.diagnosticsHtml ? 'error' : 'success';
 
-      clearTimeout(IonicDevServer.toastTimerId);
+      clearTimeout(this.toastTimerId);
 
       var toastEle = document.getElementById('ion-diagnostics-toast');
       if (toastEle) {
@@ -263,7 +228,8 @@ window.IonicDevServer = {
       var diagnosticsEle = document.getElementById('ion-diagnostics');
       if (diagnosticsEle && !msg.data.diagnosticsHtml) {
         diagnosticsEle.classList.add('ion-diagnostics-fade-out');
-        IonicDevServer.diagnosticsTimerId = setTimeout(function() {
+
+        this.diagnosticsTimerId = setTimeout(function() {
           var diagnosticsEle = document.getElementById('ion-diagnostics');
           if (diagnosticsEle) {
             diagnosticsEle.parentElement.removeChild(diagnosticsEle);
@@ -271,25 +237,27 @@ window.IonicDevServer = {
         }, 100);
 
       } else if (msg.data.diagnosticsHtml) {
-        clearTimeout(IonicDevServer.diagnosticsTimerId);
+
+        clearTimeout(this.diagnosticsTimerId);
 
         if (!diagnosticsEle) {
           diagnosticsEle = document.createElement('div');
           diagnosticsEle.id = 'ion-diagnostics';
           diagnosticsEle.className = 'ion-diagnostics-fade-out';
           document.body.insertBefore(diagnosticsEle, document.body.firstChild);
-          IonicDevServer.diagnosticsTimerId = setTimeout(function() {
+
+          this.diagnosticsTimerId = setTimeout(function() {
             var diagnosticsEle = document.getElementById('ion-diagnostics');
             if (diagnosticsEle) {
               diagnosticsEle.classList.remove('ion-diagnostics-fade-out');
             }
           }, 24);
         }
-        diagnosticsEle.innerHTML = msg.data.diagnosticsHtml;
+        diagnosticsEle.innerHTML = msg.data.diagnosticsHtml
       }
     }
 
-    IonicDevServer.buildStatus(status);
+    this.buildStatus(status);
   },
 
   buildStatus: function (status) {
@@ -301,7 +269,7 @@ window.IonicDevServer = {
     var iconLink = document.createElement('link');
     iconLink.rel = 'icon';
     iconLink.type = 'image/png';
-    iconLink.href = IonicDevServer[status + 'Icon'];
+    iconLink.href = this[status + 'Icon'];
     document.head.appendChild(iconLink);
 
     if (status === 'error') {
@@ -309,13 +277,68 @@ window.IonicDevServer = {
       if (diagnosticsEle) {
         var systemInfoEle = diagnosticsEle.querySelector('#ion-diagnostics-system-info');
         if (!systemInfoEle) {
-          systemInfoEle = document.createElement('pre');
+          systemInfoEle = document.createElement('div');
           systemInfoEle.id = 'ion-diagnostics-system-info';
           systemInfoEle.innerHTML = IonicDevServerConfig.systemInfo.join('\n');
           diagnosticsEle.appendChild(systemInfoEle);
         }
       }
     }
+  },
+
+  showOptions: function() {
+
+  },
+
+  enableShake: function() {
+    /*
+    * Author: Alex Gibson
+    * https://github.com/alexgibson/shake.js
+    * License: MIT license
+    */
+    var self = this;
+    var threshold = 15;
+    var timeout = 1000;
+
+    self.shakeTime = new Date();
+    self.shakeX = null;
+    self.shakeY = null;
+    self.shakeZ = null;
+
+    window.addEventListener('devicemotion', function(ev) {
+      var current = ev.accelerationIncludingGravity;
+      var currentTime;
+      var timeDifference;
+      var deltaX = 0;
+      var deltaY = 0;
+      var deltaZ = 0;
+
+      if (self.shakeX === null) {
+        self.shakeX = current.x;
+        self.shakeY = current.y;
+        self.shakeZ = current.z;
+        return;
+      }
+
+      deltaX = Math.abs(self.shakeX - current.x);
+      deltaY = Math.abs(self.shakeY - current.y);
+      deltaZ = Math.abs(self.shakeZ - current.z);
+
+      if (((deltaX > threshold) && (deltaY > threshold)) || ((deltaX > threshold) && (deltaZ > threshold)) || ((deltaY > threshold) && (deltaZ > threshold))) {
+        currentTime = new Date();
+        timeDifference = currentTime.getTime() - self.shakeTime.getTime();
+
+        if (timeDifference > timeout) {
+          self.showOptions();
+          self.shakeTime = new Date();
+        }
+      }
+
+      self.shakeX = current.x;
+      self.shakeY = current.y;
+      self.shakeZ = current.z;
+    });
+
   },
 
   activeIcon: 'data:image/png;base64,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',

@@ -1,4 +1,4 @@
-import { Logger } from '../util/logger';
+import { Logger } from '../logger/logger';
 import { changeExtension, readFileAsync } from '../util/helpers';
 
 module.exports = function typescriptSourcemapLoaderDisk(source: string, map: string) {

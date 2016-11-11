@@ -1,9 +1,10 @@
 import * as buildTask from './build';
 import { BuildContext, BuildState, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
+import { canRunTranspileUpdate } from './transpile';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars, setIonicEnvironment } from './util/config';
 import { join, normalize, extname } from 'path';
-import { canRunTranspileUpdate } from './transpile';
+import { Logger } from './logger/logger';
 import * as chokidar from 'chokidar';
 
 
@@ -262,7 +263,7 @@ export function runBuildUpdate(context: BuildContext, changedFiles: ChangedFile[
 
 const taskInfo: TaskInfo = {
   fullArg: '--watch',
-  shortArg: '-w',
+  shortArg: null,
   envVar: 'IONIC_WATCH',
   packageConfig: 'ionic_watch',
   defaultConfigFile: 'watch.config'

@@ -5,9 +5,9 @@ import * as express from 'express';
 import * as fs from 'fs';
 import * as url from 'url';
 import { ServeConfig, LOGGER_DIR } from './serve-config';
-import { Logger } from '../util/logger';
+import { Logger } from '../logger/logger';
 import * as proxyMiddleware from 'proxy-middleware';
-import { injectDiagnosticsHtml } from '../util/logger-diagnostics';
+import { injectDiagnosticsHtml } from '../logger/logger-diagnostics';
 import { getProjectJson, IonicProject } from '../util/ionic-project';
 
 

@@ -1,4 +1,5 @@
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
+import { Logger } from './logger/logger';
 import { WorkerMessage } from './util/interfaces';
 
 

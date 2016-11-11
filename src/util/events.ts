@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { Logger } from './logger';
+import { Logger } from '../logger/logger';
 
 const emmitter = new EventEmitter();
 

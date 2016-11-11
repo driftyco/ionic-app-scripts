@@ -1,10 +1,11 @@
 import { FileCache } from './util/file-cache';
 import { BuildContext, BuildState, File, TaskInfo } from './util/interfaces';
-import { BuildError, IgnorableError, Logger } from './util/logger';
+import { BuildError, IgnorableError } from './util/errors';
 import { changeExtension, readFileAsync, setContext } from './util/helpers';
 import { emit, EventType } from './util/events';
-import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
 import { extname, join } from 'path';
+import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
+import { Logger } from './logger/logger';
 import * as webpackApi from 'webpack';
 
 import { EventEmitter } from 'events';

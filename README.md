@@ -99,6 +99,7 @@ npm run build --rollup ./config/rollup.config.js
 | Sass        | `ionic_sass`        | `--sass` or `-s`      |
 | TSLint      | `ionic_tslint`      | `--tslint` or `-i`    |
 | UglifyJS    | `ionic_uglifyjs`    | `--uglifyjs` or `-u`  |
+| Watch       | `ionic_watch`       | `--watch`             |
 | Webpack     | `ionic_webpack`     | `--webpack` or `-w`   |
 
 
