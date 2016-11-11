@@ -61,7 +61,8 @@ module.exports = {
   devtool: getDevtool(),
 
   resolve: {
-    extensions: ['.js', '.ts', '.json']
+    extensions: ['.js', '.ts', '.json'],
+    modules: [path.resolve('{{ROOT}}', 'node_modules')]
   },
 
   module: {
