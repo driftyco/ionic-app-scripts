@@ -463,7 +463,7 @@ export interface SassConfig {
   sourceMap?: string;
   omitSourceMapUrl?: boolean;
   sourceMapContents?: boolean;
-  postCssPlugins: any[];
+  postCssPlugins?: any[];
 }
 
 
