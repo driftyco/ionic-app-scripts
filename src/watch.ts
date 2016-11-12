@@ -212,6 +212,14 @@ export function runBuildUpdate(context: BuildContext, changedFiles: ChangedFile[
     changedFiles: changedFiles.map(f => f.filePath)
   };
 
+  const jsFiles = changedFiles.filter(f => f.ext === '.js');
+  if (jsFiles.length) {
+    // this is mainly for linked modules
+    // if a linked library has changed (which would have a js extention)
+    // we should do a full transpile build because of this
+    context.bundleState = BuildState.RequiresUpdate;
+  }
+
   const tsFiles = changedFiles.filter(f => f.ext === '.ts');
   if (tsFiles.length > 1) {
     // multiple .ts file changes
@@ -274,7 +282,7 @@ export function runBuildUpdate(context: BuildContext, changedFiles: ChangedFile[
   }
 
   // guess which file is probably the most important here
-  data.filePath = tsFiles.concat(sassFiles, htmlFiles)[0].filePath;
+  data.filePath = tsFiles.concat(sassFiles, htmlFiles, jsFiles)[0].filePath;
 
   return data;
 }
