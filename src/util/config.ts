@@ -252,15 +252,25 @@ export function hasArg(fullName: string, shortName: string = null): boolean {
   return !!(processArgv.some(a => a === fullName) || (shortName !== null && processArgv.some(a => a === shortName)));
 }
 
+export function replacePathVars(context: BuildContext, filePath: string | string[] | { [key: string]: any }): any {
+  if (Array.isArray(filePath)) {
+    return filePath.map<string>(f => replacePathVars(context, f));
+  }
 
-export function replacePathVars(context: BuildContext, filePath: string) {
+  if (typeof filePath === 'object') {
+    const clonedFilePaths = Object.assign({}, filePath);
+    for (let key in clonedFilePaths) {
+      clonedFilePaths[key] = replacePathVars(context, clonedFilePaths[key]);
+    }
+    return clonedFilePaths;
+  }
+
   return filePath.replace('{{SRC}}', context.srcDir)
     .replace('{{WWW}}', context.wwwDir)
     .replace('{{TMP}}', context.tmpDir)
     .replace('{{ROOT}}', context.rootDir)
     .replace('{{BUILD}}', context.buildDir);
 }
-
 
 export function getNodeBinExecutable(context: BuildContext, cmd: string) {
   let cmdPath = join(context.rootDir, 'node_modules', '.bin', cmd);
