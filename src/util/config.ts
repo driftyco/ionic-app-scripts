@@ -254,7 +254,7 @@ export function hasArg(fullName: string, shortName: string = null): boolean {
 
 export function replacePathVars(context: BuildContext, filePath: string | string[] | { [key: string]: any }): any {
   if (Array.isArray(filePath)) {
-    return filePath.map<string>(f => replacePathVars(context, f));
+    return filePath.map(f => replacePathVars(context, f));
   }
 
   if (typeof filePath === 'object') {
