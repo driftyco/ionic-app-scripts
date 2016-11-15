@@ -141,7 +141,7 @@ function transpileUpdateWorker(event: string, filePath: string, context: BuildCo
   return new Promise((resolve, reject) => {
     clearDiagnostics(context, DiagnosticsType.TypeScript);
 
-    filePath = path.resolve(filePath);
+    filePath = path.normalize(path.resolve(filePath));
 
     // an existing ts file we already know about has changed
     // let's "TRY" to do a single module build for this one file
@@ -259,16 +259,15 @@ function cleanFileNames(context: BuildContext, fileNames: string[]) {
 
 function writeSourceFiles(fileCache: FileCache, sourceFiles: ts.SourceFile[]) {
   for (const sourceFile of sourceFiles) {
-    fileCache.set(sourceFile.fileName, { path: sourceFile.fileName, content: sourceFile.text });
+    const fileName = path.normalize(path.resolve(sourceFile.fileName));
+    fileCache.set(fileName, { path: fileName, content: sourceFile.text });
   }
 }
 
 function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, data: string, shouldInlineTemplate: boolean) {
-  sourcePath = path.normalize(sourcePath);
+  sourcePath = path.normalize(path.resolve(sourcePath));
 
   if (sourcePath.endsWith('.js')) {
-    sourcePath = sourcePath.substring(0, sourcePath.length - 3) + '.js';
-
     let file = fileCache.get(sourcePath);
     if (!file) {
       file = { content: '', path: sourcePath };
@@ -284,7 +283,6 @@ function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, 
 
   } else if (sourcePath.endsWith('.js.map')) {
 
-    sourcePath = sourcePath.substring(0, sourcePath.length - 7) + '.js.map';
     let file = fileCache.get(sourcePath);
     if (!file) {
       file = { content: '', path: sourcePath };

@@ -56,7 +56,8 @@ module.exports = {
   entry: getEntryPoint(),
   output: {
     path: '{{BUILD}}',
-    filename: 'main.js'
+    filename: 'main.js',
+    devtoolModuleFilenameTemplate: ionicWebpackFactory.getSourceMapperFunction(),
   },
   devtool: getDevtool(),
 

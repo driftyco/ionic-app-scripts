@@ -1,4 +1,4 @@
-import { BuildContext, BuildState } from './util/interfaces';
+import { BuildContext, BuildState, BuildUpdateMessage } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { bundle, bundleUpdate } from './bundle';
 import { clean } from './clean';
@@ -45,6 +45,8 @@ function buildProd(context: BuildContext) {
   // sync empty the www/build directory
   clean(context);
 
+  buildId++;
+
   // async tasks
   // these can happen all while other tasks are running
   const copyPromise = copy(context);
@@ -90,6 +92,8 @@ function buildDev(context: BuildContext) {
   // sync empty the www/build directory
   clean(context);
 
+  buildId++;
+
   // async tasks
   // these can happen all while other tasks are running
   const copyPromise = copy(context);
@@ -121,8 +125,13 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
   return new Promise(resolve => {
     const logger = new Logger('build');
 
-    buildUpdateId++;
-    emit(EventType.BuildUpdateStarted, buildUpdateId);
+    buildId++;
+
+    const buildUpdateMsg: BuildUpdateMessage = {
+      buildId: buildId,
+      reloadApp: false
+    };
+    emit(EventType.BuildUpdateStarted, buildUpdateMsg);
 
     function buildTasksDone(resolveValue: BuildTaskResolveValue) {
       // all build tasks have been resolved or one of them
@@ -131,13 +140,13 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
       parallelTasksPromise.then(() => {
         // all parallel tasks are also done
         // so now we're done done
-        emit(EventType.BuildUpdateCompleted, buildUpdateId);
+        const buildUpdateMsg: BuildUpdateMessage = {
+          buildId: buildId,
+          reloadApp: resolveValue.requiresAppReload
+        };
+        emit(EventType.BuildUpdateCompleted, buildUpdateMsg);
 
-        if (resolveValue.requiresRefresh) {
-          // emit that we need to do a full page refresh
-          emit(EventType.ReloadApp);
-
-        } else {
+        if (!resolveValue.requiresAppReload) {
           // just emit that only a certain file changed
           // this one is useful when only a sass changed happened
           // and the webpack only needs to livereload the css
@@ -169,7 +178,7 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
       .then(buildTasksDone)
       .catch(() => {
         buildTasksDone({
-          requiresRefresh: false,
+          requiresAppReload: false,
           changedFile: filePath
         });
       });
@@ -182,7 +191,7 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
  */
 function buildUpdateTasks(event: string, filePath: string, context: BuildContext) {
   const resolveValue: BuildTaskResolveValue = {
-    requiresRefresh: false,
+    requiresAppReload: false,
     changedFile: filePath
   };
 
@@ -190,7 +199,7 @@ function buildUpdateTasks(event: string, filePath: string, context: BuildContext
     .then(() => {
       // TEMPLATE
       if (context.templateState === BuildState.RequiresUpdate) {
-        resolveValue.requiresRefresh = true;
+        resolveValue.requiresAppReload = true;
         return templateUpdate(event, filePath, context);
       }
       // no template updates required
@@ -200,7 +209,7 @@ function buildUpdateTasks(event: string, filePath: string, context: BuildContext
     .then(() => {
       // TRANSPILE
       if (context.transpileState === BuildState.RequiresUpdate) {
-        resolveValue.requiresRefresh = true;
+        resolveValue.requiresAppReload = true;
         // we've already had a successful transpile once, only do an update
         // not that we've also already started a transpile diagnostics only
         // build that only needs to be completed by the end of buildUpdate
@@ -208,7 +217,7 @@ function buildUpdateTasks(event: string, filePath: string, context: BuildContext
 
       } else if (context.transpileState === BuildState.RequiresBuild) {
         // run the whole transpile
-        resolveValue.requiresRefresh = true;
+        resolveValue.requiresAppReload = true;
         return transpile(context);
       }
       // no transpiling required
@@ -219,12 +228,12 @@ function buildUpdateTasks(event: string, filePath: string, context: BuildContext
       // BUNDLE
       if (context.bundleState === BuildState.RequiresUpdate) {
         // we need to do a bundle update
-        resolveValue.requiresRefresh = true;
+        resolveValue.requiresAppReload = true;
         return bundleUpdate(event, filePath, context);
 
       } else if (context.bundleState === BuildState.RequiresBuild) {
         // we need to do a full bundle build
-        resolveValue.requiresRefresh = true;
+        resolveValue.requiresAppReload = true;
         return bundle(context);
       }
       // no bundling required
@@ -254,7 +263,7 @@ function buildUpdateTasks(event: string, filePath: string, context: BuildContext
 }
 
 interface BuildTaskResolveValue {
-  requiresRefresh: boolean;
+  requiresAppReload: boolean;
   changedFile: string;
 }
 
@@ -273,4 +282,4 @@ function buildUpdateParallelTasks(event: string, filePath: string, context: Buil
   return Promise.all(parallelTasks);
 }
 
-let buildUpdateId = 0;
+let buildId = 0;

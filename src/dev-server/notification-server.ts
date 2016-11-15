@@ -1,6 +1,8 @@
 // Ionic Dev Server: Server Side Logger
+import { BuildUpdateMessage, WsMessage } from '../util/interfaces';
 import { Logger } from '../logger/logger';
-import { hasDiagnostics, getDiagnosticsHtmlContent, generateRuntimeDiagnosticContent } from '../logger/logger-diagnostics';
+import { generateRuntimeDiagnosticContent } from '../logger/logger-runtime';
+import { hasDiagnostics, getDiagnosticsHtmlContent } from '../logger/logger-diagnostics';
 import { on, EventType } from '../util/events';
 import { Server as WebSocketServer } from 'ws';
 import { ServeConfig } from './serve-config';
@@ -31,24 +33,27 @@ export function createNotificationServer(config: ServeConfig) {
   }
 
   // a build update has started, notify the client
-  on(EventType.BuildUpdateStarted, (buildUpdateId) => {
+  on(EventType.BuildUpdateStarted, (buildUpdateMsg: BuildUpdateMessage) => {
     const msg: WsMessage = {
       category: 'buildUpdate',
       type: 'started',
       data: {
-        buildUpdateId: buildUpdateId
+        buildId: buildUpdateMsg.buildId,
+        reloadApp: buildUpdateMsg.reloadApp,
+        diagnosticsHtml: null
       }
     };
     queueMessageSend(msg);
   });
 
   // a build update has completed, notify the client
-  on(EventType.BuildUpdateCompleted, (buildUpdateId) => {
+  on(EventType.BuildUpdateCompleted, (buildUpdateMsg: BuildUpdateMessage) => {
     const msg: WsMessage = {
       category: 'buildUpdate',
       type: 'completed',
       data: {
-        buildUpdateId: buildUpdateId,
+        buildId: buildUpdateMsg.buildId,
+        reloadApp: buildUpdateMsg.reloadApp,
         diagnosticsHtml: hasDiagnostics(config.buildDir) ? getDiagnosticsHtmlContent(config.buildDir) : null
       }
     };
@@ -130,10 +135,4 @@ export function createNotificationServer(config: ServeConfig) {
     queueMessageSend(msg);
   }
 
-}
-
-export interface WsMessage {
-  category: string;
-  type: string;
-  data: any;
 }

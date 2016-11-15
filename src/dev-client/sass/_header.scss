@@ -1,34 +1,52 @@
 
 .ion-diagnostics-header {
+  background: $header-background;
+  border-bottom: $hairlines-width solid $header-border-color;
+  color: $header-text-color;
+}
+
+.ion-diagnostics-cordova-ios .ion-diagnostics-header {
+  padding-top: 20px;
+}
+
+.ion-diagnostics-header-content {
+  display: -webkit-flex;
   display: flex;
+
   overflow: hidden;
 
+  -webkit-flex-direction: row;
   flex-direction: row;
+
+  -webkit-align-items: center;
   align-items: center;
+
+  -webkit-justify-content: space-between;
   justify-content: space-between;
 
   width: 100%;
   min-height: 44px;
-
-  background: $header-background;
-  border-bottom: 0.5px solid $header-border-color;
-  color: $header-text-color;
 }
 
 .ion-diagnostics-header-inner {
+  -webkit-flex: 1;
   flex: 1;
+
+  display: -webkit-flex;
   display: flex;
+
   padding: 0 20px;
   font-size: 20px;
 }
 
 .ion-diagnostics-buttons {
-  flex: 0;
-  padding: 0 0 0 20px;
+  display: -webkit-flex;
   display: flex;
+
+  padding: 0 0 0 20px;
 }
 
-.ion-diagnostic-close {
+#ion-diagnostic-close {
   margin: 0;
   padding: 10px 20px;
   border: 0;
@@ -45,6 +63,6 @@
   cursor: pointer;
 }
 
-.ion-diagnostic-close:hover {
+#ion-diagnostic-close:hover {
   opacity: 0.7;
 }

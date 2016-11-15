@@ -43,7 +43,9 @@ function startWatchers(context: BuildContext, configFile: string) {
 
   const promises = watchConfig
     .watchers
-    .map((w, i) => startWatcher(i, w, context, watchConfig));
+    .map((w, i) => {
+      return startWatcher(i, w, context, watchConfig);
+    });
 
   return Promise.all(promises);
 }
@@ -52,6 +54,19 @@ function startWatchers(context: BuildContext, configFile: string) {
 function startWatcher(index: number, watcher: Watcher, context: BuildContext, watchConfig: WatchConfig) {
   return new Promise((resolve, reject) => {
 
+    // If a file isn't found (probably other scenarios too),
+    // Chokidar watches don't always trigger the ready or error events
+    // so set a timeout, and clear it if they do fire
+    // otherwise, just reject the promise and log an error
+    const timeoutId = setTimeout(() => {
+      let filesWatchedString: string = null;
+      if (typeof watcher.paths === 'string') {
+        filesWatchedString = watcher.paths;
+      } else if (Array.isArray(watcher.paths)) {
+        filesWatchedString = watcher.paths.join(', ');
+      }
+      reject(new BuildError(`A watch configured to watch the following paths failed to start. It likely that a file referenced does not exist: ${filesWatchedString}`));
+    }, 3000);
     prepareWatcher(context, watcher);
 
     if (!watcher.paths) {
@@ -105,13 +120,17 @@ function startWatcher(index: number, watcher: Watcher, context: BuildContext, wa
     });
 
     chokidarWatcher.on('ready', () => {
+      clearTimeout(timeoutId);
       Logger.debug(`watcher ready: ${watcher.options.cwd}${watcher.paths}`);
       resolve();
     });
 
     chokidarWatcher.on('error', (err: any) => {
+      clearTimeout(timeoutId);
       reject(new BuildError(`watcher error: ${watcher.options.cwd}${watcher.paths}: ${err}`));
     });
+
+
   });
 }
 

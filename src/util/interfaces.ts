@@ -1,5 +1,6 @@
 import { FileCache } from './file-cache';
 
+
 export interface BuildContext {
   rootDir?: string;
   tmpDir?: string;
@@ -61,4 +62,40 @@ export interface File {
   path: string;
   content: string;
   timestamp?: number;
+}
+
+
+export interface Diagnostic {
+  level: string;
+  type: string;
+  language: string;
+  header: string;
+  code: string;
+  messageText: string;
+  absFileName: string;
+  relFileName: string;
+  lines: PrintLine[];
+}
+
+
+export interface PrintLine {
+  lineIndex: number;
+  lineNumber: number;
+  text: string;
+  html: string;
+  errorCharStart: number;
+  errorLength: number;
+}
+
+
+export interface WsMessage {
+  category: string;
+  type: string;
+  data: any;
+}
+
+
+export interface BuildUpdateMessage {
+  buildId: number;
+  reloadApp: boolean;
 }

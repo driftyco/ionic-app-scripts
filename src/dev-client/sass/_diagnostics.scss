@@ -6,10 +6,10 @@
 #ion-diagnostics {
   position: absolute;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 99999;
+  z-index: $z-index-diagnostics;
 
   margin: 0;
   padding: 0;
@@ -27,8 +27,19 @@
   background-color: $background-color;
 
   box-sizing: border-box;
-  overflow: auto;
+  overflow: hidden;
   user-select: auto;
+}
+
+.ion-diagnostics-content {
+  position: relative;
+  padding: 0 0 30px 0;
+  width: 100%;
+  height: 100%;
+
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 #ion-diagnostics .ion-diagnostic {
@@ -38,7 +49,7 @@
 }
 
 #ion-diagnostics .ion-diagnostic-masthead {
-  padding: 8px 12px 10px 12px;
+  padding: 8px 12px 12px 12px;
 }
 
 #ion-diagnostics .ion-diagnostic-title {

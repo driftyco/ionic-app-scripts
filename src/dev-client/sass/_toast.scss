@@ -4,8 +4,7 @@
   top: 10px;
   right: 10px;
   left: 10px;
-  z-index: 999999;
-  display: block;
+  z-index: $z-index-toast;
   margin: auto;
   max-width: 700px;
   border-radius: 3px;

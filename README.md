@@ -108,7 +108,7 @@ npm run build --rollup ./config/rollup.config.js
 | Config Values   | package.json Config | Cmd-line Flag | Defaults        | Details        |
 |-----------------|---------------------|---------------|-----------------|----------------|
 | bundler         | `ionic_bundler`     | `--bundler`   | `webpack`       | Chooses which bundler to use: `webpack` or `rollup` |
-| source map type | `ionic_source_map`  | `--sourceMap` | `eval`          | Chooses the webpack `devtool` option. We recommend `eval` or `source-map` |
+| source map type | `ionic_source_map`  | `--sourceMap` | `eval`          | Chooses the webpack `devtool` option. We only support `eval` or `source-map` for now |
 | root directory  | `ionic_root_dir`    | `--rootDir`   | `process.cwd()` | The directory path of the Ionic app |
 | tmp directory   | `ionic_tmp_dir`     | `--tmpDir`    | `.tmp`          | A temporary directory for codegen'd files using the Angular `ngc` AoT compiler |
 | src directory   | `ionic_src_dir`     | `--srcDir`    | `src`           | The directory holding the Ionic src code |
@@ -163,7 +163,7 @@ Example NPM Script:
 ```
 
 ## Tips
-1. The Webpack `devtool` setting is driven by the `ionic_source_map` variable. It defaults to `eval` for fast builds, but can provide the original source map by changing the value to `source-map`.
+1. The Webpack `devtool` setting is driven by the `ionic_source_map` variable. It defaults to `eval` for fast builds, but can provide the original source map by changing the value to `source-map`. There are additional values that Webpack supports, but we only support `eval` and `source-maps` for now.
 
 
 ## The Stack

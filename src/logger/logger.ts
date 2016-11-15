@@ -301,26 +301,3 @@ function timePrefix() {
 function memoryUsage() {
   return chalk.dim(` MEM: ${(process.memoryUsage().rss / 1000000).toFixed(1)}MB`);
 }
-
-
-export interface Diagnostic {
-  level: string;
-  syntax: string;
-  type: string;
-  header: string;
-  code: string;
-  messageText: string;
-  absFileName: string;
-  relFileName: string;
-  lines: PrintLine[];
-}
-
-
-export interface PrintLine {
-  lineIndex: number;
-  lineNumber: number;
-  text: string;
-  errorCharStart: number;
-  errorLength: number;
-}
-
