@@ -30,5 +30,6 @@ module.exports = {
     {
       src: 'node_modules/ionic-angular/fonts/',
       dest: '{{WWW}}/assets/fonts/'
+    }
   ]
 };
