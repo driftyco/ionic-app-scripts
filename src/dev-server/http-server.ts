@@ -46,7 +46,7 @@ function setupProxies(app: express.Application) {
       opts.rejectUnauthorized = !(proxy.rejectUnauthorized === false);
 
       app.use(proxy.path, proxyMiddleware(opts));
-      Logger.info('Proxy added:', proxy.path + ' => ' + url.format(opts));
+      Logger.info('Proxy added:' + proxy.path + ' => ' + url.format(opts));
     }
   });
 }
