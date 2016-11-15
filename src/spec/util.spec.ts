@@ -1,6 +1,6 @@
 import { BuildContext } from '../util/interfaces';
 import { bundlerStrategy, generateContext, getConfigValueDefault, getUserConfigFile } from '../util/config';
-import { addArgv, setProcessEnvVar, setProcessArgs, setProcessEnv, setCwd } from '../util/config';
+import { addArgv, setProcessEnvVar, setProcessArgs, setProcessEnv, setCwd, replacePathVars } from '../util/config';
 import { resolve } from 'path';
 
 
@@ -225,6 +225,47 @@ describe('util', () => {
       const taskInfo = { fullArgConfig: '--full', shortArgConfig: '-s', defaultConfigFile: 'default.config.js', envConfig: 'ionic_config' };
       const rtn = getUserConfigFile(context, taskInfo, userConfigFile);
       expect(rtn).toEqual(null);
+    });
+
+  });
+
+  describe('replacePathVars', () => {
+    it('should interpolated value when string', () => {
+      const context = {
+        srcDir: 'src',
+      };
+
+      const rtn = replacePathVars(context, '{{SRC}}');
+      expect(rtn).toEqual('src');
+    });
+
+    it('should interpolated values in string array', () => {
+      const context = {
+        wwwDir: 'www',
+        srcDir: 'src',
+      };
+
+      const filePaths = ['{{SRC}}', '{{WWW}}'];
+      const rtn = replacePathVars(context, filePaths);
+      expect(rtn).toEqual(['src', 'www']);
+    });
+
+    it('should interpolated values in key value pair', () => {
+      const context = {
+        wwwDir: 'www',
+        srcDir: 'src',
+      };
+
+      const filePaths = {
+        src: '{{SRC}}',
+        www: '{{WWW}}'
+      };
+
+      const rtn = replacePathVars(context, filePaths);
+      expect(rtn).toEqual({
+        src: 'src',
+        www: 'www'
+      });
     });
 
   });

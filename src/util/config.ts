@@ -204,7 +204,19 @@ export function hasArg(fullName: string, shortName: string = null): boolean {
 }
 
 
-export function replacePathVars(context: BuildContext, filePath: string) {
+export function replacePathVars(context: BuildContext, filePath: string | string[] | { [key: string]: any }): any {
+  if (Array.isArray(filePath)) {
+    return filePath.map(f => replacePathVars(context, f));
+  }
+
+  if (typeof filePath === 'object') {
+    const clonedFilePaths = Object.assign({}, filePath);
+    for (let key in clonedFilePaths) {
+      clonedFilePaths[key] = replacePathVars(context, clonedFilePaths[key]);
+    }
+    return clonedFilePaths;
+  }
+
   return filePath.replace('{{SRC}}', context.srcDir)
     .replace('{{WWW}}', context.wwwDir)
     .replace('{{TMP}}', context.tmpDir)
