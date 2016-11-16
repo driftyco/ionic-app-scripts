@@ -1,3 +1,33 @@
+<a name="0.0.44"></a>
+## [0.0.44](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.43...v0.0.44) (2016-11-15)
+
+
+### Bug Fixes
+
+* **debug:** cmd+shift+8 to show debug menu ([a26d729](https://github.com/driftyco/ionic-app-scripts/commit/a26d729))
+* **error:** (cmd/ctrl)+8 for debug menu ([89550af](https://github.com/driftyco/ionic-app-scripts/commit/89550af))
+* **error:** add header padding for cordova iOS ([5c4c547](https://github.com/driftyco/ionic-app-scripts/commit/5c4c547))
+* **error:** apply correct css for runtime error close ([81f1d75](https://github.com/driftyco/ionic-app-scripts/commit/81f1d75))
+* **error:** fix content scrolling ([3b82465](https://github.com/driftyco/ionic-app-scripts/commit/3b82465))
+* **error:** reload immediately after js/html update ([07f918e](https://github.com/driftyco/ionic-app-scripts/commit/07f918e))
+* **error:** safari css fixes ([7c2fb59](https://github.com/driftyco/ionic-app-scripts/commit/7c2fb59))
+* **serve:** correct paths so that --lab works ([1d99a98](https://github.com/driftyco/ionic-app-scripts/commit/1d99a98))
+* **serve:** open browser to localhost ([14275c7](https://github.com/driftyco/ionic-app-scripts/commit/14275c7))
+* **transpile:** normalize and resolve paths always for OS independence ([ca6c889](https://github.com/driftyco/ionic-app-scripts/commit/ca6c889))
+* **watch:** fallback for when chokidar watch ready/error don't fire (happens on windows when file is ([519cd7f](https://github.com/driftyco/ionic-app-scripts/commit/519cd7f)), closes [#282](https://github.com/driftyco/ionic-app-scripts/issues/282)
+* **watch:** watch now ignores Mac OS meta data files ([02d0b8d](https://github.com/driftyco/ionic-app-scripts/commit/02d0b8d)), closes [#331](https://github.com/driftyco/ionic-app-scripts/issues/331)
+* **webpack:** source maps link to original src for ide debugging ([39edd2e](https://github.com/driftyco/ionic-app-scripts/commit/39edd2e))
+
+
+### Features
+
+* **debug:** debug menu options ([53d6e30](https://github.com/driftyco/ionic-app-scripts/commit/53d6e30))
+* **debug:** shake device to show debug menu ([770f4e3](https://github.com/driftyco/ionic-app-scripts/commit/770f4e3))
+* **error:** client runtime error reporting ([fc40b92](https://github.com/driftyco/ionic-app-scripts/commit/fc40b92))
+* **error:** syntax and error highlighting ([8836310](https://github.com/driftyco/ionic-app-scripts/commit/8836310))
+
+
+
 <a name="0.0.43"></a>
 ## [0.0.43](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.42...v0.0.43) (2016-11-10)
 

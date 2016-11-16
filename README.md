@@ -39,8 +39,8 @@ Instead of depending on external task runners, Ionic App Scripts now prefers bei
 
 ```
   "scripts": {
-    "build": "ionic-app-scripts build",
-    "watch": "ionic-app-scripts watch"
+    "ionic:build": "ionic-app-scripts build",
+    "ionic:serve": "ionic-app-scripts serve"
   },
 ```
 
@@ -151,7 +151,7 @@ These tasks are available within `ionic-app-scripts` and can be added to NPM scr
 | `minify`   | Minifies the output JS bundle and compresses the compiled CSS.                                      |
 | `ngc`      | Runs just the `ngc` portion of the production build.                                                |
 | `sass`     | Sass compilation of used modules. Bundling must have as least ran once before Sass compilation.     |
-| `tsc`      | Runs just the `tsc` portion of the dev build.                                                       |
+| `transpile`| Runs just the `tsc` portion of the dev build.                                                       |
 | `watch`    | Runs watch for dev builds.                                                                          |
 
 Example NPM Script:

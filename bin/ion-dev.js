@@ -41,6 +41,7 @@ window.IonicDevServer = {
   handleError: function(err) {
     if (!err) return;
 
+    // Socket is ready so send this error to the server for prettifying
     if (this.socketReady) {
       var msg = {
         category: 'runtimeError',
@@ -168,6 +169,9 @@ window.IonicDevServer = {
     }
   },
 
+  /**
+   * Process a build update message and display something to the friendly user.
+   */
   buildUpdate: function(msg) {
     var status = 'success';
 
@@ -187,6 +191,8 @@ window.IonicDevServer = {
       this.buildingNotification(false);
 
       var diagnosticsEle = document.getElementById('ion-diagnostics');
+
+      // If we have an element but no html created yet
       if (diagnosticsEle && !msg.data.diagnosticsHtml) {
         diagnosticsEle.classList.add('ion-diagnostics-fade-out');
 
@@ -199,21 +205,24 @@ window.IonicDevServer = {
 
       } else if (msg.data.diagnosticsHtml) {
 
-        clearTimeout(this.diagnosticsTimerId);
+        // We don't have an element but we have diagnostics HTML, so create the error
 
         if (!diagnosticsEle) {
           diagnosticsEle = document.createElement('div');
           diagnosticsEle.id = 'ion-diagnostics';
           diagnosticsEle.className = 'ion-diagnostics-fade-out';
           document.body.insertBefore(diagnosticsEle, document.body.firstChild);
-
-          this.diagnosticsTimerId = setTimeout(function() {
-            var diagnosticsEle = document.getElementById('ion-diagnostics');
-            if (diagnosticsEle) {
-              diagnosticsEle.classList.remove('ion-diagnostics-fade-out');
-            }
-          }, 24);
         }
+
+        // Show the last error
+        clearTimeout(this.diagnosticsTimerId);
+        this.diagnosticsTimerId = setTimeout(function() {
+          var diagnosticsEle = document.getElementById('ion-diagnostics');
+          if (diagnosticsEle) {
+            diagnosticsEle.classList.remove('ion-diagnostics-fade-out');
+          }
+        }, 24);
+
         diagnosticsEle.innerHTML = msg.data.diagnosticsHtml
       }
     }
