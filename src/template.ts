@@ -1,7 +1,7 @@
-import { BuildContext, BuildState } from './util/interfaces';
+import { BuildContext, BuildState, File } from './util/interfaces';
 import { Logger } from './logger/logger';
 import { getJsOutputDest } from './bundle';
-import { join, parse, resolve } from 'path';
+import { dirname, extname, join, parse, resolve } from 'path';
 import { readFileSync, writeFile } from 'fs';
 
 
@@ -20,9 +20,10 @@ export function templateUpdate(event: string, htmlFilePath: string, context: Bui
       let bundleSourceText = readFileSync(bundleOutputDest, 'utf8');
       let newTemplateContent = readFileSync(htmlFilePath, 'utf8');
 
-      bundleSourceText = replaceBundleJsTemplate(bundleSourceText, newTemplateContent, htmlFilePath);
+      const successfullyUpdated = updateCorrespondingJsFile(context, newTemplateContent, htmlFilePath);
+      bundleSourceText = replaceExistingJsTemplate(bundleSourceText, newTemplateContent, htmlFilePath);
 
-      if (bundleSourceText) {
+      if (successfullyUpdated && bundleSourceText) {
         // awesome, all good and template updated in the bundle file
         const logger = new Logger(`template update`);
         logger.setStartTime(start);
@@ -35,7 +36,7 @@ export function templateUpdate(event: string, htmlFilePath: string, context: Bui
 
           } else {
             // congrats, all gud
-            Logger.debug(`updateBundledJsTemplate, updated: ${htmlFilePath}`);
+            Logger.debug(`templateUpdate, updated: ${htmlFilePath}`);
             context.templateState = BuildState.SuccessfulBuild;
             logger.finish();
             resolve();
@@ -47,12 +48,23 @@ export function templateUpdate(event: string, htmlFilePath: string, context: Bui
       }
 
     } catch (e) {
-      Logger.debug(`updateBundledJsTemplate error: ${e}`);
+      Logger.debug(`templateUpdate error: ${e}`);
       failed();
     }
   });
 }
 
+function updateCorrespondingJsFile(context: BuildContext, newTemplateContent: string, existingHtmlTemplatePath: string) {
+  const javascriptFiles = context.fileCache.getAll().filter((file: File) => dirname(file.path) === dirname(existingHtmlTemplatePath) && extname(file.path) === '.js');
+  for (const javascriptFile of javascriptFiles) {
+    const newContent = replaceExistingJsTemplate(javascriptFile.content, newTemplateContent, existingHtmlTemplatePath);
+    if (newContent !== javascriptFile.content) {
+      javascriptFile.content = newContent;
+      return true;
+    }
+  }
+  return false;
+}
 
 export function inlineTemplate(sourceText: string, sourcePath: string): string {
   const componentDir = parse(sourcePath).dir;
@@ -105,9 +117,9 @@ export function replaceTemplateUrl(match: TemplateUrlMatch, htmlFilePath: string
 }
 
 
-export function replaceBundleJsTemplate(bundleSourceText: string, newTemplateContent: string, htmlFilePath: string): string {
+export function replaceExistingJsTemplate(existingSourceText: string, newTemplateContent: string, htmlFilePath: string): string {
   let prefix = getTemplatePrefix(htmlFilePath);
-  let startIndex = bundleSourceText.indexOf(prefix);
+  let startIndex = existingSourceText.indexOf(prefix);
 
   let isStringified = false;
 
@@ -116,7 +128,7 @@ export function replaceBundleJsTemplate(bundleSourceText: string, newTemplateCon
     isStringified = true;
   }
 
-  startIndex = bundleSourceText.indexOf(prefix);
+  startIndex = existingSourceText.indexOf(prefix);
   if (startIndex === -1) {
     return null;
   }
@@ -126,12 +138,12 @@ export function replaceBundleJsTemplate(bundleSourceText: string, newTemplateCon
     suffix = stringify(suffix);
   }
 
-  const endIndex = bundleSourceText.indexOf(suffix, startIndex + 1);
+  const endIndex = existingSourceText.indexOf(suffix, startIndex + 1);
   if (endIndex === -1) {
     return null;
   }
 
-  const oldTemplate = bundleSourceText.substring(startIndex, endIndex + suffix.length);
+  const oldTemplate = existingSourceText.substring(startIndex, endIndex + suffix.length);
   let newTemplate = getTemplateFormat(htmlFilePath, newTemplateContent);
 
   if (isStringified) {
@@ -139,11 +151,11 @@ export function replaceBundleJsTemplate(bundleSourceText: string, newTemplateCon
   }
 
   let lastChange: string = null;
-  while (bundleSourceText.indexOf(oldTemplate) > -1 && bundleSourceText !== lastChange) {
-    lastChange = bundleSourceText = bundleSourceText.replace(oldTemplate, newTemplate);
+  while (existingSourceText.indexOf(oldTemplate) > -1 && existingSourceText !== lastChange) {
+    lastChange = existingSourceText = existingSourceText.replace(oldTemplate, newTemplate);
   }
 
-  return bundleSourceText;
+  return existingSourceText;
 }
 
 function stringify(str: string) {

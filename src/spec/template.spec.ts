@@ -1,6 +1,6 @@
 import { Logger } from '../logger/logger';
 import { inlineTemplate, replaceTemplateUrl, updateTemplate } from '../template';
-import { getTemplateMatch, getTemplateFormat, replaceBundleJsTemplate } from '../template';
+import { getTemplateMatch, getTemplateFormat, replaceExistingJsTemplate } from '../template';
 import { resolve } from 'path';
 import * as mockFs from 'mock-fs';
 
@@ -178,7 +178,7 @@ describe('template', () => {
         })
       `;
       const newContent = 'some new content';
-      const output = replaceBundleJsTemplate(bundleSourceText, newContent, htmlFilePath);
+      const output = replaceExistingJsTemplate(bundleSourceText, newContent, htmlFilePath);
       expect(output.indexOf(newContent)).toBeGreaterThan(-1);
       expect(output.indexOf(newContent)).toBeGreaterThan(-1);
     });
