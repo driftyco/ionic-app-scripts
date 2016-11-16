@@ -1,11 +1,13 @@
 import { FileCache } from '../util/file-cache';
 import { on, EventType } from '../util/events';
+import { Logger } from '../logger/logger';
 
 export class WatchMemorySystem {
 
   private changes: Set<string>;
   private isAggregating: boolean;
   private isListening: boolean;
+  private lastWatchEventTimestamp: number = Date.now();
 
   private filePathsBeingWatched: string[];
   private dirPaths: string[];
@@ -48,10 +50,13 @@ export class WatchMemorySystem {
 
   startListening() {
     this.isListening = true;
-    on(EventType.WebpackFilesChanged, ((filePaths: string[]) => {
+    on(EventType.WebpackFilesChanged, () => {
       this.changes = new Set<string>();
+      const filePaths = this.fileCache.getAll().filter(file => file.timestamp >= this.lastWatchEventTimestamp).map(file => file.path);
+      Logger.debug('filePaths: ', filePaths);
+      this.lastWatchEventTimestamp = Date.now();
       this.processChanges(filePaths);
-    }));
+    });
   }
 
   processChanges(filePaths: string[]) {
@@ -59,20 +64,9 @@ export class WatchMemorySystem {
     for ( const path of filePaths) {
       this.changes.add(path);
     }
+    // don't bother waiting around, just call doneAggregating right away.
+    // keep it as a function in case we need to wait via setTimeout a bit in the future
     this.doneAggregating(this.changes);
-    /*if (this.isAggregating) {
-      // we're currently aggregating file changes into a collection
-      this.changes.add(filePath);
-    } else {
-      // we're starting a new listen, so start a new list of files, and start aggregating the files
-      this.changes = new Set<string>();
-      this.changes.add(filePath);
-      this.isAggregating = true;
-      setTimeout(() => {
-        // we're done aggregating files
-        this.doneAggregating(this.changes);
-      }, AGGREGATING_DURATION_IN_MILLIS);
-    }*/
   }
 
   doneAggregating(changes: Set<string>) {
