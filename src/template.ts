@@ -1,6 +1,8 @@
 import { BuildContext, BuildState, File } from './util/interfaces';
+import { changeExtension } from './util/helpers';
 import { Logger } from './logger/logger';
 import { getJsOutputDest } from './bundle';
+import { invalidateCache } from './rollup';
 import { dirname, extname, join, parse, resolve } from 'path';
 import { readFileSync, writeFile } from 'fs';
 
@@ -22,6 +24,9 @@ export function templateUpdate(event: string, htmlFilePath: string, context: Bui
 
       const successfullyUpdated = updateCorrespondingJsFile(context, newTemplateContent, htmlFilePath);
       bundleSourceText = replaceExistingJsTemplate(bundleSourceText, newTemplateContent, htmlFilePath);
+
+      // invaldiate any rollup bundles, if they're not using rollup no harm done
+      invalidateCache();
 
       if (successfullyUpdated && bundleSourceText) {
         // awesome, all good and template updated in the bundle file
@@ -60,6 +65,11 @@ function updateCorrespondingJsFile(context: BuildContext, newTemplateContent: st
     const newContent = replaceExistingJsTemplate(javascriptFile.content, newTemplateContent, existingHtmlTemplatePath);
     if (newContent !== javascriptFile.content) {
       javascriptFile.content = newContent;
+      // set the file again to generate a new timestamp
+      // do the same for the typescript file just to invalidate any caches, etc.
+      context.fileCache.set(javascriptFile.path, javascriptFile);
+      const typescriptFilePath = changeExtension(javascriptFile.path, '.ts');
+      context.fileCache.set(typescriptFilePath, context.fileCache.get(typescriptFilePath));
       return true;
     }
   }
