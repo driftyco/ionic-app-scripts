@@ -101,6 +101,7 @@ npm run build --rollup ./config/rollup.config.js
 | UglifyJS    | `ionic_uglifyjs`    | `--uglifyjs` or `-u`  |
 | Watch       | `ionic_watch`       | `--watch`             |
 | Webpack     | `ionic_webpack`     | `--webpack` or `-w`   |
+| Transpile   | `ionic_transpile`   | `--transpile` or `-t` |
 
 
 ### Overriding Config Values
