@@ -353,7 +353,7 @@ export interface TsConfig {
 }
 
 export interface TranspileWorkerConfig {
-  userConfig: string;
+  userConfig?: string;
   configFile: string;
   writeInMemory: boolean;
   sourceMaps: boolean;
