@@ -1,10 +1,9 @@
-import { BuildContext, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
-import { emit, EventType } from './util/events';
-import { endsWith, setModulePathsCache } from './util/helpers';
+import { BuildContext, BuildState, TaskInfo } from './util/interfaces';
+import { BuildError } from './util/errors';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
 import { ionCompiler } from './plugins/ion-compiler';
-import { join, isAbsolute, normalize } from 'path';
+import { join, isAbsolute, normalize, sep } from 'path';
+import { Logger } from './logger/logger';
 import * as rollupBundler from 'rollup';
 
 
@@ -16,9 +15,11 @@ export function rollup(context: BuildContext, configFile: string) {
 
   return rollupWorker(context, configFile)
     .then(() => {
+      context.bundleState = BuildState.SuccessfulBuild;
       logger.finish();
     })
     .catch(err => {
+      context.bundleState = BuildState.RequiresBuild;
       throw logger.fail(err);
     });
 }
@@ -31,9 +32,11 @@ export function rollupUpdate(event: string, filePath: string, context: BuildCont
 
   return rollupWorker(context, configFile)
     .then(() => {
+      context.bundleState = BuildState.SuccessfulBuild;
       logger.finish();
     })
     .catch(err => {
+      context.bundleState = BuildState.RequiresBuild;
       throw logger.fail(err);
     });
 }
@@ -60,10 +63,8 @@ export function rollupWorker(context: BuildContext, configFile: string): Promise
       );
     }
 
-    if (context.useBundleCache) {
-      // tell rollup to use a previous bundle as its starting point
-      rollupConfig.cache = cachedBundle;
-    }
+    // tell rollup to use a previous bundle as its starting point
+    rollupConfig.cache = cachedBundle;
 
     if (!rollupConfig.onwarn) {
       // use our own logger if one wasn't already provided
@@ -82,11 +83,14 @@ export function rollupWorker(context: BuildContext, configFile: string): Promise
 
         // set the module files used in this bundle
         // this reference can be used elsewhere in the build (sass)
-        context.moduleFiles = bundle.modules.map((m) => m.id);
-
-        // async cache all the module paths so we don't need
-        // to always bundle to know which modules are used
-        setModulePathsCache(context.moduleFiles);
+        context.moduleFiles = bundle.modules.map((m) => {
+          // sometimes, Rollup appends weird prefixes to the path like commonjs:proxy
+          const index = m.id.indexOf(sep);
+          if (index >= 0) {
+            return m.id.substring(index);
+          }
+          return m.id;
+        });
 
         // cache our bundle for later use
         if (context.isWatch) {
@@ -98,7 +102,6 @@ export function rollupWorker(context: BuildContext, configFile: string): Promise
       })
       .then(() => {
         // clean up any references (overkill yes, but let's play it safe)
-        emit(EventType.FileChange, rollupConfig.dest);
         rollupConfig = rollupConfig.cache = rollupConfig.onwarn = rollupConfig.plugins = null;
 
         resolve();
@@ -130,7 +133,7 @@ export function getOutputDest(context: BuildContext, rollupConfig: RollupConfig)
 
 function checkDeprecations(context: BuildContext, rollupConfig: RollupConfig) {
   if (!context.isProd) {
-    if (rollupConfig.entry.indexOf('.tmp') > -1 || endsWith(rollupConfig.entry, '.js')) {
+    if (rollupConfig.entry.indexOf('.tmp') > -1 || rollupConfig.entry.endsWith('.js')) {
       // warning added 2016-10-05, v0.0.29
       throw new BuildError('\nDev builds no longer use the ".tmp" directory. Please update your rollup config\'s\n' +
                            'entry to use your "src" directory\'s "main.dev.ts" TypeScript file.\n' +
@@ -140,6 +143,9 @@ function checkDeprecations(context: BuildContext, rollupConfig: RollupConfig) {
   }
 }
 
+export function invalidateCache() {
+  cachedBundle = null;
+}
 
 let cachedBundle: RollupBundle = null;
 
@@ -165,9 +171,10 @@ const IGNORE_WARNS = [
 
 
 const taskInfo: TaskInfo = {
-  fullArgConfig: '--rollup',
-  shortArgConfig: '-r',
-  envConfig: 'ionic_rollup',
+  fullArg: '--rollup',
+  shortArg: '-r',
+  envVar: 'IONIC_ROLLUP',
+  packageConfig: 'ionic_rollup',
   defaultConfigFile: 'rollup.config'
 };
 

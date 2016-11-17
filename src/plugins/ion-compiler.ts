@@ -1,10 +1,13 @@
+import { changeExtension } from '../util/helpers';
 import { BuildContext } from '../util/interfaces';
+import { Logger } from '../logger/logger';
 import { dirname, join, resolve } from 'path';
 import * as pluginutils from 'rollup-pluginutils';
 
 
 export function ionCompiler(context: BuildContext) {
   const filter = pluginutils.createFilter(INCLUDE, EXCLUDE);
+
 
   return {
     name: 'ion-compiler',
@@ -14,16 +17,27 @@ export function ionCompiler(context: BuildContext) {
         return null;
       }
 
-      if (context.tsFiles) {
-        const file = context.tsFiles[sourcePath];
-        if (!file || !file.output) {
-          console.error(`unable to find ${sourcePath}`);
+      const jsSourcePath = changeExtension(sourcePath, '.js');
+
+      if (context.fileCache) {
+        const file = context.fileCache.get(jsSourcePath);
+        const map = context.fileCache.get(jsSourcePath + '.map');
+        if (!file || !file.content) {
+          Logger.debug(`transform: unable to find ${jsSourcePath}`);
           return null;
         }
 
+        let mapContent: any = null;
+        if (map.content) {
+          try {
+            mapContent = JSON.parse(map.content);
+          } catch (ex) {
+          }
+        }
+
         return {
-          code: file.output,
-          map: file.map
+          code: file.content,
+          map: mapContent
         };
       }
 
@@ -35,10 +49,10 @@ export function ionCompiler(context: BuildContext) {
     },
 
     load(sourcePath: string) {
-      if (context.tsFiles) {
-        const file = context.tsFiles[sourcePath];
-        if (file && file.input) {
-          return file.input;
+      if (context.fileCache) {
+        const file = context.fileCache.get(sourcePath);
+        if (file && file.content) {
+          return file.content;
         }
       }
 
@@ -55,26 +69,27 @@ export function resolveId(importee: string, importer: string, context: BuildCont
     return null;
   }
 
-  if (context.tsFiles) {
-    const importerFile = context.tsFiles[importer];
-    if (importerFile && importerFile.output) {
+  if (context.fileCache) {
+    const importerFile = context.fileCache.get(importer);
+    if (importerFile && importerFile.content) {
       const attemptedImporteeBasename =  resolve(join(dirname(importer), importee));
       const attemptedImportee = attemptedImporteeBasename + '.ts';
-      const importeeFile = context.tsFiles[attemptedImportee];
+      const importeeFile = context.fileCache.get(attemptedImportee);
       if (importeeFile) {
+        Logger.debug(`resolveId: found and resolving ${attemptedImportee}`);
         return attemptedImportee;
       } else {
         // rather than a file, the attempedImportee could be a directory
         // while via node resolve pattern auto resolves to index file
         const attemptedImporteeIndex = resolve(join(attemptedImporteeBasename, 'index.ts'));
-        const importeeIndexFile = context.tsFiles[attemptedImporteeIndex];
+        const importeeIndexFile = context.fileCache.get(attemptedImporteeIndex);
         if (importeeIndexFile) {
+          Logger.debug(`resolveId: found and resolving ${attemptedImporteeIndex}`);
           return attemptedImporteeIndex;
         }
       }
     }
   }
-
   return null;
 }
 

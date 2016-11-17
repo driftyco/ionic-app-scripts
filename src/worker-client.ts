@@ -1,5 +1,6 @@
 import { BuildContext, WorkerProcess, WorkerMessage } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
+import { Logger } from './logger/logger';
 import { fork, ChildProcess } from 'child_process';
 import { join } from 'path';
 
@@ -29,9 +30,11 @@ export function runWorker(taskModule: string, taskWorker: string, context: Build
 
     worker.on('message', (msg: WorkerMessage) => {
       if (msg.error) {
-        throw new BuildError(msg.error);
+        reject(new BuildError(msg.error));
+
       } else if (msg.reject) {
         reject(new BuildError(msg.reject));
+
       } else {
         resolve(msg.resolve);
       }
@@ -84,7 +87,11 @@ export function createWorker(taskModule: string): any {
 
   try {
     const workerModule = join(__dirname, 'worker-process.js');
-    const worker = fork(workerModule);
+    const worker = fork(workerModule, [], {
+      env: {
+        FORCE_COLOR: true
+      }
+    });
 
     Logger.debug(`worker created, taskModule: ${taskModule}, pid: ${worker.pid}`);
 

@@ -1,9 +1,9 @@
+import { FileCache } from '../util/file-cache';
 import { BuildContext } from '../util/interfaces';
 import { dirname, join, resolve } from 'path';
 import { resolveId } from '../plugins/ion-compiler';
 
 const importer = '/Users/dan/Dev/ionic-conference-app/src/app/app.module.ts';
-
 
 describe('ion-compiler', () => {
 
@@ -22,7 +22,7 @@ describe('ion-compiler', () => {
     it('should return null when tsfiles is undefined/null', () => {
       // arrange
       let context: BuildContext = {};
-      context.tsFiles = null;
+      context.fileCache = null;
 
       // act
       const result = resolveId('importee', importer, context);
@@ -34,8 +34,7 @@ describe('ion-compiler', () => {
     it('should return null when importer is not found in list of files', () => {
       // arrange
       let context: BuildContext = {};
-      context.tsFiles = { };
-      context.tsFiles[importer] = null;
+      context.fileCache = new FileCache();
 
       // act
       const result = resolveId('importee', importer, context);
@@ -44,11 +43,30 @@ describe('ion-compiler', () => {
       expect(result).toEqual(null);
     });
 
-    it('should return null when importer content lacks output property', () => {
+    it('should return null when importer content is null', () => {
       // arrange
       let context: BuildContext = {};
-      context.tsFiles = { };
-      context.tsFiles[importer] = { };
+      context.fileCache = new FileCache();
+      context.fileCache.set(importer, {
+        path: importer,
+        content: null
+      });
+
+      // act
+      const result = resolveId('importee', importer, context);
+
+      // assert
+      expect(result).toEqual(null);
+    });
+
+    it('should return null when importer content is empty', () => {
+      // arrange
+      let context: BuildContext = {};
+      context.fileCache = new FileCache();
+      context.fileCache.set(importer, {
+        path: importer,
+        content: ''
+      });
 
       // act
       const result = resolveId('importee', importer, context);
@@ -59,17 +77,21 @@ describe('ion-compiler', () => {
 
     it('should return path to file when file is found with ref to forward dir', () => {
       // arrange
-      let context: any = {};
-      context.tsFiles = { };
-      context.tsFiles[importer] = {
-        output: 'fake irrelevant data'
-      };
+      let context: BuildContext = {};
+      context.fileCache = new FileCache();
+      context.fileCache.set(importer, {
+        path: importer,
+        content: 'fake irrelevant data'
+      });
 
       const importee = './test-folder';
       const importerBasename = dirname(importer);
       const importeeFullPath = resolve(join(importerBasename, importee)) + '.ts';
 
-      context.tsFiles[importeeFullPath] = { };
+       context.fileCache.set(importeeFullPath, {
+         path: importeeFullPath,
+         content: 'someContent'
+       });
 
       // act
       const result = resolveId(importee, importer, context);
@@ -81,17 +103,18 @@ describe('ion-compiler', () => {
     it('should return path to file when file is found with ref to backward dir', () => {
 
       // arrange
-      let context: any = {};
-      context.tsFiles = { };
-      context.tsFiles[importer] = {
-        output: 'fake irrelevant data'
-      };
+      let context: BuildContext = {};
+      context.fileCache = new FileCache();
+      context.fileCache.set(importer, {
+        path: importer,
+        content: 'fake irrelevant data'
+      });
 
       const importee = '../pages/test-folder';
       const importerBasename = dirname(importer);
       const importeeFullPath = resolve(join(importerBasename, importee)) + '.ts';
 
-      context.tsFiles[importeeFullPath] = { };
+      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null});
 
       // act
       const result = resolveId(importee, importer, context);
@@ -103,17 +126,18 @@ describe('ion-compiler', () => {
     it('should return path to index file when file is found but index file is for forward path', () => {
 
       // arrange
-      let context: any = {};
-      context.tsFiles = { };
-      context.tsFiles[importer] = {
-        output: 'fake irrelevant data'
-      };
+      let context: BuildContext = {};
+      context.fileCache = new FileCache();
+      context.fileCache.set(importer, {
+        path: importer,
+        content: 'fake irrelevant data'
+      });
 
       const importee = './test-folder';
       const importerBasename = dirname(importer);
       const importeeFullPath = join(resolve(join(importerBasename, importee)), 'index.ts');
 
-      context.tsFiles[importeeFullPath] = { };
+      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null });
 
       // act
       const result = resolveId(importee, importer, context);
@@ -125,17 +149,18 @@ describe('ion-compiler', () => {
     it('should return path to index file when file is found but index file is for backward path', () => {
 
       // arrange
-      let context: any = {};
-      context.tsFiles = { };
-      context.tsFiles[importer] = {
-        output: 'fake irrelevant data'
-      };
+      let context: BuildContext = {};
+      context.fileCache = new FileCache();
+      context.fileCache.set(importer, {
+        path: importer,
+        content: 'fake irrelevant data'
+      });
 
       const importee = '../pages/test-folder';
       const importerBasename = dirname(importer);
       const importeeFullPath = join(resolve(join(importerBasename, importee)), 'index.ts');
 
-      context.tsFiles[importeeFullPath] = { };
+      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null});
 
       // act
       const result = resolveId(importee, importer, context);
@@ -146,11 +171,12 @@ describe('ion-compiler', () => {
 
     it('should return null when importee isn\'t found in memory', () => {
       // arrange
-      let context: any = {};
-      context.tsFiles = { };
-      context.tsFiles[importer] = {
-        output: 'fake irrelevant data'
-      };
+      let context: BuildContext = {};
+      context.fileCache = new FileCache();
+      context.fileCache.set(importer, {
+        path: importer,
+        content: 'fake irrelevant data'
+      });
 
       const importee = '../pages/test-folder';
 
@@ -160,7 +186,5 @@ describe('ion-compiler', () => {
       // assert
       expect(result).toEqual(null);
     });
-
   });
-
 });

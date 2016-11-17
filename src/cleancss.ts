@@ -1,7 +1,8 @@
 import { join } from 'path';
 import { BuildContext, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
 import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
+import { Logger } from './logger/logger';
 import { readFileAsync, writeFileAsync } from './util/helpers';
 import { runWorker } from './worker-client';
 import * as cleanCss from 'clean-css';
@@ -37,7 +38,7 @@ export function cleancssWorker(context: BuildContext, configFile: string): Promi
         if (err) {
           reject(new BuildError(err));
 
-        } else if ( minified.errors && minified.errors.length > 0) {
+        } else if (minified.errors && minified.errors.length > 0) {
           // just return the first error for now I guess
           minified.errors.forEach(e => {
             Logger.error(e);
@@ -58,9 +59,10 @@ export function cleancssWorker(context: BuildContext, configFile: string): Promi
 
 
 const taskInfo: TaskInfo = {
-  fullArgConfig: '--cleancss',
-  shortArgConfig: '-e',
-  envConfig: 'ionic_cleancss',
+  fullArg: '--cleancss',
+  shortArg: '-e',
+  envVar: 'IONIC_CLEANCSS',
+  packageConfig: 'ionic_cleancss',
   defaultConfigFile: 'cleancss.config'
 };
 

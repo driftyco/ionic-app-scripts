@@ -1,6 +1,6 @@
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { generateContext, getUserConfigFile } from './util/config';
-import { Logger } from './util/logger';
+import { Logger } from './logger/logger';
 import { runWorker } from './worker-client';
 
 
@@ -35,9 +35,10 @@ export function isClosureSupported(context: BuildContext) {
 
 
 const taskInfo: TaskInfo = {
-  fullArgConfig: '--closure',
-  shortArgConfig: '-l',
-  envConfig: 'ionic_closure',
+  fullArg: '--closure',
+  shortArg: '-l',
+  envVar: 'IONIC_CLOSURE',
+  packageConfig: 'ionic_closure',
   defaultConfigFile: 'closure.config'
 };
 

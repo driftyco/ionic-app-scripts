@@ -1,0 +1,52 @@
+
+// Font Family
+// -----------------------------
+$body-font-family: -apple-system, "Roboto", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+$code-font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+
+
+// Colors
+// -----------------------------
+$ionic-blue:                  #478aff;
+$background-color:            #fff;
+$code-error-background:       rgba(255, 221, 221, 0.25);
+$code-error-highlight:        #ffdddd;
+
+$header-background:           #f8f8f8;
+$header-border-color:         #ddd;
+$header-text-color:           #333;
+
+$diagnostics-header-background: $header-background;
+$diagnostics-title-color:     #222;
+$diagnostics-message-color:   #666;
+$diagnostics-border:            $header-border-color;
+
+
+// z-index
+// -----------------------------
+$z-index-diagnostics:         100000;
+$z-index-menu:                100001;
+$z-index-toast:               100002;
+
+
+// Miscellaneous
+// -----------------------------
+$tab-size: 2;
+$hairlines-width: .55px;
+
+a,
+button {
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+}
+
+// Imports
+// -----------------------------
+@import './diagnostics';
+@import './code-block';
+@import './stack-block';
+@import './toast';
+@import './header';
+@import './options-menu';
+@import './system-info';
+@import '../../highlight/github-gist';

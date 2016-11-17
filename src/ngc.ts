@@ -1,10 +1,11 @@
 import { basename, join } from 'path';
 import { BuildContext, TaskInfo } from './util/interfaces';
+import { BuildError } from './util/errors';
 import { copy as fsCopy, emptyDirSync, outputJsonSync, readFileSync, statSync } from 'fs-extra';
-import { endsWith, objectAssign } from './util/helpers';
 import { fillConfigDefaults, generateContext, getUserConfigFile, getNodeBinExecutable } from './util/config';
 import { getTsConfigPath } from './transpile';
-import { BuildError, Logger } from './util/logger';
+import { Logger } from './logger/logger';
+import { objectAssign } from './util/helpers';
 import * as ts from 'typescript';
 
 
@@ -171,7 +172,7 @@ function filterCopyFiles(filePath: any, hoop: any) {
       shouldInclude = (EXCLUDE_DIRS.indexOf(basename(filePath)) < 0);
 
     } else {
-      shouldInclude = (endsWith(filePath, '.ts') || endsWith(filePath, '.html'));
+      shouldInclude = (filePath.endsWith('.ts') || filePath.endsWith('.html'));
     }
   } catch (e) {}
 
@@ -188,9 +189,10 @@ const EXCLUDE_DIRS = ['assets', 'theme'];
 
 
 const taskInfo: TaskInfo = {
-  fullArgConfig: '--ngc',
-  shortArgConfig: '-n',
-  envConfig: 'ionic_ngc',
+  fullArg: '--ngc',
+  shortArg: '-n',
+  envVar: 'IONIC_NGC',
+  packageConfig: 'ionic_ngc',
   defaultConfigFile: 'ngc.config'
 };
 

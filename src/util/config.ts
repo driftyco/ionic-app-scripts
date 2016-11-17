@@ -1,7 +1,8 @@
-import { accessSync } from 'fs-extra';
+import { accessSync, readJSONSync, statSync } from 'fs-extra';
 import { BuildContext, TaskInfo } from './interfaces';
 import { join, resolve } from 'path';
 import { objectAssign } from './helpers';
+import { FileCache } from './file-cache';
 
 
 /**
@@ -11,8 +12,9 @@ import { objectAssign } from './helpers';
  *
  * 1) Get from the passed in context variable
  * 2) Get from the config file set using the command-line args
- * 3) Get from npm package.json config
- * 4) Get environment variables
+ * 3) Get from environment variable
+ * 4) Get from package.json config property
+ * 5) Get environment variables
  *
  * Lastly, Ionic's default configs will always fill in any data
  * which is missing from the user's data.
@@ -20,37 +22,40 @@ import { objectAssign } from './helpers';
 export function generateContext(context?: BuildContext): BuildContext {
   if (!context) {
     context = {};
+    context.fileCache = new FileCache();
   }
 
-  context.rootDir = resolve(context.rootDir || getConfigValueDefault('--rootDir', null, ENV_VAR_ROOT_DIR, processCwd));
+  context.rootDir = resolve(context.rootDir || getConfigValue(context, '--rootDir', null, ENV_VAR_ROOT_DIR, ENV_VAR_ROOT_DIR.toLowerCase(), processCwd));
   setProcessEnvVar(ENV_VAR_ROOT_DIR, context.rootDir);
 
-  context.tmpDir = resolve(context.tmpDir || getConfigValueDefault('--tmpDir', null, ENV_VAR_TMP_DIR, join(context.rootDir, TMP_DIR)));
+  context.tmpDir = resolve(context.tmpDir || getConfigValue(context, '--tmpDir', null, ENV_VAR_TMP_DIR, ENV_VAR_TMP_DIR.toLowerCase(), join(context.rootDir, TMP_DIR)));
   setProcessEnvVar(ENV_VAR_TMP_DIR, context.tmpDir);
 
-  context.srcDir = resolve(context.srcDir || getConfigValueDefault('--srcDir', null, ENV_VAR_SRC_DIR, join(context.rootDir, SRC_DIR)));
+  context.srcDir = resolve(context.srcDir || getConfigValue(context, '--srcDir', null, ENV_VAR_SRC_DIR, ENV_VAR_SRC_DIR.toLowerCase(), join(context.rootDir, SRC_DIR)));
   setProcessEnvVar(ENV_VAR_SRC_DIR, context.srcDir);
 
-  context.wwwDir = resolve(context.wwwDir || getConfigValueDefault('--wwwDir', null, ENV_VAR_WWW_DIR, join(context.rootDir, WWW_DIR)));
+  context.wwwDir = resolve(context.wwwDir || getConfigValue(context, '--wwwDir', null, ENV_VAR_WWW_DIR, ENV_VAR_WWW_DIR.toLowerCase(), join(context.rootDir, WWW_DIR)));
   setProcessEnvVar(ENV_VAR_WWW_DIR, context.wwwDir);
 
   context.wwwIndex = join(context.wwwDir, WWW_INDEX_FILENAME);
 
-  context.buildDir = resolve(context.buildDir || getConfigValueDefault('--buildDir', null, ENV_VAR_BUILD_DIR, join(context.wwwDir, BUILD_DIR)));
+  context.buildDir = resolve(context.buildDir || getConfigValue(context, '--buildDir', null, ENV_VAR_BUILD_DIR, ENV_VAR_BUILD_DIR.toLowerCase(), join(context.wwwDir, BUILD_DIR)));
   setProcessEnvVar(ENV_VAR_BUILD_DIR, context.buildDir);
 
-  if (typeof context.isProd !== 'boolean') {
-    context.isProd = !(hasArg('--dev', '-d') || (getEnvVariable(ENV_VAR_IONIC_DEV) === 'true'));
-  }
+  setProcessEnvVar(ENV_VAR_APP_SCRIPTS_DIR, join(__dirname, '..', '..'));
+
+  const sourceMapValue = getConfigValue(context, '--sourceMap', null, ENV_VAR_SOURCE_MAP, ENV_VAR_SOURCE_MAP.toLowerCase(), 'eval');
+  setProcessEnvVar(ENV_VAR_SOURCE_MAP, sourceMapValue);
 
   if (!isValidBundler(context.bundler)) {
-    context.bundler = bundlerStrategy();
+    context.bundler = bundlerStrategy(context);
   }
 
+  context.isProd = getIsProd(context);
   setIonicEnvironment(context.isProd);
 
   if (typeof context.isWatch !== 'boolean') {
-    context.isWatch = hasArg('--watch', '-w');
+    context.isWatch = hasArg('--watch');
   }
 
   context.inlineTemplates = true;
@@ -61,12 +66,36 @@ export function generateContext(context?: BuildContext): BuildContext {
 }
 
 
+export function getIsProd(context: BuildContext) {
+  // only check if isProd hasn't already been manually set
+  if (typeof context.isProd === 'boolean') {
+    return context.isProd;
+  }
+  if (hasArg('--dev', '-d')) {
+    // not production: has a --dev or -d cmd line arg
+    return false;
+  }
+
+  let val = getPackageJsonConfig(context, ENV_VAR_IONIC_DEV.toLowerCase());
+  if (typeof val === 'boolean') {
+    return !val;
+  }
+
+  val = getProcessEnvVar(ENV_VAR_IONIC_DEV);
+  if (typeof val === 'boolean') {
+    return !val;
+  }
+
+  return true;
+}
+
+
 export function getUserConfigFile(context: BuildContext, task: TaskInfo, userConfigFile: string) {
   if (userConfigFile) {
     return resolve(userConfigFile);
   }
 
-  const defaultConfig = getConfigValueDefault(task.fullArgConfig, task.shortArgConfig, task.envConfig, null);
+  const defaultConfig = getConfigValue(context, task.fullArg, task.shortArg, task.envVar, task.packageConfig, null);
   if (defaultConfig) {
     return join(context.rootDir, defaultConfig);
   }
@@ -80,12 +109,18 @@ export function fillConfigDefaults(userConfigFile: string, defaultConfigFile: st
 
   if (userConfigFile) {
     try {
+      // check if exists first, so we can print a more specific error message
+      // since required config could also throw MODULE_NOT_FOUND
+      statSync(userConfigFile);
       // create a fresh copy of the config each time
       userConfig = require(userConfigFile);
-
     } catch (e) {
-      console.error(`Config file "${userConfigFile}" not found. Using defaults instead.`);
-      console.error(e);
+      if (e.code === 'ENOENT') {
+        console.error(`Config file "${userConfigFile}" not found. Using defaults instead.`);
+      } else {
+        console.error(`There was an error in config file "${userConfigFile}". Using defaults instead.`);
+        console.error(e);
+      }
     }
   }
 
@@ -96,76 +131,84 @@ export function fillConfigDefaults(userConfigFile: string, defaultConfigFile: st
   return objectAssign({}, defaultConfig, userConfig);
 }
 
-export function bundlerStrategy() {
+export function bundlerStrategy(context: BuildContext): string {
   // 1) User provided a rollup config via cmd line args
-  let rollupVal = getArgValue('--rollup', '-r');
-  if (rollupVal) {
+  let val: any = getArgValue('--rollup', '-r');
+  if (val) {
     return BUNDLER_ROLLUP;
   }
 
-  // 2) User provided a rollup config env var
-  rollupVal = getEnvVariable('ionic_rollup');
-  if (rollupVal) {
+  // 2) User provided both a rollup config and webpack config in package.json config
+  val = getPackageJsonConfig(context, 'ionic_rollup');
+  const webpackVal = getPackageJsonConfig(context, 'ionic_webpack');
+  if (val && webpackVal) {
+    let bundler = getPackageJsonConfig(context, 'ionic_bundler');
+    if (isValidBundler(bundler)) {
+      return bundler;
+    }
+  }
+
+  // 3) User provided a rollup config env var
+  val = getProcessEnvVar('ionic_rollup');
+  if (val) {
     return BUNDLER_ROLLUP;
   }
 
-  // 3) User set bundler through full arg
-  let bundler = getArgValue('--bundler', null);
-  if (isValidBundler(bundler)) {
-    return bundler;
+  // 4) User provided a rollup config in package.json config
+  val = getPackageJsonConfig(context, 'ionic_rollup');
+  if (val) {
+    return BUNDLER_ROLLUP;
   }
 
-  // 4) User set to use rollup at the bundler
-  bundler = getEnvVariable('ionic_bundler');
-  if (isValidBundler(bundler)) {
-    return bundler;
+  // 5) User set bundler through full arg
+  val = getArgValue('--bundler', null);
+  if (isValidBundler(val)) {
+    return val;
   }
 
-  // 5) Default to use webpack
+  // 6) User set bundler through package.json config
+  val = getPackageJsonConfig(context, 'ionic_bundler');
+  if (isValidBundler(val)) {
+    return val;
+  }
+
+  // 7) User set to use rollup at the bundler
+  val = getProcessEnvVar('ionic_bundler');
+  if (isValidBundler(val)) {
+    return val;
+  }
+
+  // 8) Default to use webpack
   return BUNDLER_WEBPACK;
 }
 
 
-function isValidBundler(bundler: string) {
+function isValidBundler(bundler: any) {
   return (bundler === BUNDLER_ROLLUP || bundler === BUNDLER_WEBPACK);
 }
 
 
-export function getConfigValueDefault(argFullName: string, argShortName: string, envVarName: string, defaultValue: string) {
+export function getConfigValue(context: BuildContext, argFullName: string, argShortName: string, envVarName: string, packageConfigProp: string, defaultValue: string) {
   // first see if the value was set in the command-line args
-  let val = getArgValue(argFullName, argShortName);
-  if (val) {
-    return val;
+  const argVal = getArgValue(argFullName, argShortName);
+  if (argVal !== null) {
+    return argVal;
   }
 
   // next see if it was set in the environment variables
-  // which also checks if it was set in the npm package.json config
-  val = getEnvVariable(envVarName);
-  if (val) {
-    return val;
+  // which also checks if it was set in the package.json config property
+  const envVar = getProcessEnvVar(envVarName);
+  if (envVar !== null) {
+    return envVar;
+  }
+
+  const packageConfig = getPackageJsonConfig(context, packageConfigProp);
+  if (packageConfig !== null) {
+    return packageConfig;
   }
 
   // return the default if nothing above was found
   return defaultValue;
-}
-
-
-function getEnvVariable(envVarName: string): string {
-  // see if it was set in npm package.json config
-  // which ends up as an env variable prefixed with "npm_package_config_"
-
-  let val = getProcessEnvVar('npm_package_config_' + envVarName);
-  if (val !== undefined) {
-    return val;
-  }
-
-  // next see if it was just set as an environment variables
-  val = getProcessEnvVar(envVarName);
-  if (val !== undefined) {
-    return val;
-  }
-
-  return null;
 }
 
 
@@ -183,18 +226,24 @@ function getArgValue(fullName: string, shortName: string): string {
 }
 
 
-export function hasConfigValue(argFullName: string, argShortName: string, envVarName: string, defaultValue: boolean) {
+export function hasConfigValue(context: BuildContext, argFullName: string, argShortName: string, envVarName: string, defaultValue: boolean) {
   if (hasArg(argFullName, argShortName)) {
     return true;
   }
 
-  const envVar: any = getEnvVariable(envVarName);
-  if (envVar === 'true' || envVar === true) {
+  // next see if it was set in the environment variables
+  // which also checks if it was set in the package.json config property
+  const envVar = getProcessEnvVar(envVarName);
+  if (envVar !== null) {
     return true;
-  } else if (envVar === 'false' || envVar === false) {
-    return false;
   }
 
+  const packageConfig = getPackageJsonConfig(context, envVarName);
+  if (packageConfig !== null) {
+    return true;
+  }
+
+  // return the default if nothing above was found
   return defaultValue;
 }
 
@@ -241,7 +290,7 @@ export function getNodeBinExecutable(context: BuildContext, cmd: string) {
 let checkedDebug = false;
 function checkDebugMode() {
   if (!checkedDebug) {
-    if (hasArg('--debug') || getEnvVariable('ionic_debug_mode') === 'true') {
+    if (hasArg('--debug') || getProcessEnvVar('ionic_debug_mode') === 'true') {
       processEnv.ionic_debug_mode = 'true';
     }
     checkedDebug = true;
@@ -279,13 +328,18 @@ export function setProcessEnvVar(key: string, value: any) {
   processEnv[key] = value;
 }
 
-export function getProcessEnvVar(key: string): string {
+export function getProcessEnvVar(key: string): any {
   const val = processEnv[key];
-  if (typeof val === 'boolean') {
-    // ensure this always returns a string
-    return val.toString();
+  if (val !== undefined) {
+    if (val === 'true') {
+      return true;
+    }
+    if (val === 'false') {
+      return false;
+    }
+    return val;
   }
-  return val;
+  return null;
 }
 
 let processCwd: string;
@@ -293,6 +347,41 @@ export function setCwd(cwd: string) {
   processCwd = cwd;
 }
 setCwd(process.cwd());
+
+
+export function getPackageJsonConfig(context: BuildContext, key: string): any {
+  const packageJsonData = getAppPackageJsonData(context);
+  if (packageJsonData && packageJsonData.config) {
+    const val = packageJsonData.config[key];
+    if (val !== undefined) {
+      if (val === 'true') {
+        return true;
+      }
+      if (val === 'false') {
+        return false;
+      }
+      return val;
+    }
+  }
+  return null;
+}
+
+
+let appPackageJsonData: any = null;
+export function setAppPackageJsonData(data: any) {
+  appPackageJsonData = data;
+}
+
+
+function getAppPackageJsonData(context: BuildContext) {
+  if (!appPackageJsonData) {
+    try {
+      appPackageJsonData = readJSONSync(join(context.rootDir, 'package.json'));
+    } catch (e) {}
+  }
+
+  return appPackageJsonData;
+}
 
 
 const BUILD_DIR = 'build';
@@ -305,12 +394,14 @@ const ENV_VAR_PROD = 'prod';
 const ENV_VAR_DEV = 'dev';
 
 const ENV_VAR_IONIC_ENV = 'IONIC_ENV';
-const ENV_VAR_IONIC_DEV = 'ionic_dev';
-const ENV_VAR_ROOT_DIR = 'ionic_root_dir';
-const ENV_VAR_TMP_DIR = 'ionic_tmp_dir';
-const ENV_VAR_SRC_DIR = 'ionic_src_dir';
-const ENV_VAR_WWW_DIR = 'ionic_www_dir';
-const ENV_VAR_BUILD_DIR = 'ionic_build_dir';
+const ENV_VAR_IONIC_DEV = 'IONIC_DEV';
+const ENV_VAR_ROOT_DIR = 'IONIC_ROOT_DIR';
+const ENV_VAR_TMP_DIR = 'IONIC_TMP_DIR';
+const ENV_VAR_SRC_DIR = 'IONIC_SRC_DIR';
+const ENV_VAR_WWW_DIR = 'IONIC_WWW_DIR';
+const ENV_VAR_BUILD_DIR = 'IONIC_BUILD_DIR';
+const ENV_VAR_APP_SCRIPTS_DIR = 'IONIC_APP_SCRIPTS_DIR';
+const ENV_VAR_SOURCE_MAP = 'IONIC_SOURCE_MAP';
 
 export const BUNDLER_ROLLUP = 'rollup';
 export const BUNDLER_WEBPACK = 'webpack';

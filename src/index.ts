@@ -1,4 +1,4 @@
-export { build, buildUpdate } from './build';
+export { build } from './build';
 export { bundle, bundleUpdate } from './bundle';
 export { clean } from './clean';
 export { cleancss } from './cleancss';
@@ -9,18 +9,18 @@ export { ngc } from './ngc';
 export { sass, sassUpdate } from './sass';
 export { transpile } from './transpile';
 export { uglifyjs } from './uglifyjs';
-export { watch } from './watch';
+export { watch, buildUpdate } from './watch';
 export * from './util/config';
 export * from './util/helpers';
 export * from './util/interfaces';
 
-import { Logger, getAppScriptsVersion } from './util/logger';
-import * as chalk from 'chalk';
+import { getAppScriptsVersion } from './util/helpers';
+import { Logger } from './logger/logger';
 
 
 export function run(task: string) {
   try {
-    Logger.info(chalk.cyan(`ionic-app-scripts ${getAppScriptsVersion()}`));
+    Logger.info(`ionic-app-scripts ${getAppScriptsVersion()}`, 'cyan');
   } catch (e) {}
 
   try {

@@ -1,10 +1,12 @@
 import { access } from 'fs';
 import { BuildContext, TaskInfo } from './util/interfaces';
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
+import { createProgram, findConfiguration, getFileNames } from 'tslint';
 import { generateContext, getUserConfigFile } from './util/config';
 import { join } from 'path';
-import { createProgram, findConfiguration, getFileNames } from 'tslint';
-import { runDiagnostics } from './util/logger-tslint';
+import { Logger } from './logger/logger';
+import { printDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
+import { runTsLintDiagnostics } from './logger/logger-tslint';
 import { runWorker } from './worker-client';
 import * as Linter from 'tslint';
 import * as fs from 'fs';
@@ -24,18 +26,8 @@ export function lint(context?: BuildContext, configFile?: string) {
 export function lintWorker(context: BuildContext, configFile: string) {
   return getLintConfig(context, configFile).then(configFile => {
     // there's a valid tslint config, let's continue
-    const logger = new Logger('lint');
-
-    return lintApp(context, configFile)
-      .then(() => {
-        // always finish and resolve
-        logger.finish();
-
-      }).catch(() => {
-        // always finish and resolve
-        logger.finish();
-      });
-  });
+    return lintApp(context, configFile);
+  }).catch(() => {});
 }
 
 
@@ -55,15 +47,11 @@ export function lintUpdate(event: string, filePath: string, context: BuildContex
 
 export function lintUpdateWorker(context: BuildContext, workerConfig: LintWorkerConfig) {
   return getLintConfig(context, workerConfig.configFile).then(configFile => {
-      // there's a valid tslint config, let's continue (but be quiet about it!)
-      const program = createProgram(configFile, context.srcDir);
-      return lintFile(context, program, workerConfig.filePath);
-
-    }, () => {
-      // rejected, but let's ignore
-    }).catch(() => {
-      // error, but whateves
-    });
+    // there's a valid tslint config, let's continue (but be quiet about it!)
+    const program = createProgram(configFile, context.srcDir);
+    return lintFile(context, program, workerConfig.filePath);
+  }).catch(() => {
+  });
 }
 
 
@@ -108,7 +96,8 @@ function lintFile(context: BuildContext, program: ts.Program, filePath: string) 
 
         const lintResult = linter.lint();
         if (lintResult && lintResult.failures) {
-          runDiagnostics(context, <any>lintResult.failures);
+          const diagnostics = runTsLintDiagnostics(context, <any>lintResult.failures);
+          printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
         }
 
       } catch (e) {
@@ -164,9 +153,10 @@ function isMpegFile(file: string) {
 
 
 const taskInfo: TaskInfo = {
-  fullArgConfig: '--tslint',
-  shortArgConfig: '-i',
-  envConfig: 'ionic_tslint',
+  fullArg: '--tslint',
+  shortArg: '-i',
+  envVar: 'ionic_tslint',
+  packageConfig: 'IONIC_TSLINT',
   defaultConfigFile: '../tslint'
 };
 

@@ -1,0 +1,203 @@
+<!doctype html>
+<html ng-app="app">
+  <head>
+    <meta charset="utf-8">
+    <title ng-bind="title"></title>
+    <style>
+      body {
+        background-color: #EFF1F5;
+        font-family: 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+        padding: 0;
+        margin: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+      preview {
+        display: block;
+        max-width: 1245px;
+        margin: 0 auto 0 auto;
+        overflow: auto;
+      }
+      h2 {
+        color: #fff;
+        font-weight: 200;
+        letter-spacing: 1px;
+      }
+      #header-left {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        line-height: 40px;
+      }
+      #header-left span {
+        margin-left: 10px;
+        vertical-align: middle;
+        display: inline-block;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        font-weight: 300;
+        color: #6F7582;
+        font-size: 16px;
+      }
+      #header {
+      }
+      #header #left {
+        position: absolute;
+        left: 20px;
+        top: 20px;
+      }
+      #header {
+        position: fixed;
+        top: 30px;
+        right: 20px;
+      }
+      #header a {
+        color: #fff;
+        display: inline-block;
+        margin: 0px 9px;
+        opacity: 0.4;
+        font-size: 90%;
+        letter-spacing: 1px;
+        text-decoration: none;
+      }
+      #header a:hover {
+        opacity: 1;
+      }
+      h2 a {
+        font-size: 18px;
+        color: #6F7582;
+        text-decoration: none;
+      }
+      .phone {
+        float: left;
+        margin: 40px 20px 0 20px;
+      }
+      .frame {
+        border: none;
+        border-radius: 3px;
+        box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.3);
+      }
+      #iphone-frame {
+        top: 109px;
+        left: 25px;
+        width: 375px;
+        height: 667px;
+      }
+      #android-frame {
+        top: 88px;
+        left: 24px;
+        width: 375px;
+        height: 667px;
+      }
+      #windows-frame {
+        top: 88px;
+        left: 24px;
+        width: 375px;
+        height: 667px;
+      }
+      #iphone {
+      }
+      #android {
+      }
+      #logo {
+        display: inline-block;
+        width: 48px;
+        height: 48px;
+        vertical-align: middle;
+        background-image: url('data:image/png;base64,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');
+        background-repeat: no-repeat;
+        width: 40px;
+        height: 40px;
+        background-size: 100%;
+      }
+      #logo:hover {
+        opacity: 1;
+      }
+      #logo img {
+        max-width: 100%;
+      }
+    </style>
+
+    <!-- quick and dirty templating, don't touch this -->
+    <script>
+      //INSERT_JSON_HERE;
+    </script>
+
+    <script src="angular.min.js"></script>
+    <script>
+      angular.module('app', [])
+      .directive('preview', function() {
+        return {
+          restrict: 'E',
+          scope: true,
+          link: function($scope, $element, $attr) {
+            $scope.screenSizes = [
+              { label: 'iPhone 5 (320x568)', size: '320x568' }
+            ];
+            $scope.screenSize = $scope.screenSizes[0];
+          }
+        }
+      })
+      .run(['$rootScope', function($rootScope) {
+        $rootScope.appName = BOOTSTRAP && BOOTSTRAP.appName || null;
+        $rootScope.title = $rootScope.appName && $rootScope.appName + ' - Ionic App' || 'Ionic App';
+      }]);
+    </script>
+
+  </head>
+  <body>
+    <div id="header-left">
+      <a target="_blank" href="http://ionicframework.com/" id="logo">
+      </a>
+      <span ng-bind="appName"></span>
+    </div>
+    <!--
+    <header id="header">
+      <a target="_blank" href="http://ionicframework.com/docs/components/">CSS</a>
+      <a target="_blank" href="http://ionicframework.com/docs/api/">API</a>
+      <a target="_blank" href="http://forum.ionicframework.com/">Forum</a>
+      <a target="_blank" href="http://ngcordova.com/">ngCordova</a>
+      <a target="_blank" href="https://github.com/driftyco/ionic">GitHub</a>
+    </header>
+    -->
+    <preview>
+      <!--
+      <div id="choice">
+        <select ng-model="screenSize" ng-options="s.label for s in screenSizes"></select>
+      </div>
+      -->
+      <div class="phone">
+        <div id="iphone">
+          <h2><a href="/?ionicplatform=ios" target="_blank">iOS</a></h2>
+          <iframe id="iphone-frame" src="/?ionicplatform=ios" class="frame"></iframe>
+        </div>
+      </div>
+      <div class="phone">
+        <div id="android">
+          <h2><a href="/?ionicplatform=android" target="_blank">Android</a></h2>
+          <iframe id="android-frame" src="/?ionicplatform=android" class="frame"></iframe>
+        </div>
+      </div>
+      <div class="phone">
+        <div id="windows">
+          <h2><a href="/?ionicplatform=windows" target="_blank">Windows</a></h2>
+          <iframe id="windows-frame" src="/?ionicplatform=windows" class="frame"></iframe>
+        </div>
+      </div>
+    </preview>
+    <!--
+    <a href="http://ionicframework.com/" id="logo">
+      <img src="http://docs.ionic.io/img/ionic-logo.png">
+    </a>
+    -->
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-44023830-9', {
+        'cookieDomain': 'none'
+      })
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

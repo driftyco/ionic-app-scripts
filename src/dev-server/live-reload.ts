@@ -1,32 +1,38 @@
-import { BuildContext } from '../util/interfaces';
-import { getConfigValueDefault, hasConfigValue } from '../util/config';
-import { relative } from 'path';
-import * as events from '../util/events';
+import { hasDiagnostics } from '../logger/logger-diagnostics';
+import * as path from 'path';
 import * as tinylr from 'tiny-lr';
+import { ServeConfig } from './serve-config';
+import * as events from '../util/events';
 
 
-let liveReloadServer: any;
-let liveReloadScript: string;
+export function createLiveReloadServer(config: ServeConfig) {
+  const liveReloadServer = tinylr();
+  liveReloadServer.listen(config.liveReloadPort, config.host);
 
-export function createLiveReloadServer(context: BuildContext, host: string) {
-  if (liveReloadServer) {
-    return;
+  function fileChange(filePath: string | string[]) {
+    // only do a live reload if there are no diagnostics
+    // the notification server takes care of showing diagnostics
+    if (!hasDiagnostics(config.buildDir)) {
+      const files = Array.isArray(filePath) ? filePath : [filePath];
+      liveReloadServer.changed({
+        body: {
+          files: files.map(f => '/' + path.relative(config.wwwDir, f))
+        }
+      });
+    }
   }
 
-  liveReloadScript = getLiveReloadScript(host);
+  events.on(events.EventType.FileChange, fileChange);
 
-  liveReloadServer = tinylr();
-
-  liveReloadServer.listen(getLiveReloadServerPort(), host);
-
-  events.on(events.EventType.FileChange, (filePath: string) => {
-    fileChanged(context, filePath);
+  events.on(events.EventType.ReloadApp, () => {
+    fileChange('index.html');
   });
 }
 
 
-export function injectLiveReloadScript(content: any): any {
+export function injectLiveReloadScript(content: any, host: string, port: Number): any {
   let contentStr = content.toString();
+  const liveReloadScript = getLiveReloadScript(host, port);
 
   if (contentStr.indexOf('/livereload.js') > -1) {
     // already added script
@@ -46,40 +52,7 @@ export function injectLiveReloadScript(content: any): any {
   return contentStr;
 }
 
-
-export function getLiveReloadScript(host: string) {
-  const port = getLiveReloadServerPort();
-  if (!host) {
-    host = 'localhost';
-  }
+function getLiveReloadScript(host: string, port: Number) {
   var src = `//${host}:${port}/livereload.js?snipver=1`;
   return `  <!-- Ionic Dev Server: Injected LiveReload Script -->\n  <script src="${src}" async="" defer=""></script>`;
 }
-
-function fileChanged(context: BuildContext, filePath: string|string[]) {
-  if (liveReloadServer) {
-    const files = Array.isArray(filePath) ? filePath : [filePath];
-
-    liveReloadServer.changed({
-      body: {
-        files: files.map(f => '/' + relative(context.wwwDir, f))
-      }
-    });
-  }
-}
-
-
-function getLiveReloadServerPort() {
-  const port = getConfigValueDefault('--livereload-port', null, 'ionic_livereload_port', null);
-  if (port) {
-    return parseInt(port, 10);
-  }
-  return LIVE_RELOAD_DEFAULT_PORT;
-}
-
-
-export function useLiveReload() {
-  return !hasConfigValue('--nolivereload', '-d', 'ionic_livereload', false);
-}
-
-const LIVE_RELOAD_DEFAULT_PORT = 35729;

@@ -1,8 +1,6 @@
-var buildUpdate = require('../dist/build').buildUpdate;
-var templateUpdate = require('../dist/template').templateUpdate;
-var copyUpdate = require('../dist/copy').copyUpdate;
-var sassUpdate = require('../dist/sass').sassUpdate;
-var copyConfig = require('./copy.config').include;
+var watch = require('../dist/watch');
+var copy = require('../dist/copy');
+var copyConfig = require('./copy.config');
 
 
 // https://www.npmjs.com/package/chokidar
@@ -13,31 +11,17 @@ module.exports = {
 
     {
       paths: [
-        '{{SRC}}/**/*.ts'
+        '{{SRC}}/**/*.(ts|html|scss)'
       ],
-      options: { ignored: '{{SRC}}/**/*.spec.ts' },
-      callback: buildUpdate
+      options: { ignored: ['{{SRC}}/**/*.spec.ts', '**/*.DS_Store'] },
+      callback: watch.buildUpdate
     },
 
     {
-      paths: [
-        '{{SRC}}/**/*.html'
-      ],
-      options: { ignored: /(index.html$)/ },
-      callback: templateUpdate
-    },
-
-    {
-      paths: [
-        '{{SRC}}/**/*.scss'
-      ],
-      callback: sassUpdate
-    },
-
-    {
-      paths: copyConfig.map(f => f.src),
-      callback: copyUpdate
-    },
+      paths: copyConfig.include.map(f => f.src),
+      options: { ignored: '**/*.DS_Store' },
+      callback: copy.copyUpdate
+    }
 
   ]
 

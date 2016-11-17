@@ -1,4 +1,5 @@
-import { BuildError, Logger } from './util/logger';
+import { BuildError } from './util/errors';
+import { Logger } from './logger/logger';
 import { WorkerMessage } from './util/interfaces';
 
 
@@ -8,14 +9,11 @@ process.on('message', (msg: WorkerMessage) => {
     const taskWorker = require(modulePath)[msg.taskWorker];
 
     taskWorker(msg.context, msg.workerConfig)
-      .then(
-        (val: any) => {
-          taskResolve(msg.taskModule, msg.taskWorker, val);
-        },
-        (val: any) => {
-          taskReject(msg.taskModule, msg.taskWorker, val);
-        }
-      )
+      .then((val: any) => {
+        taskResolve(msg.taskModule, msg.taskWorker, val);
+      }, (val: any) => {
+        taskReject(msg.taskModule, msg.taskWorker, val);
+      })
       .catch((err: any) => {
         taskError(msg.taskModule, msg.taskWorker, err);
       });

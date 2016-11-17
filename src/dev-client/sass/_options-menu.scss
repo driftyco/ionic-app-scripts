@@ -1,0 +1,93 @@
+
+$action-sheet-width:                             100% !default;
+$action-sheet-max-width:                         500px !default;
+
+
+#ion-diagnostics-options {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: $z-index-menu;
+
+  width: $action-sheet-width;
+  height: $action-sheet-width;
+
+  font-family: $body-font-family;
+}
+
+.ion-diagnostics-sheet-wrapper {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: block;
+
+  margin: auto;
+
+  width: $action-sheet-width;
+  max-width: $action-sheet-max-width;
+
+  transition: transform 300ms cubic-bezier(.36,.66,.04,1);
+  transform: translate3d(0, 100%, 0);
+}
+
+#ion-diagnostics-backdrop {
+  width: 100%;
+  height: 100%;
+  opacity: 0.01;
+  background: black;
+  transition: opacity 300ms cubic-bezier(.36,.66,.04,1);
+}
+
+.ion-diagnostics-options-show .ion-diagnostics-sheet-wrapper {
+  transform: translate3d(0, 0, 0);
+}
+
+.ion-diagnostics-options-show #ion-diagnostics-backdrop {
+  opacity: 0.4;
+}
+
+.ion-diagnostics-sheet-container {
+  padding: 0 10px;
+}
+
+.ion-diagnostics-sheet-group {
+  overflow: hidden;
+
+  margin-bottom: 10px - 2;
+
+  border-radius: 13px;
+  background: #f9f9f9;
+}
+
+.ion-diagnostics-sheet-group:last-child {
+  margin-bottom: 10px;
+}
+
+.ion-diagnostics-sheet-title {
+  padding: 15px;
+
+  border-bottom: $hairlines-width solid #d6d6da;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: center;
+  color: #8f8f8f;
+}
+
+.ion-diagnostics-sheet-button {
+  margin: 0;
+  padding: 18px;
+
+  width: $action-sheet-width;
+  min-height: 56px;
+
+  border-bottom: $hairlines-width solid #d6d6da;
+  font-size: 20px;
+  color: $ionic-blue;
+  background: transparent;
+}
+
+.ion-diagnostics-sheet-button:last-child {
+  border-bottom: 0;
+}

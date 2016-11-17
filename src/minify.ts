@@ -2,7 +2,7 @@ import { BuildContext } from './util/interfaces';
 import { cleancss } from './cleancss';
 import { closure, isClosureSupported } from './closure';
 import { generateContext } from './util/config';
-import { Logger } from './util/logger';
+import { Logger } from './logger/logger';
 import { uglifyjs } from './uglifyjs';
 
 

@@ -1,0 +1,20 @@
+
+#ion-diagnostics .ion-diagnostic-stack-header {
+  padding: 5px 10px;
+  border-top: 1px solid $diagnostics-border;
+  border-bottom: 1px solid $diagnostics-border;
+  background-color: $diagnostics-header-background;
+}
+
+#ion-diagnostics .ion-diagnostic-stack {
+  font-family: $code-font-family;
+  font-size: 10px;
+  color: #333;
+  word-wrap: normal;
+  white-space: pre;
+  overflow: auto;
+  padding: 10px;
+
+  user-select: auto;
+  -webkit-user-select: text;
+}
