@@ -1,5 +1,5 @@
 import { FileCache } from './util/file-cache';
-import { BuildContext, BuildState, File, TaskInfo } from './util/interfaces';
+import { BuildContext, BuildState, ChangedFile, File, TaskInfo } from './util/interfaces';
 import { BuildError, IgnorableError } from './util/errors';
 import { changeExtension, readFileAsync, setContext } from './util/helpers';
 import { emit, EventType } from './util/events';
@@ -45,12 +45,12 @@ export function webpack(context: BuildContext, configFile: string) {
 }
 
 
-export function webpackUpdate(event: string, path: string, context: BuildContext, configFile: string) {
+export function webpackUpdate(changedFiles: ChangedFile[], context: BuildContext, configFile: string) {
   const logger = new Logger('webpack update');
   const webpackConfig = getWebpackConfig(context, configFile);
   Logger.debug('webpackUpdate: Starting Incremental Build');
   const promisetoReturn = runWebpackIncrementalBuild(false, context, webpackConfig);
-  emit(EventType.WebpackFilesChanged, [path]);
+  emit(EventType.WebpackFilesChanged, null);
   return promisetoReturn.then((stats: any) => {
       // the webpack incremental build finished, so reset the list of pending promises
       pendingPromises = [];
@@ -193,20 +193,6 @@ export function getWebpackConfig(context: BuildContext, configFile: string): Web
 
 export function getOutputDest(context: BuildContext, webpackConfig: WebpackConfig) {
   return join(webpackConfig.output.path, webpackConfig.output.filename);
-}
-
-function typescriptFileChanged(fileChangedPath: string, fileCache: FileCache): File[] {
-  // convert to the .js file because those are the transpiled files in memory
-  const jsFilePath = changeExtension(fileChangedPath, '.js');
-  const sourceFile = fileCache.get(jsFilePath);
-  const mapFile = fileCache.get(jsFilePath + '.map');
-  return [sourceFile, mapFile];
-}
-
-function otherFileChanged(fileChangedPath: string) {
-  return readFileAsync(fileChangedPath).then((content: string) => {
-    return { path: fileChangedPath, content: content};
-  });
 }
 
 const taskInfo: TaskInfo = {

@@ -1,5 +1,5 @@
 import { access } from 'fs';
-import { BuildContext, TaskInfo } from './util/interfaces';
+import { BuildContext, ChangedFile, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { createProgram, findConfiguration, getFileNames } from 'tslint';
 import { generateContext, getUserConfigFile } from './util/config';
@@ -31,12 +31,13 @@ export function lintWorker(context: BuildContext, configFile: string) {
 }
 
 
-export function lintUpdate(event: string, filePath: string, context: BuildContext) {
+export function lintUpdate(changedFiles: ChangedFile[], context: BuildContext) {
+  const changedTypescriptFiles = changedFiles.filter(changedFile => changedFile.ext === '.ts');
   return new Promise(resolve => {
     // throw this in a promise for async fun, but don't let it hang anything up
     const workerConfig: LintWorkerConfig = {
       configFile: getUserConfigFile(context, taskInfo, null),
-      filePath: filePath
+      filePaths: changedTypescriptFiles.map(changedTypescriptFile => changedTypescriptFile.filePath)
     };
 
     runWorker('lint', 'lintUpdateWorker', context, workerConfig);
@@ -49,7 +50,7 @@ export function lintUpdateWorker(context: BuildContext, workerConfig: LintWorker
   return getLintConfig(context, workerConfig.configFile).then(configFile => {
     // there's a valid tslint config, let's continue (but be quiet about it!)
     const program = createProgram(configFile, context.srcDir);
-    return lintFile(context, program, workerConfig.filePath);
+    return lintFiles(context, program, workerConfig.filePaths);
   }).catch(() => {
   });
 }
@@ -66,6 +67,13 @@ function lintApp(context: BuildContext, configFile: string) {
   return Promise.all(promises);
 }
 
+function lintFiles(context: BuildContext, program: ts.Program, filePaths: string[]) {
+  const promises: Promise<void>[] = [];
+  for (const filePath of filePaths) {
+    promises.push(lintFile(context, program, filePath));
+  }
+  return Promise.all(promises);
+}
 
 function lintFile(context: BuildContext, program: ts.Program, filePath: string) {
   return new Promise((resolve) => {
@@ -162,5 +170,5 @@ const taskInfo: TaskInfo = {
 
 export interface LintWorkerConfig {
   configFile: string;
-  filePath: string;
+  filePaths: string[];
 }

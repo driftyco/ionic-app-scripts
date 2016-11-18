@@ -1,62 +1,53 @@
-import { BuildContext, BuildState, File } from './util/interfaces';
+import { BuildContext, BuildState, ChangedFile, File } from './util/interfaces';
 import { changeExtension } from './util/helpers';
 import { Logger } from './logger/logger';
 import { getJsOutputDest } from './bundle';
 import { invalidateCache } from './rollup';
 import { dirname, extname, join, parse, resolve } from 'path';
-import { readFileSync, writeFile } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 
 
-export function templateUpdate(event: string, htmlFilePath: string, context: BuildContext) {
-  return new Promise((resolve) => {
+export function templateUpdate(changedFiles: ChangedFile[], context: BuildContext) {
+  try {
+    const changedTemplates = changedFiles.filter(changedFile => changedFile.ext === '.html');
     const start = Date.now();
     const bundleOutputDest = getJsOutputDest(context);
+    let bundleSourceText = readFileSync(bundleOutputDest, 'utf8');
 
-    function failed() {
-      context.transpileState = BuildState.RequiresBuild;
-      context.bundleState = BuildState.RequiresUpdate;
-      resolve();
-    }
-
-    try {
-      let bundleSourceText = readFileSync(bundleOutputDest, 'utf8');
-      let newTemplateContent = readFileSync(htmlFilePath, 'utf8');
-
-      const successfullyUpdated = updateCorrespondingJsFile(context, newTemplateContent, htmlFilePath);
-      bundleSourceText = replaceExistingJsTemplate(bundleSourceText, newTemplateContent, htmlFilePath);
-
-      // invaldiate any rollup bundles, if they're not using rollup no harm done
-      invalidateCache();
-
-      if (successfullyUpdated && bundleSourceText) {
-        // awesome, all good and template updated in the bundle file
-        const logger = new Logger(`template update`);
-        logger.setStartTime(start);
-
-        writeFile(bundleOutputDest, bundleSourceText, { encoding: 'utf8'}, (err) => {
-          if (err) {
-            // eww, error saving
-            logger.fail(err);
-            failed();
-
-          } else {
-            // congrats, all gud
-            Logger.debug(`templateUpdate, updated: ${htmlFilePath}`);
-            context.templateState = BuildState.SuccessfulBuild;
-            logger.finish();
-            resolve();
-          }
-        });
-
-      } else {
-        failed();
+    // update the corresponding transpiled javascript file with the template changed (inline it)
+    // as well as the bundle
+    for (const changedTemplateFile of changedTemplates) {
+      const file = context.fileCache.get(changedTemplateFile.filePath);
+      if (! updateCorrespondingJsFile(context, file.content, changedTemplateFile.filePath)) {
+        throw new Error(`Failed to inline template ${changedTemplateFile.filePath}`);
       }
-
-    } catch (e) {
-      Logger.debug(`templateUpdate error: ${e}`);
-      failed();
+      bundleSourceText = replaceExistingJsTemplate(bundleSourceText, file.content, changedTemplateFile.filePath);
     }
-  });
+
+    // invaldiate any rollup bundles, if they're not using rollup no harm done
+    invalidateCache();
+
+    // awesome, all good and template updated in the bundle file
+    const logger = new Logger(`template update`);
+    logger.setStartTime(start);
+
+    writeFileSync(bundleOutputDest, bundleSourceText, { encoding: 'utf8'});
+
+    // congrats, all gud
+    changedTemplates.forEach(changedTemplate => {
+      Logger.debug(`templateUpdate, updated: ${changedTemplate.filePath}`);
+    });
+
+    context.templateState = BuildState.SuccessfulBuild;
+    logger.finish();
+    resolve();
+
+  } catch (ex) {
+    Logger.debug(`templateUpdate error: ${ex.message}`);
+    context.transpileState = BuildState.RequiresBuild;
+    context.bundleState = BuildState.RequiresUpdate;
+    return Promise.resolve();
+  }
 }
 
 function updateCorrespondingJsFile(context: BuildContext, newTemplateContent: string, existingHtmlTemplatePath: string) {

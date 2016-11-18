@@ -1,5 +1,5 @@
 import { FileCache } from './util/file-cache';
-import { BuildContext, BuildState } from './util/interfaces';
+import { BuildContext, BuildState, ChangedFile } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { buildJsSourceMaps } from './bundle';
 import { changeExtension } from './util/helpers';
@@ -40,7 +40,7 @@ export function transpile(context?: BuildContext) {
 }
 
 
-export function transpileUpdate(event: string, filePath: string, context: BuildContext) {
+export function transpileUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   const workerConfig: TranspileWorkerConfig = {
     configFile: getTsConfigPath(context),
     writeInMemory: true,
@@ -51,8 +51,15 @@ export function transpileUpdate(event: string, filePath: string, context: BuildC
 
   const logger = new Logger('transpile update');
 
-  return transpileUpdateWorker(event, filePath, context, workerConfig)
-    .then(tsFiles => {
+  const changedTypescriptFiles = changedFiles.filter(changedFile => changedFile.ext === '.ts');
+
+  const promises: Promise<void>[] = [];
+  for (const changedTypescriptFile of changedTypescriptFiles) {
+    promises.push(transpileUpdateWorker(changedTypescriptFile.event, changedTypescriptFile.filePath, context, workerConfig));
+  }
+
+  return Promise.all(promises)
+    .then(() => {
       context.transpileState = BuildState.SuccessfulBuild;
       logger.finish();
     })
@@ -60,6 +67,7 @@ export function transpileUpdate(event: string, filePath: string, context: BuildC
       context.transpileState = BuildState.RequiresBuild;
       throw logger.fail(err);
     });
+
 }
 
 
@@ -138,27 +146,29 @@ export function canRunTranspileUpdate(event: string, filePath: string, context: 
  * something errors out then it falls back to do the full build.
  */
 function transpileUpdateWorker(event: string, filePath: string, context: BuildContext, workerConfig: TranspileWorkerConfig) {
-  return new Promise((resolve, reject) => {
+  try {
     clearDiagnostics(context, DiagnosticsType.TypeScript);
 
     filePath = path.normalize(path.resolve(filePath));
 
     // an existing ts file we already know about has changed
     // let's "TRY" to do a single module build for this one file
-    const tsConfig = getTsConfig(context, workerConfig.configFile);
+    if (!cachedTsConfig) {
+      cachedTsConfig = getTsConfig(context, workerConfig.configFile);
+    }
 
     // build the ts source maps if the bundler is going to use source maps
-    tsConfig.options.sourceMap = buildJsSourceMaps(context);
+    cachedTsConfig.options.sourceMap = buildJsSourceMaps(context);
 
     const transpileOptions: ts.TranspileOptions = {
-      compilerOptions: tsConfig.options,
+      compilerOptions: cachedTsConfig.options,
       fileName: filePath,
       reportDiagnostics: true
     };
 
     // let's manually transpile just this one ts file
-    // load up the source text for this one module
-    const sourceText = readFileSync(filePath, 'utf8');
+    // since it is an update, it's in memory already
+    const sourceText = context.fileCache.get(filePath).content;
 
     // transpile this one module
     const transpileOutput = ts.transpileModule(sourceText, transpileOptions);
@@ -172,8 +182,7 @@ function transpileUpdateWorker(event: string, filePath: string, context: BuildCo
       // but at least we reported the errors like really really fast, so there's that
       Logger.debug(`transpileUpdateWorker: transpileModule, diagnostics: ${diagnostics.length}`);
 
-      reject(new BuildError());
-
+      throw new BuildError(`Failed to transpile file - ${filePath}`);
     } else {
       // convert the path to have a .js file extension for consistency
       const newPath = changeExtension(filePath, '.js');
@@ -190,10 +199,12 @@ function transpileUpdateWorker(event: string, filePath: string, context: BuildCo
       context.fileCache.set(sourceMapFile.path, sourceMapFile);
       context.fileCache.set(jsFile.path, jsFile);
       context.fileCache.set(tsFile.path, tsFile);
-
-      resolve();
     }
-  });
+
+    return Promise.resolve();
+  } catch (ex) {
+    return Promise.reject(ex);
+  }
 }
 
 
@@ -335,6 +346,7 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
 
 
 let cachedProgram: ts.Program = null;
+let cachedTsConfig: TsConfig = null;
 
 export function getTsConfigPath(context: BuildContext) {
   return path.join(context.rootDir, 'tsconfig.json');

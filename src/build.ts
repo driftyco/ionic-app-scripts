@@ -1,5 +1,7 @@
-import { BuildContext, BuildState, BuildUpdateMessage } from './util/interfaces';
+import { FILE_CHANGE_EVENT, FILE_DELETE_EVENT } from './util/constants';
+import { BuildContext, BuildState, BuildUpdateMessage, ChangedFile } from './util/interfaces';
 import { BuildError } from './util/errors';
+import { readFileAsync } from './util/helpers';
 import { bundle, bundleUpdate } from './bundle';
 import { clean } from './clean';
 import { copy } from './copy';
@@ -9,7 +11,7 @@ import { lint, lintUpdate } from './lint';
 import { Logger } from './logger/logger';
 import { minifyCss, minifyJs } from './minify';
 import { ngc } from './ngc';
-import { sass, sassUpdate } from './sass';
+import { getSassConfig, sass, sassUpdate } from './sass';
 import { templateUpdate } from './template';
 import { transpile, transpileUpdate, transpileDiagnosticsOnly } from './transpile';
 
@@ -121,7 +123,7 @@ function buildDev(context: BuildContext) {
 }
 
 
-export function buildUpdate(event: string, filePath: string, context: BuildContext) {
+export function buildUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   return new Promise(resolve => {
     const logger = new Logger('build');
 
@@ -151,13 +153,20 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
           // this one is useful when only a sass changed happened
           // and the webpack only needs to livereload the css
           // but does not need to do a full page refresh
-          emit(EventType.FileChange, resolveValue.changedFile);
+          emit(EventType.FileChange, resolveValue.changedFiles);
         }
 
-        if (filePath.endsWith('.ts')) {
+        let requiresLintUpdate = false;
+        for (const changedFile of changedFiles) {
+          if (changedFile.ext === '.ts' && changedFile.event === 'ch') {
+            requiresLintUpdate = true;
+            break;
+          }
+        }
+        if (requiresLintUpdate) {
           // a ts file changed, so let's lint it too, however
           // this task should run as an after thought
-          lintUpdate(event, filePath, context);
+          lintUpdate(changedFiles, context);
         }
 
         logger.finish('green', true);
@@ -170,8 +179,8 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
 
     // kick off all the build tasks
     // and the tasks that can run parallel to all the build tasks
-    const buildTasksPromise = buildUpdateTasks(event, filePath, context);
-    const parallelTasksPromise = buildUpdateParallelTasks(event, filePath, context);
+    const buildTasksPromise = buildUpdateTasks(changedFiles, context);
+    const parallelTasksPromise = buildUpdateParallelTasks(changedFiles, context);
 
     // whether it was resolved or rejected, we need to do the same thing
     buildTasksPromise
@@ -179,7 +188,7 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
       .catch(() => {
         buildTasksDone({
           requiresAppReload: false,
-          changedFile: filePath
+          changedFiles: changedFiles
         });
       });
   });
@@ -189,18 +198,21 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
  * Collection of all the build tasks than need to run
  * Each task will only run if it's set with eacn BuildState.
  */
-function buildUpdateTasks(event: string, filePath: string, context: BuildContext) {
+function buildUpdateTasks(changedFiles: ChangedFile[], context: BuildContext) {
   const resolveValue: BuildTaskResolveValue = {
     requiresAppReload: false,
-    changedFile: filePath
+    changedFiles: changedFiles
   };
 
   return Promise.resolve()
     .then(() => {
+      return loadFiles(changedFiles, context);
+    })
+    .then(() => {
       // TEMPLATE
       if (context.templateState === BuildState.RequiresUpdate) {
         resolveValue.requiresAppReload = true;
-        return templateUpdate(event, filePath, context);
+        return templateUpdate(changedFiles, context);
       }
       // no template updates required
       return Promise.resolve();
@@ -213,7 +225,7 @@ function buildUpdateTasks(event: string, filePath: string, context: BuildContext
         // we've already had a successful transpile once, only do an update
         // not that we've also already started a transpile diagnostics only
         // build that only needs to be completed by the end of buildUpdate
-        return transpileUpdate(event, filePath, context);
+        return transpileUpdate(changedFiles, context);
 
       } else if (context.transpileState === BuildState.RequiresBuild) {
         // run the whole transpile
@@ -229,7 +241,7 @@ function buildUpdateTasks(event: string, filePath: string, context: BuildContext
       if (context.bundleState === BuildState.RequiresUpdate) {
         // we need to do a bundle update
         resolveValue.requiresAppReload = true;
-        return bundleUpdate(event, filePath, context);
+        return bundleUpdate(changedFiles, context);
 
       } else if (context.bundleState === BuildState.RequiresBuild) {
         // we need to do a full bundle build
@@ -244,14 +256,34 @@ function buildUpdateTasks(event: string, filePath: string, context: BuildContext
       // SASS
       if (context.sassState === BuildState.RequiresUpdate) {
         // we need to do a sass update
-        return sassUpdate(event, filePath, context).then(outputCssFile => {
-          resolveValue.changedFile = outputCssFile;
+        return sassUpdate(changedFiles, context).then(outputCssFile => {
+          console.log('outputCssFile: ', outputCssFile);
+          const sassConfig = getSassConfig(context, null);
+          const changedFile: ChangedFile = {
+            event: FILE_CHANGE_EVENT,
+            ext: '.css',
+            filePath: sassConfig.outputFilename
+          };
+
+          context.fileCache.set(sassConfig.outputFilename, { path: sassConfig.outputFilename, content: outputCssFile});
+
+          resolveValue.changedFiles.push(changedFile);
         });
 
       } else if (context.sassState === BuildState.RequiresBuild) {
         // we need to do a full sass build
         return sass(context).then(outputCssFile => {
-          resolveValue.changedFile = outputCssFile;
+          console.log('outputCssFile: ', outputCssFile);
+          const sassConfig = getSassConfig(context, null);
+          const changedFile: ChangedFile = {
+            event: FILE_CHANGE_EVENT,
+            ext: '.css',
+            filePath: sassConfig.outputFilename
+          };
+
+          context.fileCache.set(sassConfig.outputFilename, { path: sassConfig.outputFilename, content: outputCssFile});
+
+          resolveValue.changedFiles.push(changedFile);
         });
       }
       // no sass build required
@@ -262,9 +294,29 @@ function buildUpdateTasks(event: string, filePath: string, context: BuildContext
     });
 }
 
+function loadFiles(changedFiles: ChangedFile[], context: BuildContext) {
+  // UPDATE IN-MEMORY FILE CACHE
+  let promises: Promise<any>[] = [];
+  for (const changedFile of changedFiles) {
+    if (changedFile.event === FILE_DELETE_EVENT) {
+      // remove from the cache on delete
+      context.fileCache.remove(changedFile.filePath);
+    } else {
+      // load the latest since the file changed
+      const promise = readFileAsync(changedFile.filePath);
+      promises.push(promise);
+      promise.then((content: string) => {
+        context.fileCache.set(changedFile.filePath, { path: changedFile.filePath, content: content});
+      });
+    }
+  }
+
+  return Promise.all(promises);
+}
+
 interface BuildTaskResolveValue {
   requiresAppReload: boolean;
-  changedFile: string;
+  changedFiles: ChangedFile[];
 }
 
 /**
@@ -272,7 +324,7 @@ interface BuildTaskResolveValue {
  * build, but we still need to make sure they've completed before we're
  * all done, it's also possible there are no parallelTasks at all
  */
-function buildUpdateParallelTasks(event: string, filePath: string, context: BuildContext) {
+function buildUpdateParallelTasks(changedFiles: ChangedFile[], context: BuildContext) {
   const parallelTasks: Promise<any>[] = [];
 
   if (context.transpileState === BuildState.RequiresUpdate) {

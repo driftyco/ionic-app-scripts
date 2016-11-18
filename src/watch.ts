@@ -1,5 +1,5 @@
 import * as buildTask from './build';
-import { BuildContext, BuildState, TaskInfo } from './util/interfaces';
+import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { canRunTranspileUpdate } from './transpile';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars, setIonicEnvironment } from './util/config';
@@ -161,11 +161,6 @@ export function prepareWatcher(context: BuildContext, watcher: Watcher) {
 
 let queuedChangedFiles: ChangedFile[] = [];
 let queuedChangeFileTimerId: any;
-export interface ChangedFile {
-  event: string;
-  filePath: string;
-  ext: string;
-}
 
 export function buildUpdate(event: string, filePath: string, context: BuildContext) {
   const changedFile: ChangedFile = {
@@ -184,14 +179,14 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
     // run this code in a few milliseconds if another hasn't come in behind it
     queuedChangeFileTimerId = setTimeout(() => {
       // figure out what actually needs to be rebuilt
-      const buildData = runBuildUpdate(context, queuedChangedFiles);
+      const changedFiles = runBuildUpdate(context, queuedChangedFiles);
 
       // clear out all the files that are queued up for the build update
       queuedChangedFiles.length = 0;
 
-      if (buildData) {
+      if (changedFiles && changedFiles.length) {
         // cool, we've got some build updating to do ;)
-        buildTask.buildUpdate(buildData.event, buildData.filePath, context);
+        buildTask.buildUpdate(changedFiles, context);
       }
     }, BUILD_UPDATE_DEBOUNCE_MS);
   }
@@ -202,15 +197,8 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
 
 export function runBuildUpdate(context: BuildContext, changedFiles: ChangedFile[]) {
   if (!changedFiles || !changedFiles.length) {
-    return null;
+    return [];
   }
-
-  // create the data which will be returned
-  const data = {
-    event: changedFiles.map(f => f.event).find(ev => ev !== 'change') || 'change',
-    filePath: changedFiles[0].filePath,
-    changedFiles: changedFiles.map(f => f.filePath)
-  };
 
   const jsFiles = changedFiles.filter(f => f.ext === '.js');
   if (jsFiles.length) {
@@ -221,24 +209,24 @@ export function runBuildUpdate(context: BuildContext, changedFiles: ChangedFile[
   }
 
   const tsFiles = changedFiles.filter(f => f.ext === '.ts');
-  if (tsFiles.length > 1) {
-    // multiple .ts file changes
-    // if there is more than one ts file changing then
-    // let's just do a full transpile build
-    context.transpileState = BuildState.RequiresBuild;
+  if (tsFiles.length) {
+    let requiresFullBuild = false;
+    for (const tsFile of tsFiles) {
+      if (!canRunTranspileUpdate(tsFile.event, tsFiles[0].filePath, context)) {
+        requiresFullBuild = true;
+        break;
+      }
+    }
 
-  } else if (tsFiles.length) {
-    // only one .ts file changed
-    if (canRunTranspileUpdate(tsFiles[0].event, tsFiles[0].filePath, context)) {
-      // .ts file has only changed, it wasn't a file add/delete
-      // we can do the quick typescript update on this changed file
-      context.transpileState = BuildState.RequiresUpdate;
-
-    } else {
+    if (requiresFullBuild) {
       // .ts file was added or deleted, we need a full rebuild
       context.transpileState = BuildState.RequiresBuild;
+    } else {
+      // .ts files have changed, so we can get away with doing an update
+      context.transpileState = BuildState.RequiresUpdate;
     }
   }
+
 
   const sassFiles = changedFiles.filter(f => f.ext === '.scss');
   if (sassFiles.length) {
@@ -280,11 +268,7 @@ export function runBuildUpdate(context: BuildContext, changedFiles: ChangedFile[
       context.bundleState = BuildState.RequiresBuild;
     }
   }
-
-  // guess which file is probably the most important here
-  data.filePath = tsFiles.concat(sassFiles, htmlFiles, jsFiles)[0].filePath;
-
-  return data;
+  return changedFiles.concat();
 }
 
 
