@@ -111,8 +111,8 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
     cachedProgram = program;
 
     const tsDiagnostics = program.getSyntacticDiagnostics()
-      .concat(program.getSemanticDiagnostics())
-      .concat(program.getOptionsDiagnostics());
+                          .concat(program.getSemanticDiagnostics())
+                          .concat(program.getOptionsDiagnostics());
 
     const diagnostics = runTypeScriptDiagnostics(context, tsDiagnostics);
 
@@ -316,9 +316,9 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
 
   } else {
     const parsedConfig = ts.parseJsonConfigFileContent(
-      tsConfigFile.config,
-      ts.sys, context.rootDir,
-      {}, tsConfigPath);
+                                tsConfigFile.config,
+                                ts.sys, context.rootDir,
+                                {}, tsConfigPath);
 
     const diagnostics = runTypeScriptDiagnostics(context, parsedConfig.errors);
 
