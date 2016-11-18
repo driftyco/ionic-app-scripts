@@ -44,3 +44,5 @@ dist
 
 .vscode
 *.sw[mnpcod]
+
+bin/ion-dev.css

@@ -3,7 +3,7 @@ import { BuildContext, BuildState, File, TaskInfo } from './util/interfaces';
 import { BuildError, IgnorableError } from './util/errors';
 import { changeExtension, readFileAsync, setContext } from './util/helpers';
 import { emit, EventType } from './util/events';
-import { extname, join } from 'path';
+import { join } from 'path';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
 import { Logger } from './logger/logger';
 import * as webpackApi from 'webpack';
@@ -47,26 +47,11 @@ export function webpack(context: BuildContext, configFile: string) {
 
 export function webpackUpdate(event: string, path: string, context: BuildContext, configFile: string) {
   const logger = new Logger('webpack update');
-  const extension = extname(path);
-
   const webpackConfig = getWebpackConfig(context, configFile);
-  return Promise.resolve().then(() => {
-    if (extension === '.ts') {
-      Logger.debug('webpackUpdate: Typescript File Changed');
-      return typescriptFileChanged(path, context.fileCache);
-    } else {
-      Logger.debug('webpackUpdate: Non-Typescript File Changed');
-      return otherFileChanged(path).then((file: File) => {
-        return [file];
-      });
-    }
-  })
-    .then((files: File[]) => {
-      Logger.debug('webpackUpdate: Starting Incremental Build');
-      const promisetoReturn = runWebpackIncrementalBuild(false, context, webpackConfig);
-      emit(EventType.WebpackFilesChanged, [path]);
-      return promisetoReturn;
-    }).then((stats: any) => {
+  Logger.debug('webpackUpdate: Starting Incremental Build');
+  const promisetoReturn = runWebpackIncrementalBuild(false, context, webpackConfig);
+  emit(EventType.WebpackFilesChanged, [path]);
+  return promisetoReturn.then((stats: any) => {
       // the webpack incremental build finished, so reset the list of pending promises
       pendingPromises = [];
       Logger.debug('webpackUpdate: Incremental Build Done, processing Data');

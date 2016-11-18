@@ -1,6 +1,6 @@
 {
   "name": "@ionic/app-scripts",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "Scripts for Ionic Projects",
   "homepage": "http://ionicframework.com/",
   "author": "Ionic Team <hi@ionic.io> (http://ionic.io)",
@@ -16,15 +16,13 @@
     "ionic-app-scripts": "./bin/ionic-app-scripts.js"
   },
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc && npm run sass",
     "build-and-test": "npm run build && npm run test",
     "changelog": "./node_modules/.bin/conventional-changelog -p angular -i CHANGELOG.md -s",
-    "changelog-and-commit": "npm run changelog && node ./scripts/commit-changelog.js",
     "clean": "rimraf ./dist",
     "github-release": "node ./scripts/create-github-release.js",
     "lint": "tslint -c ./tslint.json --project ./tsconfig.json",
     "nightly": "npm run build && node ./scripts/publish-nightly.js",
-    "release": "npm run build && npm run test && npm run changelog-and-commit && npm version patch && npm run github-release && npm publish",
     "sass": "node-sass ./src/dev-client/sass/ion-dev.scss --output ./bin/ --output-style compressed",
     "sass-watch": "npm run sass && node-sass ./src/dev-client/sass/ion-dev.scss --watch --output ./bin/ --output-style compressed",
     "test": "jasmine JASMINE_CONFIG_PATH=src/spec/jasmine.config.json || true",

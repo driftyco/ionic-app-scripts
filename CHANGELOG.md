@@ -1,3 +1,22 @@
+<a name="0.0.45"></a>
+## [0.0.45](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.44...v0.0.45) (2016-11-17)
+
+
+### Bug Fixes
+
+* **errors:** runtime error immediately, selectable stack ([70f68da](https://github.com/driftyco/ionic-app-scripts/commit/70f68da))
+* **inline-templates:** update bundle and memory file representation on template change ([11a949d](https://github.com/driftyco/ionic-app-scripts/commit/11a949d))
+* **rollup:** invalidate cache on template change ([80c0eb6](https://github.com/driftyco/ionic-app-scripts/commit/80c0eb6))
+* **webpack:** invalidate cache by use of timestamps ([4d6bbd5](https://github.com/driftyco/ionic-app-scripts/commit/4d6bbd5))
+
+
+### Features
+
+* **run-build-update:** handle linked npm modules ([#375](https://github.com/driftyco/ionic-app-scripts/issues/375)) ([0f113c8](https://github.com/driftyco/ionic-app-scripts/commit/0f113c8))
+* **serve:** add '/ionic-lab' as an alias for the lab html file path. ([c319404](https://github.com/driftyco/ionic-app-scripts/commit/c319404))
+
+
+
 <a name="0.0.44"></a>
 ## [0.0.44](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.43...v0.0.44) (2016-11-15)
 

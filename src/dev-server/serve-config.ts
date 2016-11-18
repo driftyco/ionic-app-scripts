@@ -15,4 +15,4 @@ export interface ServeConfig {
   useProxy: boolean;
 }
 export const LOGGER_DIR = '__ion-dev-server';
-export const IONIC_LAB_URL = `/${LOGGER_DIR}/ionic-lab.html`;
+export const IONIC_LAB_URL = '/ionic-lab';

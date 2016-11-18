@@ -4,7 +4,7 @@ import { injectLiveReloadScript } from './live-reload';
 import * as express from 'express';
 import * as fs from 'fs';
 import * as url from 'url';
-import { ServeConfig, LOGGER_DIR } from './serve-config';
+import { ServeConfig, LOGGER_DIR, IONIC_LAB_URL } from './serve-config';
 import { Logger } from '../logger/logger';
 import * as proxyMiddleware from 'proxy-middleware';
 import { injectDiagnosticsHtml } from '../logger/logger-diagnostics';
@@ -25,6 +25,8 @@ export function createHttpServer(config: ServeConfig): express.Application {
   app.get('/', serveIndex);
   app.use('/', express.static(config.wwwDir));
   app.use(`/${LOGGER_DIR}`, express.static(path.join(__dirname, '..', '..', 'bin'), { maxAge: 31536000 }));
+  app.get(IONIC_LAB_URL, (req, res) =>
+    res.sendFile('ionic-lab.html', {root: path.join(__dirname, '..', '..', 'bin')}));
   app.get('/cordova.js', serveCordovaJS);
 
   if (config.useProxy) {

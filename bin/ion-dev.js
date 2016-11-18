@@ -36,10 +36,17 @@ window.IonicDevServer = {
         document.documentElement.classList.add('ion-diagnostics-cordova-ios');
       }
     }
+
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      self.handleError(error);
+    };
   },
 
   handleError: function(err) {
     if (!err) return;
+
+    // Ignore HTTP errors
+    if(err.url || err.headers) return;
 
     // Socket is ready so send this error to the server for prettifying
     if (this.socketReady) {
