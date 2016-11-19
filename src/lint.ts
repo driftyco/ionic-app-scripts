@@ -21,9 +21,13 @@ export function lint(context?: BuildContext, configFile?: string) {
     return Promise.resolve();
   }
 
-  return runWorker('lint', 'lintWorker', context, configFile).catch(err => {
-    throw new BuildError(err);
-  });
+  const logger = new Logger('lint');
+
+  return runWorker('lint', 'lintWorker', context, configFile)
+    .then(() => logger.finish())
+    .catch(err => {
+      throw logger.fail(new BuildError(err));
+    });
 }
 
 
@@ -31,7 +35,7 @@ export function lintWorker(context: BuildContext, configFile: string) {
   return getLintConfig(context, configFile).then(configFile => {
     // there's a valid tslint config, let's continue
     return lintApp(context, configFile);
-  }).catch(() => {});
+  })
 }
 
 
@@ -77,8 +81,7 @@ function lintApp(context: BuildContext, configFile: string) {
   return Promise.all(promises)
     .then((f) => {
       if (f.some(x => !!x) && !context.isWatch && context.lintLevel === 'error') {
-        Logger.error('Lint failed.')
-        process.exit(1);
+        throw new Error("Lint failed");
       }
     });
 }
