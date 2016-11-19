@@ -27,5 +27,9 @@ module.exports = {
       src: 'node_modules/ionicons/dist/fonts/',
       dest: '{{WWW}}/assets/fonts/'
     },
+    {
+      src: 'node_modules/ionic-angular/fonts/',
+      dest: '{{WWW}}/assets/fonts/'
+    }
   ]
 };

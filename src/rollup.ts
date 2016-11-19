@@ -1,4 +1,4 @@
-import { BuildContext, BuildState, TaskInfo } from './util/interfaces';
+import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
 import { ionCompiler } from './plugins/ion-compiler';
@@ -25,7 +25,7 @@ export function rollup(context: BuildContext, configFile: string) {
 }
 
 
-export function rollupUpdate(event: string, filePath: string, context: BuildContext) {
+export function rollupUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   const logger = new Logger('rollup update');
 
   const configFile = getUserConfigFile(context, taskInfo, null);

@@ -1,4 +1,4 @@
-import { BuildContext } from './util/interfaces';
+import { BuildContext, ChangedFile } from './util/interfaces';
 import { BuildError, IgnorableError } from './util/errors';
 import { generateContext, BUNDLER_ROLLUP } from './util/config';
 import { rollup, rollupUpdate, getRollupConfig, getOutputDest as rollupGetOutputDest } from './rollup';
@@ -24,15 +24,15 @@ function bundleWorker(context: BuildContext, configFile: string) {
 }
 
 
-export function bundleUpdate(event: string, filePath: string, context: BuildContext) {
+export function bundleUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   if (context.bundler === BUNDLER_ROLLUP) {
-    return rollupUpdate(event, filePath, context)
+    return rollupUpdate(changedFiles, context)
       .catch(err => {
         throw new BuildError(err);
       });
   }
 
-  return webpackUpdate(event, filePath, context, null)
+  return webpackUpdate(changedFiles, context, null)
     .catch(err => {
       if (err instanceof IgnorableError) {
         throw err;

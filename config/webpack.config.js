@@ -62,14 +62,15 @@ module.exports = {
   devtool: getDevtool(),
 
   resolve: {
-    extensions: ['.js', '.ts', '.json']
+    extensions: ['.js', '.ts', '.json'],
+    modules: [path.resolve('node_modules')]
   },
 
   module: {
     loaders: [
       {
         test: /\.json$/,
-        loader: 'json'
+        loader: 'json-loader'
       }
     ].concat(getSourcemapLoader())
   },

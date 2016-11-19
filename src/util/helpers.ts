@@ -1,12 +1,10 @@
 import { basename, dirname, extname, join } from 'path';
-import { BuildContext } from './interfaces';
+import { BuildContext, File } from './interfaces';
 import { BuildError } from './errors';
-import { readFile, readJsonSync, writeFile } from 'fs-extra';
+import { readFile, readFileSync, readJsonSync, writeFile } from 'fs-extra';
 import * as osName from 'os-name';
 
-
 let _context: BuildContext;
-
 
 let cachedAppScriptsPackageJson: any;
 export function getAppScriptsPackageJson() {
@@ -17,7 +15,6 @@ export function getAppScriptsPackageJson() {
   }
   return cachedAppScriptsPackageJson;
 }
-
 
 export function getAppScriptsVersion() {
   const appScriptsPackageJson = getAppScriptsPackageJson();
@@ -109,7 +106,6 @@ export function writeFileAsync(filePath: string, content: string): Promise<any> 
   });
 }
 
-
 export function readFileAsync(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
     readFile(filePath, 'utf-8', (err, buffer) => {
@@ -120,6 +116,15 @@ export function readFileAsync(filePath: string): Promise<string> {
       }
     });
   });
+}
+
+export function createFileObject(filePath: string): File {
+  const content = readFileSync(filePath).toString();
+  return {
+    content: content,
+    path: filePath,
+    timestamp: Date.now()
+  };
 }
 
 export function setContext(context: BuildContext) {
