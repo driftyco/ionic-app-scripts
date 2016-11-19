@@ -35,7 +35,7 @@ export function lintWorker(context: BuildContext, configFile: string) {
   return getLintConfig(context, configFile).then(configFile => {
     // there's a valid tslint config, let's continue
     return lintApp(context, configFile);
-  })
+  });
 }
 
 
