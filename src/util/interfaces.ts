@@ -21,6 +21,9 @@ export interface BuildContext {
   transpileState?: BuildState;
   templateState?: BuildState;
   bundleState?: BuildState;
+
+  noLint?: boolean;
+  lintLevel?: 'warn' | 'error';
 }
 
 

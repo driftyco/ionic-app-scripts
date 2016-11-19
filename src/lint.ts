@@ -14,12 +14,16 @@ import * as ts from 'typescript';
 
 
 export function lint(context?: BuildContext, configFile?: string) {
-  context = generateContext(context);
+  context = generateContext(context)
 
-  return runWorker('lint', 'lintWorker', context, configFile)
-    .catch(err => {
-      throw new BuildError(err);
-    });
+  if (context.noLint) {
+    Logger.debug('Linter is disabled.');
+    return Promise.resolve();
+  }
+
+  return runWorker('lint', 'lintWorker', context, configFile).catch(err => {
+    throw new BuildError(err);
+  });
 }
 
 
@@ -27,11 +31,16 @@ export function lintWorker(context: BuildContext, configFile: string) {
   return getLintConfig(context, configFile).then(configFile => {
     // there's a valid tslint config, let's continue
     return lintApp(context, configFile);
-  }).catch(() => {});
+  }).catch(() => { });
 }
 
 
 export function lintUpdate(event: string, filePath: string, context: BuildContext) {
+  if (context.noLint) {
+    Logger.debug('Linter is disabled.');
+    return Promise.resolve();
+  }
+
   return new Promise(resolve => {
     // throw this in a promise for async fun, but don't let it hang anything up
     const workerConfig: LintWorkerConfig = {
@@ -60,15 +69,23 @@ function lintApp(context: BuildContext, configFile: string) {
   const files = getFileNames(program);
 
   const promises = files.map(file => {
-    return lintFile(context, program, file);
+    return lintFile(context, program, file)
+      .then(() => true)
+      .catch(() => false);
   });
 
-  return Promise.all(promises);
+  return Promise.all(promises)
+    .then((f) => {
+      if (f.some(x => !!x) && !context.isWatch && context.lintLevel === 'error') {
+        Logger.error('Lint failed.')
+        process.exit(1);
+      }
+    });
 }
 
 
 function lintFile(context: BuildContext, program: ts.Program, filePath: string) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
 
     if (isMpegFile(filePath)) {
       // silly .ts files actually being video files
@@ -95,9 +112,11 @@ function lintFile(context: BuildContext, program: ts.Program, filePath: string) 
         }, program);
 
         const lintResult = linter.lint();
-        if (lintResult && lintResult.failures) {
+        if (lintResult && lintResult.failures.length) {
           const diagnostics = runTsLintDiagnostics(context, <any>lintResult.failures);
           printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
+
+          reject();
         }
 
       } catch (e) {
