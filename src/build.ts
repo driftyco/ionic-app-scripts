@@ -11,7 +11,7 @@ import { lint, lintUpdate } from './lint';
 import { Logger } from './logger/logger';
 import { minifyCss, minifyJs } from './minify';
 import { ngc } from './ngc';
-import { getSassConfig, sass, sassUpdate } from './sass';
+import { sass, sassUpdate } from './sass';
 import { templateUpdate } from './template';
 import { transpile, transpileUpdate, transpileDiagnosticsOnly } from './transpile';
 
@@ -201,7 +201,7 @@ export function buildUpdate(changedFiles: ChangedFile[], context: BuildContext) 
 function buildUpdateTasks(changedFiles: ChangedFile[], context: BuildContext) {
   const resolveValue: BuildTaskResolveValue = {
     requiresAppReload: false,
-    changedFiles: changedFiles
+    changedFiles: []
   };
 
   return Promise.resolve()
@@ -257,15 +257,13 @@ function buildUpdateTasks(changedFiles: ChangedFile[], context: BuildContext) {
       if (context.sassState === BuildState.RequiresUpdate) {
         // we need to do a sass update
         return sassUpdate(changedFiles, context).then(outputCssFile => {
-          console.log('outputCssFile: ', outputCssFile);
-          const sassConfig = getSassConfig(context, null);
           const changedFile: ChangedFile = {
             event: FILE_CHANGE_EVENT,
             ext: '.css',
-            filePath: sassConfig.outputFilename
+            filePath: outputCssFile
           };
 
-          context.fileCache.set(sassConfig.outputFilename, { path: sassConfig.outputFilename, content: outputCssFile});
+          context.fileCache.set(outputCssFile, { path: outputCssFile, content: outputCssFile});
 
           resolveValue.changedFiles.push(changedFile);
         });
@@ -273,15 +271,13 @@ function buildUpdateTasks(changedFiles: ChangedFile[], context: BuildContext) {
       } else if (context.sassState === BuildState.RequiresBuild) {
         // we need to do a full sass build
         return sass(context).then(outputCssFile => {
-          console.log('outputCssFile: ', outputCssFile);
-          const sassConfig = getSassConfig(context, null);
           const changedFile: ChangedFile = {
             event: FILE_CHANGE_EVENT,
             ext: '.css',
-            filePath: sassConfig.outputFilename
+            filePath: outputCssFile
           };
 
-          context.fileCache.set(sassConfig.outputFilename, { path: sassConfig.outputFilename, content: outputCssFile});
+          context.fileCache.set(outputCssFile, { path: outputCssFile, content: outputCssFile});
 
           resolveValue.changedFiles.push(changedFile);
         });
