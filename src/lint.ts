@@ -17,7 +17,7 @@ export function lint(context?: BuildContext, configFile?: string) {
   context = generateContext(context)
 
   if (context.noLint) {
-    Logger.debug('Linter is disabled.');
+    Logger.debug('Lint is disabled.');
     return Promise.resolve();
   }
 
@@ -38,18 +38,13 @@ export function lintWorker(context: BuildContext, configFile: string) {
   });
 }
 
-
-<<<<<<< HEAD
-export function lintUpdate(event: string, filePath: string, context: BuildContext) {
+export function lintUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   if (context.noLint) {
-    Logger.debug('Linter is disabled.');
+    Logger.debug('Lint is disabled.');
     return Promise.resolve();
   }
 
-=======
-export function lintUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   const changedTypescriptFiles = changedFiles.filter(changedFile => changedFile.ext === '.ts');
->>>>>>> a674dafa8206e9a2e979740d6b5acb5bc283f2bb
   return new Promise(resolve => {
     // throw this in a promise for async fun, but don't let it hang anything up
     const workerConfig: LintWorkerConfig = {
