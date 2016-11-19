@@ -1,6 +1,6 @@
-import { BuildContext, BuildState } from '../util/interfaces';
+import { BuildContext, BuildState, ChangedFile } from '../util/interfaces';
 import { FileCache } from '../util/file-cache';
-import { runBuildUpdate, ChangedFile } from '../watch';
+import { runBuildUpdate } from '../watch';
 import { Watcher, prepareWatcher } from '../watch';
 import * as path from 'path';
 
@@ -8,48 +8,6 @@ import * as path from 'path';
 describe('watch', () => {
 
   describe('runBuildUpdate', () => {
-
-    it('should get the html file if thats the only one', () => {
-      const files: ChangedFile[] = [{
-        event: 'change',
-        filePath: 'file1.html',
-        ext: '.html'
-      }];
-      const data = runBuildUpdate(context, files);
-      expect(data.filePath).toEqual('file1.html');
-    });
-
-    it('should get the scss file for the filePath over html', () => {
-      const files: ChangedFile[] = [{
-        event: 'change',
-        filePath: 'file1.html',
-        ext: '.html'
-      }, {
-        event: 'change',
-        filePath: 'file1.scss',
-        ext: '.scss'
-      }];
-      const data = runBuildUpdate(context, files);
-      expect(data.filePath).toEqual('file1.scss');
-    });
-
-    it('should get the ts file for the filePath over the others', () => {
-      const files: ChangedFile[] = [{
-        event: 'change',
-        filePath: 'file1.html',
-        ext: '.html'
-      }, {
-        event: 'change',
-        filePath: 'file1.scss',
-        ext: '.scss'
-      }, {
-        event: 'change',
-        filePath: 'file1.ts',
-        ext: '.ts'
-      }];
-      const data = runBuildUpdate(context, files);
-      expect(data.filePath).toEqual('file1.ts');
-    });
 
     it('should require transpile full build for html file add', () => {
       const files: ChangedFile[] = [{
@@ -206,40 +164,6 @@ describe('watch', () => {
       }];
       runBuildUpdate(context, files);
       expect(context.bundleState).toEqual(undefined);
-    });
-
-    it('should set add event when add and changed files', () => {
-      const files: ChangedFile[] = [{
-        event: 'change',
-        filePath: 'file1.ts',
-        ext: '.ts'
-      }, {
-        event: 'add',
-        filePath: 'file2.ts',
-        ext: '.ts'
-      }];
-      const data = runBuildUpdate(context, files);
-      expect(data.event).toEqual('add');
-    });
-
-    it('should set unlink event when only unlinked files', () => {
-      const files: ChangedFile[] = [{
-        event: 'unlink',
-        filePath: 'file.ts',
-        ext: '.ts'
-      }];
-      const data = runBuildUpdate(context, files);
-      expect(data.event).toEqual('unlink');
-    });
-
-    it('should set change event when only changed files', () => {
-      const files: ChangedFile[] = [{
-        event: 'change',
-        filePath: 'file.ts',
-        ext: '.ts'
-      }];
-      const data = runBuildUpdate(context, files);
-      expect(data.event).toEqual('change');
     });
 
     it('should do nothing if there are no changed files', () => {

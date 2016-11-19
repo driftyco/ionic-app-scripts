@@ -102,3 +102,9 @@ export interface BuildUpdateMessage {
   buildId: number;
   reloadApp: boolean;
 }
+
+export interface ChangedFile {
+  event: string;
+  filePath: string;
+  ext: string;
+}

@@ -1,5 +1,5 @@
 import { basename, dirname, join, sep } from 'path';
-import { BuildContext, BuildState, TaskInfo } from './util/interfaces';
+import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { bundle } from './bundle';
 import { ensureDirSync, readdirSync, writeFile } from 'fs-extra';
@@ -31,7 +31,7 @@ export function sass(context?: BuildContext, configFile?: string) {
 }
 
 
-export function sassUpdate(event: string, filePath: string, context: BuildContext) {
+export function sassUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   const configFile = getUserConfigFile(context, taskInfo, null);
 
   const logger = new Logger('sass update');
@@ -60,7 +60,7 @@ export function sassWorker(context: BuildContext, configFile: string) {
   return Promise.all(bundlePromise).then(() => {
     clearDiagnostics(context, DiagnosticsType.Sass);
 
-    const sassConfig: SassConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+    const sassConfig: SassConfig = getSassConfig(context, configFile);
 
     // where the final css output file is saved
     if (!sassConfig.outFile) {
@@ -88,6 +88,10 @@ export function sassWorker(context: BuildContext, configFile: string) {
   });
 }
 
+export function getSassConfig(context: BuildContext, configFile: string): SassConfig {
+  configFile = getUserConfigFile(context, taskInfo, configFile);
+  return fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+}
 
 function generateSassData(context: BuildContext, sassConfig: SassConfig) {
   /**

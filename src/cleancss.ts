@@ -33,7 +33,7 @@ export function cleancssWorker(context: BuildContext, configFile: string): Promi
     Logger.debug(`cleancss read: ${srcFile}`);
 
     readFileAsync(srcFile).then(fileContent => {
-      const minifier = new cleanCss();
+      const minifier = new cleanCss(cleanCssConfig.options);
       minifier.minify(fileContent, (err, minified) => {
         if (err) {
           reject(new BuildError(err));
@@ -72,5 +72,6 @@ export interface CleanCssConfig {
   sourceFileName: string;
   // sourceSourceMapName: string;
   destFileName: string;
-  // destSourceMapName: string;
+  // options: cleanCss Options;
+  options?: cleanCss.Options;
 }
