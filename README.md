@@ -33,9 +33,9 @@ Just the bullet list above is a little overwhelming, and each task requires quit
 Note that the [Ionic Framework's](https://github.com/driftyco/ionic) source is made up of modules and can be packaged by any bundler or build process. However, this project's goal is provide simple scripts to make building Ionic apps easier, while also allowing developers to further configure their build process.
 
 
-### NPM Scripts
+### npm Scripts
 
-Instead of depending on external task runners, Ionic App Scripts now prefers being executed from [NPM scripts](https://docs.npmjs.com/misc/scripts). Ionic's NPM scripts come preconfigured within the project's `package.json` file. For example, this is the default setup for npm scripts within each starters:
+Instead of depending on external task runners, Ionic App Scripts now prefers being executed from [npm scripts](https://docs.npmjs.com/misc/scripts). Ionic's npm scripts come preconfigured in the project's `package.json` file. For example, this is the default setup for npm scripts in each starter:
 
 ```
   "scripts": {
@@ -53,7 +53,7 @@ npm run build
 
 ## Custom Configuration
 
-In many cases, the defaults which Ionic provides covers most of the scenarios required by developers. However, Ionic App Scripts does provide multiple ways to configure and override the defaults for each of the various tasks. Note that Ionic will always apply its defaults for any property that was not provided by custom configuration.
+In many cases, the defaults which Ionic provides cover most of the scenarios required by developers; however, Ionic App Scripts does provide multiple ways to configure and override the defaults for each of the various tasks. Note that Ionic will always apply its defaults for any property that was not provided by custom configuration.
 
 [Default Config Files](https://github.com/driftyco/ionic-app-scripts/tree/master/config)
 
@@ -71,7 +71,7 @@ Ionic projects use the `package.json` file for configuration. There's a handy [c
 
 ### Command-line Flags
 
-Remember how we're actually running `ionic-app-scripts` from the `scripts` property of project's `package.json` file? Well we can also add command-line flags to each script, or make new scripts with these custom flags. For example:
+Remember how we're actually running `ionic-app-scripts` from the `scripts` property of a project's `package.json` file? Well we can also add command-line flags to each script, or make new scripts with these custom flags. For example:
 
 ```
   "scripts": {
@@ -138,7 +138,7 @@ Please take a look at the bottom of the [default Rollup config file](https://git
 
 ## All Available Tasks
 
-These tasks are available within `ionic-app-scripts` and can be added to NPM scripts or any Node command.
+These tasks are available within `ionic-app-scripts` and can be added to npm scripts or any Node command.
 
 | Task       | Description                                                                                         |
 |------------|-----------------------------------------------------------------------------------------------------|
