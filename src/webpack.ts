@@ -207,7 +207,7 @@ const taskInfo: TaskInfo = {
 export interface WebpackConfig {
   // https://www.npmjs.com/package/webpack
   devtool: string;
-  entry: string;
+  entry: string | { [key: string]: any };
   output: WebpackOutputObject;
   resolve: WebpackResolveObject;
 }

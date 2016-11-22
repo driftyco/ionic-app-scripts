@@ -1,5 +1,5 @@
 import { BuildContext } from '../util/interfaces';
-import { bundlerStrategy, generateContext, getConfigValue, getUserConfigFile, getIsProd } from '../util/config';
+import { bundlerStrategy, generateContext, getConfigValue, getUserConfigFile, getIsProd, replacePathVars } from '../util/config';
 import { addArgv, setAppPackageJsonData, setProcessEnvVar, setProcessArgs, setProcessEnv, setCwd } from '../util/config';
 import { resolve } from 'path';
 
@@ -91,6 +91,47 @@ describe('config', () => {
     it('should default to isProd true', () => {
       context = {};
       expect(getIsProd(context)).toEqual(true);
+    });
+
+  });
+
+  describe('replacePathVars', () => {
+    it('should interpolated value when string', () => {
+      const context = {
+        srcDir: 'src',
+      };
+
+      const rtn = replacePathVars(context, '{{SRC}}');
+      expect(rtn).toEqual('src');
+    });
+
+    it('should interpolated values in string array', () => {
+      const context = {
+        wwwDir: 'www',
+        srcDir: 'src',
+      };
+
+      const filePaths = ['{{SRC}}', '{{WWW}}'];
+      const rtn = replacePathVars(context, filePaths);
+      expect(rtn).toEqual(['src', 'www']);
+    });
+
+    it('should interpolated values in key value pair', () => {
+      const context = {
+        wwwDir: 'www',
+        srcDir: 'src',
+      };
+
+      const filePaths = {
+        src: '{{SRC}}',
+        www: '{{WWW}}'
+      };
+
+      const rtn = replacePathVars(context, filePaths);
+      expect(rtn).toEqual({
+        src: 'src',
+        www: 'www'
+      });
     });
 
   });
