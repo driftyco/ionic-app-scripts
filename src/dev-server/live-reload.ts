@@ -53,6 +53,9 @@ export function injectLiveReloadScript(content: any, host: string, port: Number)
 }
 
 function getLiveReloadScript(host: string, port: Number) {
+  if (host === '0.0.0.0') {
+    host = 'localhost';
+  }
   var src = `//${host}:${port}/livereload.js?snipver=1`;
   return `  <!-- Ionic Dev Server: Injected LiveReload Script -->\n  <script src="${src}" async="" defer=""></script>`;
 }
