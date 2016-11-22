@@ -90,5 +90,6 @@
     "commitizen": {
       "path": "node_modules/ionic-cz-conventional-changelog"
     }
-  }
+  },
+  "typings": "dist/index.d.ts"
 }
