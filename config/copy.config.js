@@ -20,6 +20,10 @@ module.exports = {
       dest: '{{WWW}}/service-worker.js'
     },
     {
+      src: 'src/service-worker.js',
+      dest: 'www/service-worker.js'
+    },
+    {
       src: 'node_modules/ionic-angular/polyfills/polyfills.js',
       dest: '{{BUILD}}/polyfills.js'
     },
