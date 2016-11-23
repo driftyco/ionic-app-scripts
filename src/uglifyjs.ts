@@ -3,7 +3,6 @@ import { BuildError } from './util/errors';
 import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
 import { join } from 'path';
 import { Logger } from './logger/logger';
-import { runWorker } from './worker-client';
 import { writeFileAsync } from './util/helpers';
 import * as uglify from 'uglify-js';
 
@@ -14,7 +13,7 @@ export function uglifyjs(context?: BuildContext, configFile?: string) {
 
   const logger = new Logger('uglifyjs');
 
-  return runWorker('uglifyjs', 'uglifyjsWorker', context, configFile)
+  return uglifyjsWorker(context, configFile)
     .then(() => {
       logger.finish();
     })
