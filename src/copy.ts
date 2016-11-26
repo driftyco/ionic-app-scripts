@@ -37,9 +37,11 @@ export function copyUpdate(event: string, filePath: string, context: BuildContex
         return copySrcToDest(context, copyOptions.src, copyOptions.dest, copyOptions.filter, true);
       });
       const copySrcToDestResults: CopySrcToDestResult[] = [];
-      const allPromisesCompound = promises.reduce((compundPromise, promise) => {
-        return compundPromise.then((copySrcToDestResult: CopySrcToDestResult) => {
-          copySrcToDestResults.push(copySrcToDestResult);
+      const allPromisesCompound = promises.reduce((compoundPromise, promise) => {
+        return compoundPromise.then((copySrcToDestResult: CopySrcToDestResult) => {
+          if (copySrcToDestResult) {
+            copySrcToDestResults.push(copySrcToDestResult);
+          }
           return promise;
         });
       }, Promise.resolve());
@@ -80,8 +82,16 @@ export function copyWorker(context: BuildContext, configFile: string) {
   const promises = copyConfig.include.map(copyOptions => {
     return copySrcToDest(context, copyOptions.src, copyOptions.dest, copyOptions.filter, true);
   });
-
-  return Promise.all(promises).then((copySrcToDestResults: CopySrcToDestResult[]) => {
+  const copySrcToDestResults: CopySrcToDestResult[] = [];
+  const allPromisesCompound = promises.reduce((compoundPromise, promise) => {
+    return compoundPromise.then((copySrcToDestResult: CopySrcToDestResult) => {
+      if (copySrcToDestResult) {
+        copySrcToDestResults.push(copySrcToDestResult);
+      }
+      return promise;
+    });
+  }, Promise.resolve());
+  return allPromisesCompound.then(() => {
     printCopyErrorMessages(copySrcToDestResults);
   });
 }
@@ -150,13 +160,23 @@ function copySrcToDest(context: BuildContext, src: string, dest: string, filter:
     };
 
     fs.copy(src, dest, opts, (err) => {
+      // Hack around err is an array of errors issue
+      if (Array.isArray(err)) {
+        err = err[0];
+      }
       if (err) {
-        if (err.message && err.message.indexOf('ENOENT') > -1) {
-          resolve({ success: false, src: src, dest: dest, errorMessage: `Error copying "${src}" to "${dest}": File not found`});
+        if (err.code === 'EEXIST') {
+          // Ignore already created
+        } else if (err.code === 'ENOENT') {
+          // Ignore already deleted
+          if (err.syscall !== 'unlink') {
+            resolve({ success: false, src: src, dest: dest, errorMessage: `Error copying "${src}" to "${dest}": File not found`});
+            return;
+          }
         } else {
           resolve({ success: false, src: src, dest: dest, errorMessage: `Error copying "${src}" to "${dest}"`});
+          return;
         }
-        return;
       }
       resolve({ success: true, src: src, dest: dest});
     });
