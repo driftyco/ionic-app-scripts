@@ -34,10 +34,16 @@ export function copyUpdate(event: string, filePath: string, context: BuildContex
     const fileCopyOptions = findFileCopyOptions(context, copyConfig, filePath);
     if (fileCopyOptions.length) {
       const promises = fileCopyOptions.map(copyOptions => {
-
         return copySrcToDest(context, copyOptions.src, copyOptions.dest, copyOptions.filter, true);
       });
-      return Promise.all(promises).then((copySrcToDestResults: CopySrcToDestResult[]) => {
+      const copySrcToDestResults: CopySrcToDestResult[] = [];
+      const allPromisesCompund = promises.reduce((compundPromise, promise) => {
+        return compundPromise.then((copySrcToDestResult: CopySrcToDestResult) => {
+          copySrcToDestResults.push(copySrcToDestResult);
+          return promise;
+        });
+      }, Promise.resolve());
+      return allPromisesCompund.then(() => {
         printCopyErrorMessages(copySrcToDestResults);
         const destFiles = copySrcToDestResults.map(copySrcToDestResult => copySrcToDestResult.dest);
         emit(EventType.FileChange, destFiles);
