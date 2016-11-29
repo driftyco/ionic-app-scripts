@@ -99,6 +99,10 @@ function servePlatformResource(req: express.Request, res: express.Response, next
   const userAgent = req.header('user-agent');
   let resourcePath = config.wwwDir;
 
+  if (!config.isCordovaServe) {
+    return next();
+  }
+
   if (isUserAgentIOS(userAgent)) {
     resourcePath = path.join(config.rootDir, IOS_PLATFORM_PATH);
   } else if (isUserAgentAndroid(userAgent)) {

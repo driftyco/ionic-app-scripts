@@ -23,6 +23,7 @@ export function serve(context?: BuildContext) {
     rootDir: context.rootDir,
     wwwDir: context.wwwDir,
     buildDir: context.buildDir,
+    isCordovaServe: isCordovaServe(context),
     launchBrowser: launchBrowser(context),
     launchLab: launchLab(context),
     browserToLaunch: browserToLaunch(context),
@@ -97,6 +98,10 @@ export function getNotificationPort(context: BuildContext) {
 
 function useServerLogs(context: BuildContext) {
   return hasConfigValue(context, '--serverlogs', '-s', 'ionic_serverlogs', false);
+}
+
+function isCordovaServe(context: BuildContext) {
+  return hasConfigValue(context, '--iscordovaserve', '-z', 'ionic_cordova_serve', false);
 }
 
 function launchBrowser(context: BuildContext) {

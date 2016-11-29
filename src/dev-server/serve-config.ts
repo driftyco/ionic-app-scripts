@@ -6,6 +6,7 @@ export interface ServeConfig {
   rootDir: string;
   wwwDir: string;
   buildDir: string;
+  isCordovaServe: boolean;
   launchBrowser: boolean;
   launchLab: boolean;
   browserToLaunch: string;
