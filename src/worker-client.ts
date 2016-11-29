@@ -87,9 +87,10 @@ export function createWorker(taskModule: string): any {
 
   try {
     const workerModule = join(__dirname, 'worker-process.js');
-    const worker = fork(workerModule, [], {
+    const worker = fork(workerModule, process.argv, {
       env: {
-        FORCE_COLOR: true
+        FORCE_COLOR: true,
+        npm_config_argv: process.env.npm_config_argv
       }
     });
 
