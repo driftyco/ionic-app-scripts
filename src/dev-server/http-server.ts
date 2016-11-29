@@ -4,7 +4,13 @@ import { injectLiveReloadScript } from './live-reload';
 import * as express from 'express';
 import * as fs from 'fs';
 import * as url from 'url';
-import { ServeConfig, LOGGER_DIR, IONIC_LAB_URL } from './serve-config';
+import {
+  ServeConfig,
+  LOGGER_DIR,
+  IONIC_LAB_URL,
+  IOS_PLATFORM_PATH,
+  ANDROID_PLATFORM_PATH
+} from './serve-config';
 import { Logger } from '../logger/logger';
 import * as proxyMiddleware from 'proxy-middleware';
 import { injectDiagnosticsHtml } from '../logger/logger-diagnostics';
@@ -27,7 +33,9 @@ export function createHttpServer(config: ServeConfig): express.Application {
   app.use(`/${LOGGER_DIR}`, express.static(path.join(__dirname, '..', '..', 'bin'), { maxAge: 31536000 }));
   app.get(IONIC_LAB_URL, (req, res) =>
     res.sendFile('ionic-lab.html', {root: path.join(__dirname, '..', '..', 'bin')}));
-  app.get('/cordova.js', serveCordovaJS);
+  app.get('/cordova.js', servePlatformResource, serveMockCordovaJS);
+  app.get('/cordova_plugins.js', servePlatformResource);
+  app.get('/plugins/*', servePlatformResource);
 
   if (config.useProxy) {
     setupProxies(app);
@@ -40,7 +48,7 @@ function setupProxies(app: express.Application) {
 
   getProjectJson().then(function(projectConfig: IonicProject) {
     for (const proxy of projectConfig.proxies || []) {
-      var opts: any = url.parse(proxy.proxyUrl);
+      let opts: any = url.parse(proxy.proxyUrl);
       if (proxy.proxyNoAgent) {
         opts.agent = false;
       }
@@ -78,7 +86,41 @@ function serveIndex(req: express.Request, res: express.Response)  {
 /**
  * http responder for cordova.js file
  */
-function serveCordovaJS(req: express.Request, res: express.Response) {
+function serveMockCordovaJS(req: express.Request, res: express.Response) {
   res.set('Content-Type', 'application/javascript');
   res.send('// mock cordova file during development');
+}
+
+/**
+ * Middleware to serve platform resources
+ */
+function servePlatformResource(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const config: ServeConfig = req.app.get('serveConfig');
+  const userAgent = req.header('user-agent');
+  let resourcePath = config.wwwDir;
+
+  if (isUserAgentIOS(userAgent)) {
+    resourcePath = path.join(config.rootDir, IOS_PLATFORM_PATH);
+  } else if (isUserAgentAndroid(userAgent)) {
+    resourcePath = path.join(config.rootDir, ANDROID_PLATFORM_PATH);
+  }
+
+  fs.stat(path.join(resourcePath, req.url), (err, stats) => {
+    if (err) {
+      return next();
+    }
+    res.sendFile(req.url, { root: resourcePath });
+  });
+}
+
+
+
+function isUserAgentIOS(ua: string) {
+  ua = ua.toLowerCase();
+  return (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1 || ua.indexOf('ipod') > -1);
+}
+
+function isUserAgentAndroid(ua: string) {
+  ua = ua.toLowerCase();
+  return ua.indexOf('android') > -1;
 }
