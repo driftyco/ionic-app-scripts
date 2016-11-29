@@ -38,19 +38,24 @@ export function createHttpServer(config: ServeConfig): express.Application {
 
 function setupProxies(app: express.Application) {
 
-  getProjectJson().then(function(projectConfig: IonicProject) {
-    for (const proxy of projectConfig.proxies || []) {
-      var opts: any = url.parse(proxy.proxyUrl);
-      if (proxy.proxyNoAgent) {
-        opts.agent = false;
+  getProjectJson()
+    .then(
+      (projectConfig: IonicProject)=> {
+        for (const proxy of projectConfig.proxies || []) {
+        var opts: any = url.parse(proxy.proxyUrl);
+        if (proxy.proxyNoAgent) {
+          opts.agent = false;
+        }
+
+        opts.rejectUnauthorized = !(proxy.rejectUnauthorized === false);
+
+        app.use(proxy.path, proxyMiddleware(opts));
+        Logger.info('Proxy added:' + proxy.path + ' => ' + url.format(opts));
       }
-
-      opts.rejectUnauthorized = !(proxy.rejectUnauthorized === false);
-
-      app.use(proxy.path, proxyMiddleware(opts));
-      Logger.info('Proxy added:' + proxy.path + ' => ' + url.format(opts));
+    }, (error)=>{
+        Logger.error("failed to read proxies from Ionic config file:", error);
     }
-  });
+  );
 }
 
 /**
