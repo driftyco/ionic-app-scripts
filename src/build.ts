@@ -75,14 +75,15 @@ function buildProd(context: BuildContext) {
       ]);
     })
     .then(() => {
-      // kick off the tslint after everything else
-      // nothing needs to wait on its completion
-      lint(context);
-
       // ensure the async tasks have fully completed before resolving
       return Promise.all([
         copyPromise
       ]);
+    })
+    .then(() => {
+      // kick off the tslint after everything else
+      // nothing needs to wait on its completion
+      return lint(context);
     })
     .catch(err => {
       throw new BuildError(err);
@@ -114,8 +115,7 @@ function buildDev(context: BuildContext) {
     .then(() => {
       // kick off the tslint after everything else
       // nothing needs to wait on its completion
-      lint(context);
-      return Promise.resolve();
+      return lint(context);
     })
     .catch(err => {
       throw new BuildError(err);

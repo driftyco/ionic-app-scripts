@@ -114,6 +114,7 @@ npm run build --rollup ./config/rollup.config.js
 | src directory   | `ionic_src_dir`     | `--srcDir`    | `src`           | The directory holding the Ionic src code |
 | www directory   | `ionic_www_dir`     | `--wwwDir`    | `www`           | The deployable directory containing everything needed to run the app |
 | build directory | `ionic_build_dir`   | `--buildDir`  | `build`         | The build process uses this directory to store generated files, etc |
+| lint level      | `ionic_lint_Level`  | `--lintLevel` | `warn`          | Lint message type for `prod` build either `error` or `warn`. When `error` process will exit with exitCode 1 when lint issue is found. |
 
 
 ### Ionic Environment Variables
@@ -142,7 +143,7 @@ These tasks are available within `ionic-app-scripts` and can be added to npm scr
 
 | Task       | Description                                                                                         |
 |------------|-----------------------------------------------------------------------------------------------------|
-| `build`    | Full production build. Use `--dev` flag for dev build.                                              |
+| `build`    | Full production build. Use `--dev` flag for dev build. Use `--noLint` to disable lint               |
 | `bundle`   | Bundle JS modules.                                                                                  |
 | `clean`    | Empty the `www` directory.                                                                          |
 | `cleancss` | Compress the output CSS with [CleanCss](https://github.com/jakubpawlowicz/clean-css)                |
@@ -152,7 +153,7 @@ These tasks are available within `ionic-app-scripts` and can be added to npm scr
 | `ngc`      | Runs just the `ngc` portion of the production build.                                                |
 | `sass`     | Sass compilation of used modules. Bundling must have as least ran once before Sass compilation.     |
 | `transpile`| Runs just the `tsc` portion of the dev build.                                                       |
-| `watch`    | Runs watch for dev builds.                                                                          |
+| `watch`    | Runs watch for dev builds. Use `--noLint` to disable lint.                                          |
 
 Example NPM Script:
 

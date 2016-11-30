@@ -15,7 +15,7 @@ function loadDiagnostic(context: BuildContext, f: RuleFailure) {
   const end: RuleFailurePosition = f.endPosition.toJson();
 
   const d: Diagnostic = {
-    level: 'warn',
+    level: context.isWatch ? 'warn' : context.lintLevel,
     type: 'tslint',
     language: 'typescript',
     absFileName: f.fileName,

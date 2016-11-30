@@ -14,11 +14,19 @@ import * as ts from 'typescript';
 
 
 export function lint(context?: BuildContext, configFile?: string) {
-  context = generateContext(context);
+  context = generateContext(context)
+
+  if (context.noLint) {
+    Logger.debug('Lint is disabled.');
+    return Promise.resolve();
+  }
+
+  const logger = new Logger('lint');
 
   return runWorker('lint', 'lintWorker', context, configFile)
+    .then(() => logger.finish())
     .catch(err => {
-      throw new BuildError(err);
+      throw logger.fail(new BuildError(err));
     });
 }
 
@@ -27,11 +35,15 @@ export function lintWorker(context: BuildContext, configFile: string) {
   return getLintConfig(context, configFile).then(configFile => {
     // there's a valid tslint config, let's continue
     return lintApp(context, configFile);
-  }).catch(() => {});
+  });
 }
 
-
 export function lintUpdate(changedFiles: ChangedFile[], context: BuildContext) {
+  if (context.noLint) {
+    Logger.debug('Lint is disabled.');
+    return Promise.resolve();
+  }
+
   const changedTypescriptFiles = changedFiles.filter(changedFile => changedFile.ext === '.ts');
   return new Promise(resolve => {
     // throw this in a promise for async fun, but don't let it hang anything up
@@ -61,10 +73,17 @@ function lintApp(context: BuildContext, configFile: string) {
   const files = getFileNames(program);
 
   const promises = files.map(file => {
-    return lintFile(context, program, file);
+    return lintFile(context, program, file)
+      .then(() => true)
+      .catch(() => false);
   });
 
-  return Promise.all(promises);
+  return Promise.all(promises)
+    .then((f) => {
+      if (f.some(x => !!x) && !context.isWatch && context.lintLevel === 'error') {
+        throw new Error("Lint failed");
+      }
+    });
 }
 
 function lintFiles(context: BuildContext, program: ts.Program, filePaths: string[]) {
@@ -76,7 +95,7 @@ function lintFiles(context: BuildContext, program: ts.Program, filePaths: string
 }
 
 function lintFile(context: BuildContext, program: ts.Program, filePath: string) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
 
     if (isMpegFile(filePath)) {
       // silly .ts files actually being video files
@@ -103,9 +122,11 @@ function lintFile(context: BuildContext, program: ts.Program, filePath: string) 
         }, program);
 
         const lintResult = linter.lint();
-        if (lintResult && lintResult.failures) {
+        if (lintResult && lintResult.failures.length) {
           const diagnostics = runTsLintDiagnostics(context, <any>lintResult.failures);
           printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
+
+          reject();
         }
 
       } catch (e) {

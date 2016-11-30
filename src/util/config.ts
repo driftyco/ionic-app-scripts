@@ -47,6 +47,9 @@ export function generateContext(context?: BuildContext): BuildContext {
   const sourceMapValue = getConfigValue(context, '--sourceMap', null, ENV_VAR_SOURCE_MAP, ENV_VAR_SOURCE_MAP.toLowerCase(), 'eval');
   setProcessEnvVar(ENV_VAR_SOURCE_MAP, sourceMapValue);
 
+  context.lintLevel = getConfigValue(context, '--lintLevel', null, ENV_VAR_LINT_LEVEL, ENV_VAR_LINT_LEVEL.toLowerCase(), 'warn');
+  setProcessEnvVar(ENV_VAR_LINT_LEVEL, context.lintLevel);
+
   if (!isValidBundler(context.bundler)) {
     context.bundler = bundlerStrategy(context);
   }
@@ -56,6 +59,10 @@ export function generateContext(context?: BuildContext): BuildContext {
 
   if (typeof context.isWatch !== 'boolean') {
     context.isWatch = hasArg('--watch');
+  }
+  
+  if (typeof context.noLint !== 'boolean') {
+    context.noLint = hasArg('--noLint');
   }
 
   context.inlineTemplates = true;
@@ -401,6 +408,7 @@ const ENV_VAR_WWW_DIR = 'IONIC_WWW_DIR';
 const ENV_VAR_BUILD_DIR = 'IONIC_BUILD_DIR';
 const ENV_VAR_APP_SCRIPTS_DIR = 'IONIC_APP_SCRIPTS_DIR';
 const ENV_VAR_SOURCE_MAP = 'IONIC_SOURCE_MAP';
+const ENV_VAR_LINT_LEVEL = 'IONIC_LINT_LEVEL';
 
 export const BUNDLER_ROLLUP = 'rollup';
 export const BUNDLER_WEBPACK = 'webpack';

@@ -24,6 +24,7 @@ export function runWorker(taskModule: string, taskWorker: string, context: Build
         isWatch: context.isWatch,
         bundler: context.bundler,
         inlineTemplates: context.inlineTemplates,
+        lintLevel: context.lintLevel
       },
       workerConfig
     };
