@@ -15,16 +15,22 @@ export function createNotificationServer(config: ServeConfig) {
   // queue up all messages to the client
   function queueMessageSend(msg: WsMessage) {
     msgToClient.push(msg);
-    drainMessageQueue();
+    drainMessageQueue({
+      broadcast: true
+    });
   }
 
   // drain the queue messages when the server is ready
-  function drainMessageQueue() {
-    if (wsServer) {
+  function drainMessageQueue(options = { broadcast: false }) {
+    let sendMethod = wsServer.send;
+    if (options.hasOwnProperty('broadcast') && options.broadcast) {
+      sendMethod = wss.broadcast;
+    }
+    if (wss.clients.length > 0) {
       let msg: any;
       while (msg = msgToClient.shift()) {
         try {
-          wsServer.send(JSON.stringify(msg));
+          sendMethod(JSON.stringify(msg));
         } catch (e) {
           if (e.message !== 'not opened') {
             Logger.error(`error sending client ws - ${e.message}`);
@@ -64,7 +70,11 @@ export function createNotificationServer(config: ServeConfig) {
 
   // create web socket server
   const wss = new WebSocketServer({ port: config.notificationPort });
-
+  wss.broadcast = function broadcast(data: any) {
+    wss.clients.forEach(function each(client: any) {
+      client.send(data);
+    });
+  };
   wss.on('connection', (ws: any) => {
     // we've successfully connected
     wsServer = ws;
