@@ -159,7 +159,7 @@ function copySrcToDest(context: BuildContext, src: string, dest: string, filter:
       clobber: clobber
     };
 
-    fs.copy(src, dest, opts, (err) => {
+    fs.copy(src, dest, opts, (err: any) => {
       // Hack around err is an array of errors issue
       if (Array.isArray(err)) {
         err = err[0];
