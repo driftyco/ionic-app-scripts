@@ -1,7 +1,7 @@
 import { basename, dirname, extname, join } from 'path';
 import { BuildContext, File } from './interfaces';
 import { BuildError } from './errors';
-import { readFile, readFileSync, readJsonSync, writeFile } from 'fs-extra';
+import { createReadStream, createWriteStream, readFile, readFileSync, readJsonSync, remove, unlink, writeFile } from 'fs-extra';
 import * as osName from 'os-name';
 
 let _context: BuildContext;
@@ -98,10 +98,9 @@ export function writeFileAsync(filePath: string, content: string): Promise<any> 
   return new Promise((resolve, reject) => {
     writeFile(filePath, content, (err) => {
       if (err) {
-        reject(new BuildError(err));
-      } else {
-        resolve();
+        return reject(new BuildError(err));
       }
+      return resolve();
     });
   });
 }
@@ -110,11 +109,48 @@ export function readFileAsync(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
     readFile(filePath, 'utf-8', (err, buffer) => {
       if (err) {
-        reject(new BuildError(err));
-      } else {
-        resolve(buffer);
+        return reject(new BuildError(err));
       }
+      return resolve(buffer);
     });
+  });
+}
+
+export function unlinkAsync(filePath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    unlink(filePath, (err: Error) => {
+      if (err) {
+        return reject(new BuildError(err));
+      }
+      return resolve();
+    });
+  });
+}
+
+export function rimRafAsync(directoryPath: string) {
+  return new Promise((resolve, reject) => {
+    remove(directoryPath, (err: Error) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve();
+    });
+  });
+}
+
+export function copyFileAsync(srcPath: string, destPath: string) {
+  return new Promise((resolve, reject) => {
+    const writeStream = createWriteStream(destPath);
+
+    writeStream.on('error', (err: Error) => {
+      reject(err);
+    });
+
+    writeStream.on('close', () => {
+      resolve();
+    });
+
+    createReadStream(srcPath).pipe(writeStream);
   });
 }
 

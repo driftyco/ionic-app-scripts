@@ -53,6 +53,12 @@ export function generateContext(context?: BuildContext): BuildContext {
   const appEntryPointPathValue = getConfigValue(context, '--appEntryPointPath', null, ENV_APP_ENTRY_POINT_PATH, ENV_APP_ENTRY_POINT_PATH.toLowerCase(), join(context.srcDir, 'app', 'main.ts'));
   setProcessEnvVar(ENV_APP_ENTRY_POINT_PATH, appEntryPointPathValue);
 
+  const pathToGlobUtils = getConfigValue(context, '--pathToGlobUtils', null, ENV_PATH_TO_GLOB_UTILS, ENV_PATH_TO_GLOB_UTILS.toLowerCase(), join(process.env.IONIC_APP_SCRIPTS_DIR, 'dist', 'util', 'glob-util.js'));
+  setProcessEnvVar(ENV_PATH_TO_GLOB_UTILS, pathToGlobUtils);
+
+  const cleanBeforeCopy = getConfigValue(context, '--cleanBeforeCopy', null, ENV_CLEAN_BEFORE_COPY, ENV_CLEAN_BEFORE_COPY.toLowerCase(), null);
+  setProcessEnvVar(ENV_CLEAN_BEFORE_COPY, cleanBeforeCopy);
+
   if (!isValidBundler(context.bundler)) {
     context.bundler = bundlerStrategy(context);
   }
@@ -330,7 +336,9 @@ export function setProcessEnv(env: any) {
 setProcessEnv(process.env);
 
 export function setProcessEnvVar(key: string, value: any) {
-  processEnv[key] = value;
+  if (key && value) {
+    processEnv[key] = value;
+  }
 }
 
 export function getProcessEnvVar(key: string): any {
@@ -409,6 +417,8 @@ const ENV_VAR_APP_SCRIPTS_DIR = 'IONIC_APP_SCRIPTS_DIR';
 const ENV_VAR_SOURCE_MAP = 'IONIC_SOURCE_MAP';
 const ENV_TS_CONFIG_PATH = 'IONIC_TS_CONFIG_PATH';
 const ENV_APP_ENTRY_POINT_PATH = 'IONIC_APP_ENTRY_POINT_PATH';
+const ENV_PATH_TO_GLOB_UTILS = 'IONIC_PATH_TO_GLOB_UTILS';
+const ENV_CLEAN_BEFORE_COPY = 'IONIC_CLEAN_BEFORE_COPY';
 
 export const BUNDLER_ROLLUP = 'rollup';
 export const BUNDLER_WEBPACK = 'webpack';

@@ -1,11 +1,17 @@
-import { BuildContext, TaskInfo } from './util/interfaces';
+import { mkdirpSync } from 'fs-extra';
+import { dirname as pathDirname, join as pathJoin, relative as pathRelative, resolve as pathResolve } from 'path';
+import { Logger } from './logger/logger';
+import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
 import { BuildError } from './util/errors';
 import { emit, EventType } from './util/events';
-import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
-import { join as pathJoin, resolve as pathResolve, sep as pathSep } from 'path';
-import { Logger } from './logger/logger';
-import * as fs from 'fs-extra';
+import { generateGlobTasks, globAll, GlobObject, GlobResult } from './util/glob-util';
+import { copyFileAsync, rimRafAsync, unlinkAsync } from './util/helpers';
+import { BuildContext, ChangedFile, TaskInfo } from './util/interfaces';
+import { Watcher, copyUpdate as watchCopyUpdate, updateDirectoryWatch } from './watch';
 
+const copyFilePathCache = new Map<string, CopyToFrom[]>();
+
+const FILTER_OUT_DIRS_FOR_CLEAN = ['{{WWW}}', '{{BUILD}}'];
 
 export function copy(context?: BuildContext, configFile?: string) {
   context = generateContext(context);
@@ -22,139 +28,248 @@ export function copy(context?: BuildContext, configFile?: string) {
     });
 }
 
-
-export function copyUpdate(event: string, filePath: string, context: BuildContext) {
-  const configFile = getUserConfigFile(context, taskInfo, null);
-
-  Logger.debug(`copyUpdate, event: ${event}, path: ${filePath}`);
-
-  if (event === 'change' || event === 'add' || event === 'addDir') {
-    // figure out which copy option(s) this one file/directory belongs to
-    const copyConfig: CopyConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
-    const fileCopyOptions = findFileCopyOptions(context, copyConfig, filePath);
-    if (fileCopyOptions.length) {
-      const promises = fileCopyOptions.map(copyOptions => {
-
-        return copySrcToDest(context, copyOptions.src, copyOptions.dest, copyOptions.filter, true);
-      });
-      return Promise.all(promises).then((copySrcToDestResults: CopySrcToDestResult[]) => {
-        printCopyErrorMessages(copySrcToDestResults);
-        const destFiles = copySrcToDestResults.map(copySrcToDestResult => copySrcToDestResult.dest);
-        emit(EventType.FileChange, destFiles);
-      });
-    }
-
-  } else if (event === 'unlink' || event === 'unlinkDir') {
-    return new Promise((resolve, reject) => {
-      const destFile = pathJoin(context.rootDir, filePath);
-      fs.remove(destFile, (err) => {
-        if (err) {
-          reject(new BuildError(err));
-
-        } else {
-          if (event === 'unlink') {
-            emit(EventType.FileDelete, destFile);
-          } else if (event === 'unlinkDir') {
-            emit(EventType.DirectoryDelete, destFile);
-          }
-
-          resolve();
-        }
-      });
-    });
-  }
-
-  return copyWorker(context, configFile);
-}
-
-
 export function copyWorker(context: BuildContext, configFile: string) {
   const copyConfig: CopyConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
-
-  const promises = copyConfig.include.map(copyOptions => {
-    return copySrcToDest(context, copyOptions.src, copyOptions.dest, copyOptions.filter, true);
-  });
-
-  return Promise.all(promises).then((copySrcToDestResults: CopySrcToDestResult[]) => {
-    printCopyErrorMessages(copySrcToDestResults);
-  });
-}
-
-function printCopyErrorMessages(copyResults: CopySrcToDestResult[]) {
-   copyResults.forEach(copyResult => {
-    if (!copyResult.success) {
-      Logger.warn(copyResult.errorMessage);
+  const keys = Object.keys(copyConfig);
+  const directoriesToCreate = new Set<string>();
+  const directoriesToWatch = new Set<string>();
+  const toCopyList: CopyToFrom[] = [];
+  return Promise.resolve().then(() => {
+    // for each entry, make sure each glob in the list of globs has had string replacement performed on it
+    cleanConfigContent(keys, copyConfig, context);
+    return getFilesPathsForConfig(keys, copyConfig);
+  }).then((resultMap: Map<string, GlobResult[]>) => {
+    // sweet, we have the absolute path of the files in the glob, and the ability to get the relative path
+    // basically, we've got a stew goin'
+    return populateFileAndDirectoryInfo(resultMap, copyConfig, toCopyList, directoriesToCreate, directoriesToWatch);
+  }).then(() => {
+    // watch directories
+    return updateDirectoryWatch(context, Array.from(directoriesToWatch));
+  }).then(() => {
+    if (process.env.IONIC_CLEAN_BEFORE_COPY) {
+      cleanDirectories(context, directoriesToCreate);
     }
+  }).then(() => {
+    // create the directories synchronously to avoid any disk locking issues
+    const directoryPathList = Array.from(directoriesToCreate);
+    for (const directoryPath of directoryPathList) {
+      mkdirpSync(directoryPath);
+    }
+  }).then(() => {
+    // sweet, the directories are created, so now let's stream the files
+    const promises: Promise<void>[] = [];
+    for (const file of toCopyList) {
+      cacheCopyData(file);
+      const promise = copyFileAsync(file.absoluteSourcePath, file.absoluteDestPath);
+      promise.then(() => {
+        Logger.debug(`Successfully copied ${file.absoluteSourcePath} to ${file.absoluteDestPath}`);
+      }).catch(err => {
+        Logger.warn(`Failed to copy ${file.absoluteSourcePath} to ${file.absoluteDestPath}`);
+      });
+      promises.push(promise);
+    }
+    return Promise.all(promises);
   });
 }
 
-export function findFileCopyOptions(context: BuildContext, copyConfig: CopyConfig, filePath: string) {
-  const copyOptions: CopyOptions[] = [];
+export function copyUpdate(changedFiles: ChangedFile[], context: BuildContext) {
+  const logger = new Logger('copy update');
+  const configFile = getUserConfigFile(context, taskInfo, null);
+  const copyConfig: CopyConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+  const keys = Object.keys(copyConfig);
+  const directoriesToCreate = new Set<string>();
+  const directoriesToWatch = new Set<string>();
+  const toCopyList: CopyToFrom[] = [];
+  return Promise.resolve().then(() => {
+    changedFiles.forEach(changedFile => Logger.debug(`copyUpdate, event: ${changedFile.event}, path: ${changedFile.filePath}`));
+    // for each entry, make sure each glob in the list of globs has had string replacement performed on it
+    cleanConfigContent(keys, copyConfig, context);
 
-  if (!copyConfig || !copyConfig.include || !context.rootDir) {
-    return copyOptions;
-  }
+    return getFilesPathsForConfig(keys, copyConfig);
+  }).then((resultMap: Map<string, GlobResult[]>) => {
+    // sweet, we have the absolute path of the files in the glob, and the ability to get the relative path
+    // basically, we've got a stew goin'
+    return populateFileAndDirectoryInfo(resultMap, copyConfig, toCopyList, directoriesToCreate, directoriesToWatch);
+  }).then(() => {
+    // watch directories
+    return updateDirectoryWatch(context, Array.from(directoriesToWatch));
+  }).then(() => {
+    // first, process any deleted directories
+    const promises: Promise<void>[] = [];
+    const directoryDeletions = changedFiles.filter(changedFile => changedFile.event === 'unlinkDir');
+    directoryDeletions.forEach(changedFile => promises.push(processRemoveDir(changedFile)));
+    return Promise.all(promises);
+  }).then(() => {
+    // process any deleted files
+    const promises: Promise<void>[] = [];
+    const fileDeletions = changedFiles.filter(changedFile => changedFile.event === 'unlink');
+    fileDeletions.forEach(changedFile => promises.push(processRemoveFile(changedFile)));
+    return Promise.all(promises);
+  }).then(() => {
+    const promises: Promise<void>[] = [];
+    const additions = changedFiles.filter(changedFile => changedFile.event === 'change' || changedFile.event === 'add' || changedFile.event === 'addDir');
+    additions.forEach(changedFile => {
+      const matchingItems = toCopyList.filter(toCopyEntry => toCopyEntry.absoluteSourcePath === changedFile.filePath);
+      matchingItems.forEach(matchingItem => {
+        // create the directories first (if needed)
+        mkdirpSync(pathDirname(matchingItem.absoluteDestPath));
+        // cache the data and copy the files
+        cacheCopyData(matchingItem);
+        promises.push(copyFileAsync(matchingItem.absoluteSourcePath, matchingItem.absoluteDestPath));
+      });
+    });
+    return Promise.all(promises);
+  }).then(() => {
+    logger.finish();
+  }).catch(err => {
+    throw logger.fail(err);
+  });
+}
 
-  filePath = pathJoin(context.rootDir, filePath);
-
-  const filePathSegments = filePath.split(pathSep);
-  let srcPath: string;
-  let srcLookupPath: string;
-  let destCopyOption: string;
-  let destPath: string;
-
-  while (filePathSegments.length > 1) {
-    srcPath = filePathSegments.join(pathSep);
-
-
-    for (var i = 0; i < copyConfig.include.length; i++) {
-      srcLookupPath = pathResolve(replacePathVars(context, copyConfig.include[i].src));
-
-      if (srcPath === srcLookupPath) {
-        destCopyOption = pathResolve(replacePathVars(context, copyConfig.include[i].dest));
-        destPath = filePath.replace(srcLookupPath, destCopyOption);
-
-        copyOptions.push({
-          src: filePath,
-          dest: destPath,
-          filter: copyConfig.include[i].filter
-        });
+function cleanDirectories(context: BuildContext, directoriesToCreate: Set<string>) {
+  const filterOut = replacePathVars(context, FILTER_OUT_DIRS_FOR_CLEAN);
+  const directoryPathList = Array.from(directoriesToCreate);
+  // filter out any directories that we don't want to allow a clean on
+  const cleanableDirectories = directoryPathList.filter(directoryPath => {
+    for (const uncleanableDir of filterOut) {
+      if (uncleanableDir === directoryPath) {
+        return false;
       }
     }
-
-    if (srcPath.length < context.rootDir.length) {
-      break;
-    }
-
-    filePathSegments.pop();
-  }
-
-  return copyOptions;
+    return true;
+  });
+  return deleteDirectories(cleanableDirectories);
 }
 
+function deleteDirectories(directoryPaths: string[]) {
+  const promises: Promise<void>[] = [];
+  for (const directoryPath of directoryPaths) {
+   promises.push(rimRafAsync(directoryPath));
+  }
+  return Promise.all(promises);
+}
 
-function copySrcToDest(context: BuildContext, src: string, dest: string, filter: any, clobber: boolean): Promise<CopySrcToDestResult> {
-  return new Promise((resolve, reject) => {
-    src = pathResolve(replacePathVars(context, src));
-    dest = pathResolve(replacePathVars(context, dest));
+function processRemoveFile(changedFile: ChangedFile) {
+  // delete any destination files that match the source file
+  const list = copyFilePathCache.get(changedFile.filePath);
+  copyFilePathCache.delete(changedFile.filePath);
+  if (list && list.length) {
+    const promises: Promise<void>[] = [];
+    for (const copiedFile of list) {
+      promises.push(unlinkAsync(copiedFile.absoluteDestPath));
+    }
+    return Promise.all(promises);
+  } else {
+    // just resolve for now
+    return Promise.resolve();
+  }
+}
 
-    const opts = {
-      filter: filter,
-      clobber: clobber
-    };
+function processRemoveDir(changedFile: ChangedFile) {
+  // remove any files from the cache where the dirname equals the provided path
+  const keysToRemove: string[] = [];
+  const directoriesToRemove = new Set<string>();
+  copyFilePathCache.forEach((copiedFiles: CopyToFrom[], filePath: string) => {
+    if (pathDirname(filePath) === changedFile.filePath) {
+      keysToRemove.push(filePath);
+      copiedFiles.forEach(copiedFile => directoriesToRemove.add(pathDirname(copiedFile.absoluteDestPath)));
+    }
+  });
+  keysToRemove.forEach(keyToRemove => copyFilePathCache.delete(keyToRemove));
+  // the entries are removed from the cache, now just rim raf the directoryPath
+  const promises: Promise<void>[] = [];
+  directoriesToRemove.forEach(directoryToRemove => {
+    promises.push(rimRafAsync(directoryToRemove));
+  });
+  return Promise.all(promises);
+}
 
-    fs.copy(src, dest, opts, (err) => {
-      if (err) {
-        if (err.message && err.message.indexOf('ENOENT') > -1) {
-          resolve({ success: false, src: src, dest: dest, errorMessage: `Error copying "${src}" to "${dest}": File not found`});
-        } else {
-          resolve({ success: false, src: src, dest: dest, errorMessage: `Error copying "${src}" to "${dest}"`});
-        }
-        return;
-      }
-      resolve({ success: true, src: src, dest: dest});
+function cacheCopyData(copyObject: CopyToFrom) {
+  let list = copyFilePathCache.get(copyObject.absoluteSourcePath);
+  if (!list) {
+    list = [];
+  }
+  list.push(copyObject);
+  copyFilePathCache.set(copyObject.absoluteSourcePath, list);
+}
+
+function getFilesPathsForConfig(copyConfigKeys: string[], copyConfig: CopyConfig): Promise<Map<String, GlobResult[]>> {
+  // execute the glob functions to determine what files match each glob
+  const srcToResultsMap = new Map<string, GlobResult[]>();
+  const promises: Promise<GlobResult[]>[] = [];
+  copyConfigKeys.forEach(key => {
+    const copyOptions = copyConfig[key];
+    const promise = globAll(copyOptions.src);
+    promises.push(promise);
+    promise.then(globResultList => {
+      srcToResultsMap.set(key, globResultList);
     });
   });
+
+  return Promise.all(promises).then(() => {
+    return srcToResultsMap;
+  });
+}
+
+function populateFileAndDirectoryInfo(resultMap: Map<string, GlobResult[]>, copyConfig: CopyConfig, toCopyList: CopyToFrom[],
+  directoriesToCreate: Set<string>, directoriesToWatch: Set<string>) {
+  resultMap.forEach((globResults: GlobResult[], dictionaryKey: string) => {
+    globResults.forEach(globResult => {
+      // get the relative path from the of each file from the glob
+      const relativePath = pathRelative(globResult.base, globResult.absolutePath);
+      // append the relative path to the dest
+      const destFileName = pathResolve(pathJoin(copyConfig[dictionaryKey].dest, relativePath));
+      // store the file information
+      toCopyList.push({
+        absoluteSourcePath: globResult.absolutePath,
+        absoluteDestPath: destFileName
+      });
+      const directoryToWatch = pathDirname(globResult.absolutePath);
+      directoriesToWatch.add(directoryToWatch);
+      const directoryToCreate = pathDirname(destFileName);
+      directoriesToCreate.add(directoryToCreate);
+    });
+  });
+}
+
+function cleanConfigContent(dictionaryKeys: string[], copyConfig: CopyConfig, context: BuildContext) {
+  dictionaryKeys.forEach(key => {
+    const copyOption = copyConfig[key];
+    if (copyOption && copyOption.src && copyOption.src.length) {
+      const cleanedUpSrc = replacePathVars(context, copyOption.src);
+      copyOption.src = cleanedUpSrc;
+      const cleanedUpDest = replacePathVars(context, copyOption.dest);
+      copyOption.dest = cleanedUpDest;
+    }
+  });
+}
+
+export function copyConfigToWatchConfig(context?: BuildContext): Watcher {
+  context = generateContext(context);
+  const configFile = getUserConfigFile(context, taskInfo, '');
+  const copyConfig: CopyConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+  let results: GlobObject[] = [];
+  for (const key of Object.keys(copyConfig)) {
+    const list = generateGlobTasks(copyConfig[key].src, {});
+    results = results.concat(list);
+  }
+
+  const paths: string[] = [];
+  let ignored: string[] = [];
+  for (const result of results) {
+    paths.push(result.pattern);
+    if (result.opts && result.opts.ignore) {
+      ignored = ignored.concat(result.opts.ignore);
+    }
+  }
+
+  return {
+    paths: paths,
+    options: {
+      ignored: ignored
+    },
+    callback: watchCopyUpdate
+  };
 }
 
 interface CopySrcToDestResult {
@@ -174,13 +289,16 @@ const taskInfo: TaskInfo = {
 
 
 export interface CopyConfig {
-  include: CopyOptions[];
+  [index: string]: CopyOptions;
 }
 
+export interface CopyToFrom {
+  absoluteSourcePath: string;
+  absoluteDestPath: string;
+};
 
 export interface CopyOptions {
   // https://www.npmjs.com/package/fs-extra
-  src: string;
+  src: string[];
   dest: string;
-  filter?: any;
 }

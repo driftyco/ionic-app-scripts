@@ -1,4 +1,5 @@
 import * as buildTask from './build';
+import { copyUpdate as copyUpdateHandler} from './copy';
 import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { canRunTranspileUpdate } from './transpile';
@@ -41,17 +42,16 @@ export function watch(context?: BuildContext, configFile?: string) {
 function startWatchers(context: BuildContext, configFile: string) {
   const watchConfig: WatchConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
 
-  const promises = watchConfig
-    .watchers
-    .map((w, i) => {
-      return startWatcher(i, w, context, watchConfig);
-    });
+  const promises: Promise<void>[] = [];
+  Object.keys(watchConfig).forEach((key) => {
+    promises.push(startWatcher(key, watchConfig[key], context));
+  });
 
   return Promise.all(promises);
 }
 
 
-function startWatcher(index: number, watcher: Watcher, context: BuildContext, watchConfig: WatchConfig) {
+function startWatcher(name: string, watcher: Watcher, context: BuildContext) {
   return new Promise((resolve, reject) => {
 
     // If a file isn't found (probably other scenarios too),
@@ -70,13 +70,13 @@ function startWatcher(index: number, watcher: Watcher, context: BuildContext, wa
     prepareWatcher(context, watcher);
 
     if (!watcher.paths) {
-      Logger.error(`watcher config, index ${index}: missing "paths"`);
+      Logger.error(`watcher config, entry ${name}: missing "paths"`);
       resolve();
       return;
     }
 
     if (!watcher.callback) {
-      Logger.error(`watcher config, index ${index}: missing "callback"`);
+      Logger.error(`watcher config, entry ${name}: missing "callback"`);
       resolve();
       return;
     }
@@ -130,10 +130,30 @@ function startWatcher(index: number, watcher: Watcher, context: BuildContext, wa
       reject(new BuildError(`watcher error: ${watcher.options.cwd}${watcher.paths}: ${err}`));
     });
 
-
   });
 }
 
+const watchedDirectories = new Set<string>();
+
+export function updateDirectoryWatch(context: BuildContext, directoryPaths: string[]) {
+  // check if we're already watching a directory
+  const promises: Promise<void>[] = [];
+  const toStartWatching = directoryPaths.filter(directoryPath => !watchedDirectories.has(directoryPath));
+  toStartWatching.forEach(directoryPath => {
+    const watcher = {
+      paths: directoryPath,
+      options: { },
+      eventName: 'all',
+      callback: copyUpdate
+    };
+    const promise = startWatcher(directoryPath, watcher, context);
+    promises.push(promise);
+    promise.then(() => {
+      watchedDirectories.add(directoryPath);
+    });
+  });
+  return Promise.all(promises);
+}
 
 export function prepareWatcher(context: BuildContext, watcher: Watcher) {
   watcher.options = watcher.options || {};
@@ -187,6 +207,39 @@ export function buildUpdate(event: string, filePath: string, context: BuildConte
       if (changedFiles && changedFiles.length) {
         // cool, we've got some build updating to do ;)
         buildTask.buildUpdate(changedFiles, context);
+      }
+    }, BUILD_UPDATE_DEBOUNCE_MS);
+  }
+
+  return Promise.resolve();
+}
+
+let queuedCopyChanges: ChangedFile[] = [];
+let queuedCopyTimerId: any;
+
+export function copyUpdate(event: string, filePath: string, context: BuildContext) {
+  const changedFile: ChangedFile = {
+    event: event,
+    filePath: filePath,
+    ext: extname(filePath).toLowerCase()
+  };
+  // do not allow duplicates
+  if (!queuedCopyChanges.some(f => f.filePath === filePath)) {
+    queuedCopyChanges.push(changedFile);
+
+    // debounce our build update incase there are multiple files
+    clearTimeout(queuedCopyTimerId);
+
+    // run this code in a few milliseconds if another hasn't come in behind it
+    queuedCopyTimerId = setTimeout(() => {
+
+      const changedFiles = queuedCopyChanges.concat([]);
+      // clear out all the files that are queued up for the build update
+      queuedCopyChanges.length = 0;
+
+      if (changedFiles && changedFiles.length) {
+        // cool, we've got some build updating to do ;)
+        copyUpdateHandler(changedFiles, context);
       }
     }, BUILD_UPDATE_DEBOUNCE_MS);
   }
@@ -282,15 +335,14 @@ const taskInfo: TaskInfo = {
 
 
 export interface WatchConfig {
-  watchers: Watcher[];
+  [index: string]: Watcher;
 }
-
 
 export interface Watcher {
   // https://www.npmjs.com/package/chokidar
   paths?: string[]|string;
   options?: {
-    ignored?: string|Function;
+    ignored?: string|string[]|Function;
     ignoreInitial?: boolean;
     followSymlinks?: boolean;
     cwd?: string;
