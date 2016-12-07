@@ -2,12 +2,11 @@ import { mkdirpSync } from 'fs-extra';
 import { dirname as pathDirname, join as pathJoin, relative as pathRelative, resolve as pathResolve } from 'path';
 import { Logger } from './logger/logger';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
-import { BuildError } from './util/errors';
 import { emit, EventType } from './util/events';
 import { generateGlobTasks, globAll, GlobObject, GlobResult } from './util/glob-util';
 import { copyFileAsync, rimRafAsync, unlinkAsync } from './util/helpers';
 import { BuildContext, ChangedFile, TaskInfo } from './util/interfaces';
-import { Watcher, copyUpdate as watchCopyUpdate, updateDirectoryWatch } from './watch';
+import { Watcher, copyUpdate as watchCopyUpdate } from './watch';
 
 const copyFilePathCache = new Map<string, CopyToFrom[]>();
 
@@ -32,7 +31,6 @@ export function copyWorker(context: BuildContext, configFile: string) {
   const copyConfig: CopyConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   const keys = Object.keys(copyConfig);
   const directoriesToCreate = new Set<string>();
-  const directoriesToWatch = new Set<string>();
   const toCopyList: CopyToFrom[] = [];
   return Promise.resolve().then(() => {
     // for each entry, make sure each glob in the list of globs has had string replacement performed on it
@@ -41,10 +39,7 @@ export function copyWorker(context: BuildContext, configFile: string) {
   }).then((resultMap: Map<string, GlobResult[]>) => {
     // sweet, we have the absolute path of the files in the glob, and the ability to get the relative path
     // basically, we've got a stew goin'
-    return populateFileAndDirectoryInfo(resultMap, copyConfig, toCopyList, directoriesToCreate, directoriesToWatch);
-  }).then(() => {
-    // watch directories
-    return updateDirectoryWatch(context, Array.from(directoriesToWatch));
+    return populateFileAndDirectoryInfo(resultMap, copyConfig, toCopyList, directoriesToCreate);
   }).then(() => {
     if (process.env.IONIC_CLEAN_BEFORE_COPY) {
       cleanDirectories(context, directoriesToCreate);
@@ -78,7 +73,6 @@ export function copyUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   const copyConfig: CopyConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   const keys = Object.keys(copyConfig);
   const directoriesToCreate = new Set<string>();
-  const directoriesToWatch = new Set<string>();
   const toCopyList: CopyToFrom[] = [];
   return Promise.resolve().then(() => {
     changedFiles.forEach(changedFile => Logger.debug(`copyUpdate, event: ${changedFile.event}, path: ${changedFile.filePath}`));
@@ -89,10 +83,7 @@ export function copyUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   }).then((resultMap: Map<string, GlobResult[]>) => {
     // sweet, we have the absolute path of the files in the glob, and the ability to get the relative path
     // basically, we've got a stew goin'
-    return populateFileAndDirectoryInfo(resultMap, copyConfig, toCopyList, directoriesToCreate, directoriesToWatch);
-  }).then(() => {
-    // watch directories
-    return updateDirectoryWatch(context, Array.from(directoriesToWatch));
+    return populateFileAndDirectoryInfo(resultMap, copyConfig, toCopyList, directoriesToCreate);
   }).then(() => {
     // first, process any deleted directories
     const promises: Promise<void>[] = [];
@@ -116,6 +107,7 @@ export function copyUpdate(changedFiles: ChangedFile[], context: BuildContext) {
         // cache the data and copy the files
         cacheCopyData(matchingItem);
         promises.push(copyFileAsync(matchingItem.absoluteSourcePath, matchingItem.absoluteDestPath));
+        emit(EventType.FileChange, additions);
       });
     });
     return Promise.all(promises);
@@ -151,18 +143,25 @@ function deleteDirectories(directoryPaths: string[]) {
 
 function processRemoveFile(changedFile: ChangedFile) {
   // delete any destination files that match the source file
-  const list = copyFilePathCache.get(changedFile.filePath);
+  const list = copyFilePathCache.get(changedFile.filePath) || [];
   copyFilePathCache.delete(changedFile.filePath);
-  if (list && list.length) {
-    const promises: Promise<void>[] = [];
-    for (const copiedFile of list) {
-      promises.push(unlinkAsync(copiedFile.absoluteDestPath));
-    }
-    return Promise.all(promises);
-  } else {
-    // just resolve for now
-    return Promise.resolve();
-  }
+  const promises: Promise<void>[] = [];
+  const deletedFilePaths: string[] = [];
+  list.forEach(copiedFile => {
+    const promise = unlinkAsync(copiedFile.absoluteDestPath);
+    promises.push(promise);
+    promise.catch(err => {
+      if (err && err.message && err.message.indexOf('ENOENT') >= 0) {
+        Logger.warn(`Failed to delete ${copiedFile.absoluteDestPath} because it doesn't exist`);
+        return;
+      }
+      throw err;
+    });
+    deletedFilePaths.push(copiedFile.absoluteDestPath);
+  });
+  emit(EventType.FileDelete, deletedFilePaths);
+  return Promise.all(promises).catch(err => {
+  });
 }
 
 function processRemoveDir(changedFile: ChangedFile) {
@@ -181,6 +180,7 @@ function processRemoveDir(changedFile: ChangedFile) {
   directoriesToRemove.forEach(directoryToRemove => {
     promises.push(rimRafAsync(directoryToRemove));
   });
+  emit(EventType.DirectoryDelete, Array.from(directoriesToRemove));
   return Promise.all(promises);
 }
 
@@ -211,8 +211,7 @@ function getFilesPathsForConfig(copyConfigKeys: string[], copyConfig: CopyConfig
   });
 }
 
-function populateFileAndDirectoryInfo(resultMap: Map<string, GlobResult[]>, copyConfig: CopyConfig, toCopyList: CopyToFrom[],
-  directoriesToCreate: Set<string>, directoriesToWatch: Set<string>) {
+function populateFileAndDirectoryInfo(resultMap: Map<string, GlobResult[]>, copyConfig: CopyConfig, toCopyList: CopyToFrom[], directoriesToCreate: Set<string>) {
   resultMap.forEach((globResults: GlobResult[], dictionaryKey: string) => {
     globResults.forEach(globResult => {
       // get the relative path from the of each file from the glob
@@ -224,8 +223,6 @@ function populateFileAndDirectoryInfo(resultMap: Map<string, GlobResult[]>, copy
         absoluteSourcePath: globResult.absolutePath,
         absoluteDestPath: destFileName
       });
-      const directoryToWatch = pathDirname(globResult.absolutePath);
-      directoriesToWatch.add(directoryToWatch);
       const directoryToCreate = pathDirname(destFileName);
       directoriesToCreate.add(directoryToCreate);
     });

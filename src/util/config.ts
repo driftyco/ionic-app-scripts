@@ -53,7 +53,7 @@ export function generateContext(context?: BuildContext): BuildContext {
   const appEntryPointPathValue = getConfigValue(context, '--appEntryPointPath', null, ENV_APP_ENTRY_POINT_PATH, ENV_APP_ENTRY_POINT_PATH.toLowerCase(), join(context.srcDir, 'app', 'main.ts'));
   setProcessEnvVar(ENV_APP_ENTRY_POINT_PATH, appEntryPointPathValue);
 
-  const pathToGlobUtils = getConfigValue(context, '--pathToGlobUtils', null, ENV_PATH_TO_GLOB_UTILS, ENV_PATH_TO_GLOB_UTILS.toLowerCase(), join(process.env.IONIC_APP_SCRIPTS_DIR, 'dist', 'util', 'glob-util.js'));
+  const pathToGlobUtils = getConfigValue(context, '--pathToGlobUtils', null, ENV_PATH_TO_GLOB_UTILS, ENV_PATH_TO_GLOB_UTILS.toLowerCase(), join(getProcessEnvVar(ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'util', 'glob-util.js'));
   setProcessEnvVar(ENV_PATH_TO_GLOB_UTILS, pathToGlobUtils);
 
   const cleanBeforeCopy = getConfigValue(context, '--cleanBeforeCopy', null, ENV_CLEAN_BEFORE_COPY, ENV_CLEAN_BEFORE_COPY.toLowerCase(), null);

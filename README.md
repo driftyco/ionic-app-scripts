@@ -120,16 +120,18 @@ npm run build --rollup ./config/rollup.config.js
 
 These environment variables are automatically set to [Node's `process.env`](https://nodejs.org/api/process.html#process_process_env) property. These variables can be useful from within custom configuration files, such as custom `webpack.config.js` file.
 
-| Environment Variable    | Description                                                          |
-|-------------------------|----------------------------------------------------------------------|
-| `IONIC_ENV`             | Value can be either `prod` or `dev`.                                 |
-| `IONIC_ROOT_DIR`        | The absolute path to the project's root directory.                   |
-| `IONIC_TMP_DIR`         | The absolute path to the project's temporary directory.              |
-| `IONIC_SRC_DIR`         | The absolute path to the app's source directory.                     |
-| `IONIC_WWW_DIR`         | The absolute path to the app's public distribution directory.        |
-| `IONIC_BUILD_DIR`       | The absolute path to the app's bundled js and css files.             |
-| `IONIC_APP_SCRIPTS_DIR` | The absolute path to the `@ionic/app-scripts` node_module directory. |
-| `IONIC_SOURCE_MAP`      | The Webpack `devtool` setting. We recommend `eval` or `source-map`.  |
+| Environment Variable       | Description                                                          |
+|----------------------------|----------------------------------------------------------------------|
+| `IONIC_ENV`                | Value can be either `prod` or `dev`.                                 |
+| `IONIC_ROOT_DIR`           | The absolute path to the project's root directory.                   |
+| `IONIC_TMP_DIR`            | The absolute path to the project's temporary directory.              |
+| `IONIC_SRC_DIR`            | The absolute path to the app's source directory.                     |
+| `IONIC_WWW_DIR`            | The absolute path to the app's public distribution directory.        |
+| `IONIC_BUILD_DIR`          | The absolute path to the app's bundled js and css files.             |
+| `IONIC_APP_SCRIPTS_DIR`    | The absolute path to the `@ionic/app-scripts` node_module directory. |
+| `IONIC_SOURCE_MAP`         | The Webpack `devtool` setting. We recommend `eval` or `source-map`.  |
+| `IONIC_PATH_TO_GLOB_UTILS` | The path to Ionic's `glob-util` script. Used within configs.         |
+| `IONIC_CLEAN_BEFORE_COPY`  | Attempt to clean existing directories before copying files.          |
 
 The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` task is `prod`, and the `watch` and `serve` tasks are `dev`. Additionally, using the `--dev` command line flag will force the build to use `dev`.
 

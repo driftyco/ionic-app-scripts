@@ -1,5 +1,5 @@
 import * as globFunction from 'glob';
-import { dirname, isAbsolute, join, sep } from 'path';
+import { dirname, isAbsolute, join, normalize, resolve as pathResolve, sep } from 'path';
 
 function isNegative(pattern: string) {
   return pattern[0] === '!';
@@ -62,8 +62,8 @@ function globWrapper(task: GlobObject): Promise<GlobResult[]> {
       }
       const globResults = files.map(file => {
         return {
-          absolutePath: file,
-          base: getBasePath(task.pattern)
+          absolutePath: normalize(pathResolve(file)),
+          base: normalize(pathResolve(getBasePath(task.pattern)))
         };
       });
       return resolve(globResults);

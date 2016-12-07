@@ -4,7 +4,7 @@ import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfac
 import { BuildError } from './util/errors';
 import { canRunTranspileUpdate } from './transpile';
 import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars, setIonicEnvironment } from './util/config';
-import { join, normalize, extname } from 'path';
+import { extname, join, normalize, resolve as pathResolve } from 'path';
 import { Logger } from './logger/logger';
 import * as chokidar from 'chokidar';
 
@@ -99,7 +99,7 @@ function startWatcher(name: string, watcher: Watcher, context: BuildContext) {
 
       setIonicEnvironment(context.isProd);
 
-      filePath = join(context.rootDir, filePath);
+      filePath = normalize(pathResolve(join(context.rootDir, filePath)));
 
       Logger.debug(`watch callback start, id: ${watchCount}, isProd: ${context.isProd}, event: ${event}, path: ${filePath}`);
 
@@ -131,28 +131,6 @@ function startWatcher(name: string, watcher: Watcher, context: BuildContext) {
     });
 
   });
-}
-
-const watchedDirectories = new Set<string>();
-
-export function updateDirectoryWatch(context: BuildContext, directoryPaths: string[]) {
-  // check if we're already watching a directory
-  const promises: Promise<void>[] = [];
-  const toStartWatching = directoryPaths.filter(directoryPath => !watchedDirectories.has(directoryPath));
-  toStartWatching.forEach(directoryPath => {
-    const watcher = {
-      paths: directoryPath,
-      options: { },
-      eventName: 'all',
-      callback: copyUpdate
-    };
-    const promise = startWatcher(directoryPath, watcher, context);
-    promises.push(promise);
-    promise.then(() => {
-      watchedDirectories.add(directoryPath);
-    });
-  });
-  return Promise.all(promises);
 }
 
 export function prepareWatcher(context: BuildContext, watcher: Watcher) {
