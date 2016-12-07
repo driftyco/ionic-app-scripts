@@ -48,7 +48,7 @@ export function serve(context?: BuildContext) {
     })
     .catch((err: BuildError) => {
       if (err && err.isFatal) {
-        process.exit(1);
+        throw err;
       } else {
         onReady(config, context);
       }
