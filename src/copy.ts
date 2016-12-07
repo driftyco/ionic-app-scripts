@@ -37,7 +37,7 @@ export function copyUpdate(event: string, filePath: string, context: BuildContex
         return copySrcToDest(context, copyOptions.src, copyOptions.dest, copyOptions.filter, true);
       });
       const copySrcToDestResults: CopySrcToDestResult[] = [];
-      const allPromisesCompound = promises.reduce((compoundPromise: Promise<any>, promise) => {
+      const allPromisesCompound = promises.reduce((compoundPromise, promise) => {
         return compoundPromise.then((copySrcToDestResult: CopySrcToDestResult) => {
           if (copySrcToDestResult) {
             copySrcToDestResults.push(copySrcToDestResult);
@@ -83,7 +83,7 @@ export function copyWorker(context: BuildContext, configFile: string) {
     return copySrcToDest(context, copyOptions.src, copyOptions.dest, copyOptions.filter, true);
   });
   const copySrcToDestResults: CopySrcToDestResult[] = [];
-  const allPromisesCompound = promises.reduce((compoundPromise: Promise<any>, promise) => {
+  const allPromisesCompound = promises.reduce((compoundPromise, promise) => {
     return compoundPromise.then((copySrcToDestResult: CopySrcToDestResult) => {
       if (copySrcToDestResult) {
         copySrcToDestResults.push(copySrcToDestResult);
