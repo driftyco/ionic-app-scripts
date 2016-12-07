@@ -43,7 +43,7 @@ function buildWorker(context: BuildContext) {
 }
 
 
-function buildProd(context: BuildContext) {
+function buildProd(context: BuildContext): Promise<any> {
   // sync empty the www/build directory
   clean(context);
 
@@ -90,7 +90,7 @@ function buildProd(context: BuildContext) {
 }
 
 
-function buildDev(context: BuildContext) {
+function buildDev(context: BuildContext): Promise<any> {
   // sync empty the www/build directory
   clean(context);
 

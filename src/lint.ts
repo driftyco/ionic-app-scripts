@@ -68,7 +68,7 @@ function lintApp(context: BuildContext, configFile: string) {
 }
 
 function lintFiles(context: BuildContext, program: ts.Program, filePaths: string[]) {
-  const promises: Promise<void>[] = [];
+  const promises: Promise<any>[] = [];
   for (const filePath of filePaths) {
     promises.push(lintFile(context, program, filePath));
   }

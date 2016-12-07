@@ -73,7 +73,7 @@ export function webpackUpdate(changedFiles: ChangedFile[], context: BuildContext
 export function webpackWorker(context: BuildContext, configFile: string): Promise<any> {
   const webpackConfig = getWebpackConfig(context, configFile);
 
-  let promise: Promise<void> = null;
+  let promise: Promise<any> = null;
   if (context.isWatch) {
     promise = runWebpackIncrementalBuild(!context.webpackWatch, context, webpackConfig);
   } else {
@@ -121,7 +121,7 @@ function runWebpackFullBuild(config: WebpackConfig) {
 }
 
 function runWebpackIncrementalBuild(initializeWatch: boolean, context: BuildContext, config: WebpackConfig) {
-  const promise = new Promise((resolve, reject) => {
+  const promise = new Promise<any>((resolve, reject) => {
     // start listening for events, remove listeners once an event is received
     eventEmitter.on(INCREMENTAL_BUILD_FAILED, (err: Error) => {
       Logger.debug('Webpack Bundle Update Failed');
