@@ -27,21 +27,42 @@ export function build(context: BuildContext) {
       logger.finish();
     })
     .catch(err => {
+      handleDeprecations(err);
       throw logger.fail(err);
     });
 }
 
-
-function buildWorker(context: BuildContext) {
-  if (context.isProd) {
-    // production build
-    return buildProd(context);
+function handleDeprecations(error: Error) {
+  if (error && error.message && error.message.indexOf('ENOENT') >= 0 && error.message.indexOf(process.env.IONIC_APP_ENTRY_POINT_PATH)) {
+    const error = new BuildError(`"main.dev.ts" and "main.prod.ts" have been deprecated. Please create a new file "main.ts" containing the content of "main.dev.ts", and then delete the deprecated files.
+                           For more information, please see the default Ionic project main.ts file here:
+                           https://github.com/driftyco/ionic2-app-base/tree/master/src/app/main.ts`);
+    error.isFatal = true;
+    throw error;
   }
-
-  // dev build
-  return buildDev(context);
 }
 
+
+function buildWorker(context: BuildContext) {
+  return Promise.resolve().then(() => {
+    // load any 100% required files to ensure they exist
+    return validateRequiredFilesExist();
+  }).then(() => {
+    if (context.isProd) {
+      // production build
+      return buildProd(context);
+    }
+
+    // dev build
+    return buildDev(context);
+  });
+}
+
+function validateRequiredFilesExist() {
+  // for now, just do the entry point
+  // eventually this could be Promise.all and load a bunch of stuff
+  return readFileAsync(process.env.IONIC_APP_ENTRY_POINT_PATH);
+}
 
 function buildProd(context: BuildContext) {
   // sync empty the www/build directory

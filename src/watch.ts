@@ -32,7 +32,13 @@ export function watch(context?: BuildContext, configFile?: string) {
   }
 
   return buildTask.build(context)
-    .then(buildDone, buildDone)
+    .then(buildDone, (err: BuildError) => {
+      if (err && err.isFatal) {
+        throw err;
+      } else {
+        buildDone();
+      }
+    })
     .catch(err => {
       throw logger.fail(err);
     });

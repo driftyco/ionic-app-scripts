@@ -1,5 +1,6 @@
 import { BuildContext } from './util/interfaces';
 import { generateContext, getConfigValue, hasConfigValue } from './util/config';
+import { BuildError } from './util/errors';
 import { setContext } from './util/helpers';
 import { Logger } from './logger/logger';
 import { watch } from './watch';
@@ -8,7 +9,6 @@ import { createNotificationServer } from './dev-server/notification-server';
 import { createHttpServer } from './dev-server/http-server';
 import { createLiveReloadServer } from './dev-server/live-reload';
 import { ServeConfig, IONIC_LAB_URL } from './dev-server/serve-config';
-
 
 const DEV_LOGGER_DEFAULT_PORT = 53703;
 const LIVE_RELOAD_DEFAULT_PORT = 35729;
@@ -43,11 +43,15 @@ export function serve(context?: BuildContext) {
   return watch(context)
     .then(() => {
       onReady(config, context);
-    }, () => {
-      onReady(config, context);
+    }, (err: BuildError) => {
+      throw err;
     })
-    .catch(() => {
-      onReady(config, context);
+    .catch((err: BuildError) => {
+      if (err && err.isFatal) {
+        process.exit(1);
+      } else {
+        onReady(config, context);
+      }
     });
 }
 

@@ -1,6 +1,7 @@
 
 export class BuildError extends Error {
   hasBeenLogged = false;
+  isFatal: boolean = false;
 
   constructor(err?: any) {
     super();
@@ -18,6 +19,9 @@ export class BuildError extends Error {
       }
       if (typeof err.hasBeenLogged === 'boolean') {
         this.hasBeenLogged = err.hasBeenLogged;
+      }
+      if (err.hasOwnProperty('isFatal')) {
+        this.isFatal = err.isFatal;
       }
     }
   }
