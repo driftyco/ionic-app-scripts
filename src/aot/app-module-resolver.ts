@@ -1,5 +1,5 @@
 import { existsSync, statSync } from 'fs';
-import { join } from 'path';
+import { join, normalize, resolve } from 'path';
 
 import {
   CallExpression,
@@ -56,7 +56,7 @@ function _recursiveSymbolExportLookup(sourceFile: SourceFile,
       return null;
     }
 
-    const module = resolvedModule.resolvedModule.resolvedFileName;
+    const module = normalize(resolve(resolvedModule.resolvedModule.resolvedFileName));
     if (!decl.exportClause) {
       const file = fileCache.get(module);
       if (file) {
@@ -73,7 +73,7 @@ function _recursiveSymbolExportLookup(sourceFile: SourceFile,
       if (specifier.name.text === symbolName) {
         // If it's a directory, load its index and recursively lookup.
         if (statSync(module).isDirectory()) {
-          const indexModule = join(module, 'index.ts');
+          const indexModule = normalize(join(module, 'index.ts'));
           if (existsSync(indexModule)) {
             const file = fileCache.get(indexModule);
             if (file) {
@@ -128,7 +128,7 @@ function _symbolImportLookup(sourceFile: SourceFile,
       return null;
     }
 
-    const module = resolvedModule.resolvedModule.resolvedFileName;
+    const module = normalize(resolve(resolvedModule.resolvedModule.resolvedFileName));
     if (decl.importClause.namedBindings.kind === SyntaxKind.NamespaceImport) {
       const binding = decl.importClause.namedBindings as NamespaceImport;
       if (binding.name.text === symbolName) {
@@ -140,6 +140,7 @@ function _symbolImportLookup(sourceFile: SourceFile,
       for (const specifier of binding.elements) {
         if (specifier.name.text === symbolName) {
           // Create the source and recursively lookup the import.
+
           const file = fileCache.get(module);
           if (file) {
             const moduleSourceFile = getTypescriptSourceFile(module, file.content, ScriptTarget.Latest, false);

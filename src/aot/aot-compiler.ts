@@ -95,7 +95,7 @@ export class AotCompiler {
       for ( const fileName of this.tsConfig.parsed.fileNames) {
         const cleanedFileName = normalize(resolve(fileName));
         const content = readFileSync(cleanedFileName).toString();
-        this.context.fileCache.set(fileName, { path: fileName, content: content});
+        this.context.fileCache.set(cleanedFileName, { path: cleanedFileName, content: content});
       }
     })
     .then(() => {
