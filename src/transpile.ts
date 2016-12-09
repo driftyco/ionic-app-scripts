@@ -1,11 +1,11 @@
 import { FileCache } from './util/file-cache';
-import { BuildContext, BuildState, ChangedFile } from './util/interfaces';
+import { BuildContext, BuildState, TaskInfo, ChangedFile } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { buildJsSourceMaps } from './bundle';
 import { changeExtension } from './util/helpers';
 import { EventEmitter } from 'events';
 import { fork, ChildProcess } from 'child_process';
-import { generateContext } from './util/config';
+import { generateContext, getUserConfigFile, fillConfigDefaults } from './util/config';
 import { inlineTemplate } from './template';
 import { Logger } from './logger/logger';
 import { readFileSync } from 'fs';
@@ -15,10 +15,11 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 
-export function transpile(context?: BuildContext) {
+export function transpile(context?: BuildContext, configFile?: string) {
   context = generateContext(context);
 
   const workerConfig: TranspileWorkerConfig = {
+    userConfig: getUserConfigFile(context, taskInfo, configFile),
     configFile: getTsConfigPath(context),
     writeInMemory: true,
     sourceMaps: true,
@@ -42,6 +43,7 @@ export function transpile(context?: BuildContext) {
 
 export function transpileUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   const workerConfig: TranspileWorkerConfig = {
+    userConfig: getUserConfigFile(context, taskInfo, null),
     configFile: getTsConfigPath(context),
     writeInMemory: true,
     sourceMaps: true,
@@ -84,12 +86,15 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
     // get the tsconfig data
     const tsConfig = getTsConfig(context, workerConfig.configFile);
 
+    const transpileConfig: TranspileConfig = fillConfigDefaults(workerConfig.userConfig, taskInfo.defaultConfigFile);
+    tsConfig.options = Object.assign(tsConfig.options, transpileConfig);
+
     if (workerConfig.sourceMaps === false) {
       // the worker config say, "hey, don't ever bother making a source map, because."
       tsConfig.options.sourceMap = false;
 
     } else {
-       // build the ts source maps if the bundler is going to use source maps
+      // build the ts source maps if the bundler is going to use source maps
       tsConfig.options.sourceMap = buildJsSourceMaps(context);
     }
 
@@ -357,9 +362,21 @@ export interface TsConfig {
 }
 
 export interface TranspileWorkerConfig {
+  userConfig?: string;
   configFile: string;
   writeInMemory: boolean;
   sourceMaps: boolean;
   cache: boolean;
   inlineTemplate: boolean;
+}
+
+const taskInfo: TaskInfo = {
+  fullArg: '--transpile',
+  shortArg: '-t',
+  envVar: 'IONIC_TRANSPILE',
+  packageConfig: 'ionic_transpile',
+  defaultConfigFile: 'transpile.config'
+};
+
+export interface TranspileConfig extends TsConfig {
 }
