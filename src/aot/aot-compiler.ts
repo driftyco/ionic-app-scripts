@@ -1,19 +1,21 @@
 import { readFileSync } from 'fs';
-import { extname } from 'path';
+import { extname, normalize, resolve } from 'path';
 
 import 'reflect-metadata';
-import { CompilerOptions, createProgram, ParsedCommandLine, Program, transpileModule, TranspileOptions, TranspileOutput } from 'typescript';
+import { CompilerOptions, createProgram, ParsedCommandLine, Program, ScriptTarget, transpileModule, TranspileOptions, TranspileOutput } from 'typescript';
 import { CodeGenerator, NgcCliOptions, NodeReflectorHostContext, ReflectorHost, StaticReflector }from '@angular/compiler-cli';
 import { tsc } from '@angular/tsc-wrapped/src/tsc';
 import AngularCompilerOptions from '@angular/tsc-wrapped/src/options';
 
 import { HybridFileSystem } from '../util/hybrid-file-system';
 import { getInstance as getHybridFileSystem } from '../util/hybrid-file-system-factory';
-import { getInstance } from '../aot/compiler-host-factory';
-import { NgcCompilerHost } from '../aot/compiler-host';
-import { patchReflectorHost } from '../aot/reflector-host';
-import { removeDecorators } from '../util/typescript-utils';
-import { getMainFileTypescriptContentForAotBuild } from './utils';
+import { getInstance } from './compiler-host-factory';
+import { NgcCompilerHost } from './compiler-host';
+import { resolveAppNgModuleFromMain } from './app-module-resolver';
+import { patchReflectorHost } from './reflector-host';
+import { getTypescriptSourceFile, removeDecorators } from '../util/typescript-utils';
+import { getFallbackMainContent, replaceBootstrap } from './utils';
+import { Logger } from '../logger/logger';
 import { printDiagnostics, clearDiagnostics, DiagnosticsType } from '../logger/logger-diagnostics';
 import { runTypeScriptDiagnostics } from '../logger/logger-typescript';
 import { BuildError } from '../util/errors';
@@ -47,6 +49,7 @@ export class AotCompiler {
 
   compile() {
     return Promise.resolve().then(() => {
+    }).then(() => {
       clearDiagnostics(this.context, DiagnosticsType.TypeScript);
       const i18nOptions: NgcCliOptions = {
         i18nFile: undefined,
@@ -67,7 +70,7 @@ export class AotCompiler {
       // We need to temporarily patch the CodeGenerator until either it's patched or allows us
       // to pass in our own ReflectorHost.
       patchReflectorHost(codeGenerator);
-      return codeGenerator.codegen({transitiveModules: true})
+      return codeGenerator.codegen({transitiveModules: true});
     }).then(() => {
       // Create a new Program, based on the old one. This will trigger a resolution of all
       // transitive modules, which include files that might just have been generated.
@@ -90,13 +93,32 @@ export class AotCompiler {
     })
     .then(() => {
       for ( const fileName of this.tsConfig.parsed.fileNames) {
-        const content = readFileSync(fileName).toString();
+        const cleanedFileName = normalize(resolve(fileName));
+        const content = readFileSync(cleanedFileName).toString();
         this.context.fileCache.set(fileName, { path: fileName, content: content});
       }
     })
     .then(() => {
-      const mainContent = getMainFileTypescriptContentForAotBuild();
-      this.context.fileCache.set(this.options.entryPoint, { path: this.options.entryPoint, content: mainContent});
+      const mainFile = this.context.fileCache.get(this.options.entryPoint);
+      if (!mainFile) {
+        throw new BuildError(new Error(`Could not find entry point (bootstrap file) ${this.options.entryPoint}`));
+      }
+      const mainSourceFile = getTypescriptSourceFile(mainFile.path, mainFile.content, ScriptTarget.Latest, false);
+      const AppNgModuleStringAndClassName = resolveAppNgModuleFromMain(mainSourceFile, this.context.fileCache, this.compilerHost, this.program);
+      const AppNgModuleTokens = AppNgModuleStringAndClassName.split('#');
+
+      let modifiedFileContent: string = null;
+      try {
+        modifiedFileContent = replaceBootstrap(mainFile.path, mainFile.content, AppNgModuleTokens[0], AppNgModuleTokens[1]);
+      } catch (ex) {
+        Logger.warn(`Failed to parse and update ${this.options.entryPoint} content for AoT compilation.
+                    For now, the default fallback content will be used instead.
+                    Please consider updating ${this.options.entryPoint} with the content from the following link:
+                    https://github.com/driftyco/ionic2-app-base/tree/master/src/app/main.ts`);
+        modifiedFileContent = getFallbackMainContent();
+      }
+
+      this.context.fileCache.set(this.options.entryPoint, { path: this.options.entryPoint, content: modifiedFileContent});
     })
     .then(() => {
       const tsFiles = this.context.fileCache.getAll().filter(file => extname(file.path) === '.ts' && file.path.indexOf('.d.ts') === -1);

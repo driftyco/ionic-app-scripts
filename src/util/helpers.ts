@@ -195,3 +195,11 @@ export function escapeHtml(unsafe: string) {
          .replace(/"/g, '&quot;')
          .replace(/'/g, '&#039;');
 }
+
+export function rangeReplace(source: string, startIndex: number, endIndex: number, newContent: string) {
+  return source.substring(0, startIndex) + newContent + source.substring(endIndex);
+}
+
+export function stringSplice(source: string, startIndex: number, numToDelete: number, newContent: string) {
+  return source.slice(0, startIndex) + newContent + source.slice(startIndex + Math.abs(numToDelete));
+}
