@@ -5,7 +5,6 @@ import { buildJsSourceMaps } from './bundle';
 import { changeExtension } from './util/helpers';
 import { EventEmitter } from 'events';
 import { fork, ChildProcess } from 'child_process';
-import { generateContext } from './util/config';
 import { inlineTemplate } from './template';
 import { Logger } from './logger/logger';
 import { readFileSync } from 'fs';
@@ -15,8 +14,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 
-export function transpile(context?: BuildContext) {
-  context = generateContext(context);
+export function transpile(context: BuildContext) {
 
   const workerConfig: TranspileWorkerConfig = {
     configFile: getTsConfigPath(context),

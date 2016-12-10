@@ -3,7 +3,7 @@ import { copyUpdate as copyUpdateHandler} from './copy';
 import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { canRunTranspileUpdate } from './transpile';
-import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
+import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
 import { extname, join, normalize, resolve as pathResolve } from 'path';
 import { Logger } from './logger/logger';
 import * as chokidar from 'chokidar';
@@ -12,9 +12,6 @@ import * as chokidar from 'chokidar';
 // https://github.com/paulmillr/chokidar
 
 export function watch(context?: BuildContext, configFile?: string) {
-
-  context = generateContext(context);
-
   configFile = getUserConfigFile(context, taskInfo, configFile);
 
   // Override all build options if watch is ran.

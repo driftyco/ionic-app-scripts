@@ -1,15 +1,14 @@
 import { join } from 'path';
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
-import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
+import { fillConfigDefaults, getUserConfigFile } from './util/config';
 import { Logger } from './logger/logger';
 import { readFileAsync, writeFileAsync } from './util/helpers';
 import { runWorker } from './worker-client';
 import * as cleanCss from 'clean-css';
 
 
-export function cleancss(context?: BuildContext, configFile?: string) {
-  context = generateContext(context);
+export function cleancss(context: BuildContext, configFile?: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
 
   const logger = new Logger('cleancss');

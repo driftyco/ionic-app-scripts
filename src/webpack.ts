@@ -2,7 +2,7 @@ import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfac
 import { BuildError, IgnorableError } from './util/errors';
 import { emit, EventType } from './util/events';
 import { join } from 'path';
-import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
+import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
 import { Logger } from './logger/logger';
 import * as webpackApi from 'webpack';
 
@@ -24,7 +24,6 @@ const INCREMENTAL_BUILD_SUCCESS = 'incremental_build_success';
 let pendingPromises: Promise<void>[] = [];
 
 export function webpack(context: BuildContext, configFile: string) {
-  context = generateContext(context);
   configFile = getUserConfigFile(context, taskInfo, configFile);
 
   const logger = new Logger('webpack');

@@ -3,7 +3,7 @@ import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfac
 import { BuildError } from './util/errors';
 import { bundle } from './bundle';
 import { ensureDirSync, readdirSync, writeFile } from 'fs-extra';
-import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
+import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
 import { Logger } from './logger/logger';
 import { runSassDiagnostics } from './logger/logger-sass';
 import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
@@ -12,8 +12,7 @@ import * as postcss from 'postcss';
 import * as autoprefixer from 'autoprefixer';
 
 
-export function sass(context?: BuildContext, configFile?: string) {
-  context = generateContext(context);
+export function sass(context: BuildContext, configFile?: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
 
   const logger = new Logger('sass');

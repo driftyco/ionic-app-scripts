@@ -2,7 +2,7 @@ import { access } from 'fs';
 import { BuildContext, ChangedFile, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { createProgram, findConfiguration, getFileNames } from 'tslint';
-import { generateContext, getUserConfigFile } from './util/config';
+import { getUserConfigFile } from './util/config';
 import { join } from 'path';
 import { Logger } from './logger/logger';
 import { printDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
@@ -13,9 +13,7 @@ import * as fs from 'fs';
 import * as ts from 'typescript';
 
 
-export function lint(context?: BuildContext, configFile?: string) {
-  context = generateContext(context);
-
+export function lint(context: BuildContext, configFile?: string) {
   return runWorker('lint', 'lintWorker', context, configFile)
     .catch(err => {
       throw new BuildError(err);

@@ -14,6 +14,7 @@ export * from './util/config';
 export * from './util/helpers';
 export * from './util/interfaces';
 
+import { generateContext } from './util/config';
 import { getAppScriptsVersion } from './util/helpers';
 import { Logger } from './logger/logger';
 
@@ -23,7 +24,8 @@ export function run(task: string) {
   } catch (e) {}
 
   try {
-    require(`../dist/${task}`)[task]().catch((err: any) => {
+    const context = generateContext(null);
+    require(`../dist/${task}`)[task](context).catch((err: any) => {
       errorLog(task, err);
     });
   } catch (e) {

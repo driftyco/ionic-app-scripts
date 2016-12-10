@@ -1,13 +1,11 @@
 import { BuildContext, ChangedFile } from './util/interfaces';
 import { BuildError, IgnorableError } from './util/errors';
-import { generateContext, BUNDLER_ROLLUP } from './util/config';
+import { BUNDLER_ROLLUP } from './util/config';
 import { rollup, rollupUpdate, getRollupConfig, getOutputDest as rollupGetOutputDest } from './rollup';
 import { webpack, webpackUpdate, getWebpackConfig, getOutputDest as webpackGetOutputDest } from './webpack';
 
 
-export function bundle(context?: BuildContext, configFile?: string) {
-  context = generateContext(context);
-
+export function bundle(context: BuildContext, configFile?: string) {
   return bundleWorker(context, configFile)
     .catch((err: Error) => {
       throw new BuildError(err);

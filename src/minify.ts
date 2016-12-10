@@ -1,13 +1,11 @@
 import { BuildContext } from './util/interfaces';
 import { cleancss } from './cleancss';
 import { closure, isClosureSupported } from './closure';
-import { generateContext } from './util/config';
 import { Logger } from './logger/logger';
 import { uglifyjs } from './uglifyjs';
 
 
-export function minify(context?: BuildContext) {
-  context = generateContext(context);
+export function minify(context: BuildContext) {
 
   const logger = new Logger('minify');
 

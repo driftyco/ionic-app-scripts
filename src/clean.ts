@@ -1,13 +1,10 @@
 import { BuildContext } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { emptyDirSync } from 'fs-extra';
-import { generateContext } from './util/config';
 import { Logger } from './logger/logger';
 
 
-export function clean(context?: BuildContext) {
-  context = generateContext(context);
-
+export function clean(context: BuildContext) {
   const logger = new Logger('clean');
 
   try {

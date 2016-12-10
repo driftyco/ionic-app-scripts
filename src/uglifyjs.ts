@@ -1,6 +1,6 @@
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
-import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
+import { fillConfigDefaults, getUserConfigFile } from './util/config';
 import { join } from 'path';
 import { Logger } from './logger/logger';
 import { runWorker } from './worker-client';
@@ -8,8 +8,7 @@ import { writeFileAsync } from './util/helpers';
 import * as uglify from 'uglify-js';
 
 
-export function uglifyjs(context?: BuildContext, configFile?: string) {
-  context = generateContext(context);
+export function uglifyjs(context: BuildContext, configFile?: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
 
   const logger = new Logger('uglifyjs');

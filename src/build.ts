@@ -6,7 +6,6 @@ import { bundle, bundleUpdate } from './bundle';
 import { clean } from './clean';
 import { copy } from './copy';
 import { emit, EventType } from './util/events';
-import { generateContext } from './util/config';
 import { lint, lintUpdate } from './lint';
 import { Logger } from './logger/logger';
 import { minifyCss, minifyJs } from './minify';
@@ -17,7 +16,6 @@ import { transpile, transpileUpdate, transpileDiagnosticsOnly } from './transpil
 
 
 export function build(context: BuildContext) {
-  context = generateContext(context);
   setContext(context);
   const logger = new Logger(`build ${(context.isProd ? 'prod' : 'dev')}`);
 
@@ -33,7 +31,7 @@ export function build(context: BuildContext) {
 }
 
 function handleDeprecations(error: Error) {
-  if (error && error.message && error.message.indexOf('ENOENT') >= 0 && error.message.indexOf(process.env.IONIC_APP_ENTRY_POINT_PATH)) {
+  if (error && error.message && error.message.indexOf('ENOENT') >= 0 && error.message.indexOf(process.env.IONIC_APP_ENTRY_POINT)) {
     const error = new BuildError(`"main.dev.ts" and "main.prod.ts" have been deprecated. Please create a new file "main.ts" containing the content of "main.dev.ts", and then delete the deprecated files.
                            For more information, please see the default Ionic project main.ts file here:
                            https://github.com/driftyco/ionic2-app-base/tree/master/src/app/main.ts`);
@@ -55,7 +53,7 @@ function buildWorker(context: BuildContext) {
 function validateRequiredFilesExist() {
   // for now, just do the entry point
   // eventually this could be Promise.all and load a bunch of stuff
-  return readFileAsync(process.env.IONIC_APP_ENTRY_POINT_PATH);
+  return readFileAsync(process.env.IONIC_APP_ENTRY_POINT);
 }
 
 function buildProject(context: BuildContext) {
@@ -75,7 +73,7 @@ function buildProject(context: BuildContext) {
       const minPromise = (context.runMinifyJs) ? minifyJs(context) : Promise.resolve();
       const sassPromise = sass(context)
         .then(() => {
-          return (context.runMinifyCss) ? minifyCss(context) : Promise.resolve()
+          return (context.runMinifyCss) ? minifyCss(context) : Promise.resolve();
         });
 
       return Promise.all([

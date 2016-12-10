@@ -1,6 +1,6 @@
 import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
-import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
+import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
 import { ionicRollupResolverPlugin, PLUGIN_NAME } from './rollup/ionic-rollup-resolver-plugin';
 import { join, isAbsolute, normalize, sep } from 'path';
 import { Logger } from './logger/logger';
@@ -8,7 +8,6 @@ import * as rollupBundler from 'rollup';
 
 
 export function rollup(context: BuildContext, configFile: string) {
-  context = generateContext(context);
   configFile = getUserConfigFile(context, taskInfo, configFile);
 
   const logger = new Logger('rollup');

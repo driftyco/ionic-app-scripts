@@ -1,11 +1,10 @@
+import { execSync } from 'child_process';
 import { BuildContext, TaskInfo } from './util/interfaces';
-import { generateContext, getUserConfigFile } from './util/config';
+import { fillConfigDefaults, getUserConfigFile } from './util/config';
 import { Logger } from './logger/logger';
 import { runWorker } from './worker-client';
 
-
-export function closure(context?: BuildContext, configFile?: string) {
-  context = generateContext(context);
+export function closure(context: BuildContext, configFile?: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
 
   const logger = new Logger('closure');
@@ -19,7 +18,6 @@ export function closure(context?: BuildContext, configFile?: string) {
     });
 }
 
-
 export function closureWorker(context: BuildContext, configFile: string): Promise<any> {
   return new Promise((resolve, reject) => {
     Logger.warn('Closer Compiler unsupported at this time.');
@@ -28,11 +26,24 @@ export function closureWorker(context: BuildContext, configFile: string): Promis
 }
 
 
-export function isClosureSupported(context: BuildContext) {
-  // TODO: check for Java and compiler.jar executable
+export function isClosureSupported(context: BuildContext): boolean{
+  /*const config = getClosureConfig(context, '');
+  try {
+    execSync(`${config.pathToJavaExecutable} --version`);
+    return true;
+  } catch (ex) {
+    Logger.debug('[Closure] isClosureSupported: Failed to execute java command');
+    return false;
+  }
+  */
   return false;
 }
 
+function getClosureConfig(context: BuildContext, configFile: string): ClosureConfig {
+  configFile = getUserConfigFile(context, taskInfo, configFile);
+
+  return fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+}
 
 const taskInfo: TaskInfo = {
   fullArg: '--closure',
@@ -46,4 +57,5 @@ const taskInfo: TaskInfo = {
 export interface ClosureConfig {
   // https://developers.google.com/closure/compiler/docs/gettingstarted_app
   pathToJavaExecutable: string;
+  pathToClosureJar: string;
 }

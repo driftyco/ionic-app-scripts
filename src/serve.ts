@@ -1,5 +1,5 @@
 import { BuildContext } from './util/interfaces';
-import { generateContext, getConfigValue, hasConfigValue } from './util/config';
+import { getConfigValue, hasConfigValue } from './util/config';
 import { BuildError } from './util/errors';
 import { setContext } from './util/helpers';
 import { Logger } from './logger/logger';
@@ -15,8 +15,7 @@ const LIVE_RELOAD_DEFAULT_PORT = 35729;
 const DEV_SERVER_DEFAULT_PORT = 8100;
 const DEV_SERVER_DEFAULT_HOST = '0.0.0.0';
 
-export function serve(context?: BuildContext) {
-  context = generateContext(context);
+export function serve(context: BuildContext) {
   setContext(context);
   const config: ServeConfig = {
     httpPort: getHttpServerPort(context),
