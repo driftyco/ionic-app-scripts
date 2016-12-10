@@ -13,13 +13,13 @@ var rollupConfig = {
    * be included, along with the minimum necessary code
    * from its dependencies
    */
-  entry: process.env.IONIC_APP_ENTRY_POINT_PATH,
+  entry: process.env.IONIC_APP_ENTRY_POINT,
 
   /**
    * sourceMap: If true, a separate sourcemap file will
    * be created.
    */
-  sourceMap: true,
+  sourceMap: process.env.IONIC_GENERATE_SOURCE_MAP ? true : false,
 
   /**
    * format: The format of the generated bundle
@@ -29,7 +29,7 @@ var rollupConfig = {
   /**
    * dest: the output filename for the bundle in the buildDir
    */
-  dest: 'main.js',
+  dest: process.env.IONIC_OUTPUT_JS_FILE_NAME,
 
   /**
    * plugins: Array of plugin objects, or a single plugin object.
@@ -51,10 +51,6 @@ var rollupConfig = {
 
 };
 
-
-if (process.env.IONIC_ENV === 'prod') {
-  rollupConfig.sourceMap = false;
-}
 
 
 module.exports = rollupConfig;
