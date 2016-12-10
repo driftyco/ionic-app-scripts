@@ -6,22 +6,22 @@ module.exports = {
   /**
    * sourceFile: The javascript file to minify
    */
-  sourceFile: 'main.js',
+  sourceFile: process.env.IONIC_OUTPUT_JS_FILE_NAME,
 
   /**
    * destFileName: file name for the minified js in the build dir
    */
-  destFileName: 'main.js',
+  destFileName: process.env.IONIC_OUTPUT_JS_FILE_NAME,
 
   /**
    * inSourceMap: file name for the input source map
    */
-  inSourceMap: 'main.js.map',
+  inSourceMap: process.env.IONIC_OUTPUT_JS_MAP_FILE_NAME,
 
   /**
    * outSourceMap: file name for the output source map
    */
-  outSourceMap: 'main.js.map',
+  outSourceMap: process.env.IONIC_OUTPUT_JS_MAP_FILE_NAME,
 
   /**
    * mangle: uglify 2's mangle option
