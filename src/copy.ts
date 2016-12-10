@@ -1,7 +1,7 @@
 import { mkdirpSync } from 'fs-extra';
 import { dirname as pathDirname, join as pathJoin, relative as pathRelative, resolve as pathResolve } from 'path';
 import { Logger } from './logger/logger';
-import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
+import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
 import { emit, EventType } from './util/events';
 import { generateGlobTasks, globAll, GlobObject, GlobResult } from './util/glob-util';
 import { copyFileAsync, rimRafAsync, unlinkAsync } from './util/helpers';
@@ -12,8 +12,7 @@ const copyFilePathCache = new Map<string, CopyToFrom[]>();
 
 const FILTER_OUT_DIRS_FOR_CLEAN = ['{{WWW}}', '{{BUILD}}'];
 
-export function copy(context?: BuildContext, configFile?: string) {
-  context = generateContext(context);
+export function copy(context: BuildContext, configFile?: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
 
   const logger = new Logger('copy');
@@ -241,8 +240,7 @@ function cleanConfigContent(dictionaryKeys: string[], copyConfig: CopyConfig, co
   });
 }
 
-export function copyConfigToWatchConfig(context?: BuildContext): Watcher {
-  context = generateContext(context);
+export function copyConfigToWatchConfig(context: BuildContext): Watcher {
   const configFile = getUserConfigFile(context, taskInfo, '');
   const copyConfig: CopyConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   let results: GlobObject[] = [];
