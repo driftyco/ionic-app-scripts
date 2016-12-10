@@ -3,6 +3,8 @@ import { BuildContext, TaskInfo } from './interfaces';
 import { join, resolve } from 'path';
 import { objectAssign } from './helpers';
 import { FileCache } from './file-cache';
+import { SOURCE_MAP_TYPE_EXPENSIVE } from './constants';
+
 /**
  * Create a context object which is used by all the build tasks.
  * Filling the config data uses the following hierarchy, which will
@@ -21,44 +23,6 @@ export function generateContext(context?: BuildContext): BuildContext {
   if (!context) {
     context = {};
     context.fileCache = new FileCache();
-  }
-
-  context.rootDir = resolve(context.rootDir || getConfigValue(context, '--rootDir', null, ENV_VAR_ROOT_DIR, ENV_VAR_ROOT_DIR.toLowerCase(), processCwd));
-  setProcessEnvVar(ENV_VAR_ROOT_DIR, context.rootDir);
-
-  context.tmpDir = resolve(context.tmpDir || getConfigValue(context, '--tmpDir', null, ENV_VAR_TMP_DIR, ENV_VAR_TMP_DIR.toLowerCase(), join(context.rootDir, TMP_DIR)));
-  setProcessEnvVar(ENV_VAR_TMP_DIR, context.tmpDir);
-
-  context.srcDir = resolve(context.srcDir || getConfigValue(context, '--srcDir', null, ENV_VAR_SRC_DIR, ENV_VAR_SRC_DIR.toLowerCase(), join(context.rootDir, SRC_DIR)));
-  setProcessEnvVar(ENV_VAR_SRC_DIR, context.srcDir);
-
-  context.wwwDir = resolve(context.wwwDir || getConfigValue(context, '--wwwDir', null, ENV_VAR_WWW_DIR, ENV_VAR_WWW_DIR.toLowerCase(), join(context.rootDir, WWW_DIR)));
-  setProcessEnvVar(ENV_VAR_WWW_DIR, context.wwwDir);
-
-  context.wwwIndex = join(context.wwwDir, WWW_INDEX_FILENAME);
-
-  context.buildDir = resolve(context.buildDir || getConfigValue(context, '--buildDir', null, ENV_VAR_BUILD_DIR, ENV_VAR_BUILD_DIR.toLowerCase(), join(context.wwwDir, BUILD_DIR)));
-  setProcessEnvVar(ENV_VAR_BUILD_DIR, context.buildDir);
-
-  setProcessEnvVar(ENV_VAR_APP_SCRIPTS_DIR, join(__dirname, '..', '..'));
-
-  const sourceMapValue = getConfigValue(context, '--sourceMap', null, ENV_VAR_SOURCE_MAP, ENV_VAR_SOURCE_MAP.toLowerCase(), 'eval');
-  setProcessEnvVar(ENV_VAR_SOURCE_MAP, sourceMapValue);
-
-  const tsConfigPathValue = getConfigValue(context, '--tsconfigPath', null, ENV_TS_CONFIG_PATH, ENV_TS_CONFIG_PATH.toLowerCase(), join(context.rootDir, 'tsconfig.json'));
-  setProcessEnvVar(ENV_TS_CONFIG_PATH, tsConfigPathValue);
-
-  const appEntryPointPathValue = getConfigValue(context, '--appEntryPointPath', null, ENV_APP_ENTRY_POINT_PATH, ENV_APP_ENTRY_POINT_PATH.toLowerCase(), join(context.srcDir, 'app', 'main.ts'));
-  setProcessEnvVar(ENV_APP_ENTRY_POINT_PATH, appEntryPointPathValue);
-
-  const pathToGlobUtils = getConfigValue(context, '--pathToGlobUtils', null, ENV_PATH_TO_GLOB_UTILS, ENV_PATH_TO_GLOB_UTILS.toLowerCase(), join(getProcessEnvVar(ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'util', 'glob-util.js'));
-  setProcessEnvVar(ENV_PATH_TO_GLOB_UTILS, pathToGlobUtils);
-
-  const cleanBeforeCopy = getConfigValue(context, '--cleanBeforeCopy', null, ENV_CLEAN_BEFORE_COPY, ENV_CLEAN_BEFORE_COPY.toLowerCase(), null);
-  setProcessEnvVar(ENV_CLEAN_BEFORE_COPY, cleanBeforeCopy);
-
-  if (!isValidBundler(context.bundler)) {
-    context.bundler = bundlerStrategy(context);
   }
 
   context.isProd = [
@@ -89,6 +53,68 @@ export function generateContext(context?: BuildContext): BuildContext {
 
   if (typeof context.isWatch !== 'boolean') {
     context.isWatch = hasArg('--watch');
+  }
+
+  context.rootDir = resolve(context.rootDir || getConfigValue(context, '--rootDir', null, ENV_VAR_ROOT_DIR, ENV_VAR_ROOT_DIR.toLowerCase(), processCwd));
+  setProcessEnvVar(ENV_VAR_ROOT_DIR, context.rootDir);
+
+  context.tmpDir = resolve(context.tmpDir || getConfigValue(context, '--tmpDir', null, ENV_VAR_TMP_DIR, ENV_VAR_TMP_DIR.toLowerCase(), join(context.rootDir, TMP_DIR)));
+  setProcessEnvVar(ENV_VAR_TMP_DIR, context.tmpDir);
+
+  context.srcDir = resolve(context.srcDir || getConfigValue(context, '--srcDir', null, ENV_VAR_SRC_DIR, ENV_VAR_SRC_DIR.toLowerCase(), join(context.rootDir, SRC_DIR)));
+  setProcessEnvVar(ENV_VAR_SRC_DIR, context.srcDir);
+
+  context.wwwDir = resolve(context.wwwDir || getConfigValue(context, '--wwwDir', null, ENV_VAR_WWW_DIR, ENV_VAR_WWW_DIR.toLowerCase(), join(context.rootDir, WWW_DIR)));
+  setProcessEnvVar(ENV_VAR_WWW_DIR, context.wwwDir);
+
+  context.wwwIndex = join(context.wwwDir, WWW_INDEX_FILENAME);
+
+  context.buildDir = resolve(context.buildDir || getConfigValue(context, '--buildDir', null, ENV_VAR_BUILD_DIR, ENV_VAR_BUILD_DIR.toLowerCase(), join(context.wwwDir, BUILD_DIR)));
+  setProcessEnvVar(ENV_VAR_BUILD_DIR, context.buildDir);
+
+  setProcessEnvVar(ENV_VAR_APP_SCRIPTS_DIR, join(__dirname, '..', '..'));
+
+  const generateSourceMap = getConfigValue(context, '--generateSourceMap', null, ENV_VAR_GENERATE_SOURCE_MAP, ENV_VAR_GENERATE_SOURCE_MAP.toLowerCase(), context.isProd || context.runMinifyJs ? null : 'true');
+  setProcessEnvVar(ENV_VAR_GENERATE_SOURCE_MAP, generateSourceMap);
+
+  const sourceMapTypeValue = getConfigValue(context, '--sourceMapType', null, ENV_VAR_SOURCE_MAP_TYPE, ENV_VAR_SOURCE_MAP_TYPE.toLowerCase(), SOURCE_MAP_TYPE_EXPENSIVE);
+  setProcessEnvVar(ENV_VAR_SOURCE_MAP_TYPE, sourceMapTypeValue);
+
+  const tsConfigPathValue = getConfigValue(context, '--tsconfig', null, ENV_TS_CONFIG, ENV_TS_CONFIG.toLowerCase(), join(context.rootDir, 'tsconfig.json'));
+  setProcessEnvVar(ENV_TS_CONFIG, tsConfigPathValue);
+
+  const appEntryPointPathValue = getConfigValue(context, '--appEntryPoint', null, ENV_APP_ENTRY_POINT, ENV_APP_ENTRY_POINT.toLowerCase(), join(context.srcDir, 'app', 'main.ts'));
+  setProcessEnvVar(ENV_APP_ENTRY_POINT, appEntryPointPathValue);
+
+  const pathToGlobUtils = getConfigValue(context, '--pathToGlobUtils', null, ENV_GLOB_UTIL, ENV_GLOB_UTIL.toLowerCase(), join(getProcessEnvVar(ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'util', 'glob-util.js'));
+  setProcessEnvVar(ENV_GLOB_UTIL, pathToGlobUtils);
+
+  const cleanBeforeCopy = getConfigValue(context, '--cleanBeforeCopy', null, ENV_CLEAN_BEFORE_COPY, ENV_CLEAN_BEFORE_COPY.toLowerCase(), null);
+  setProcessEnvVar(ENV_CLEAN_BEFORE_COPY, cleanBeforeCopy);
+
+  const pathToClosureJar = getConfigValue(context, '--pathToClosureJar', null, ENV_CLOSURE_JAR, ENV_CLOSURE_JAR.toLowerCase(), join(getProcessEnvVar(ENV_VAR_APP_SCRIPTS_DIR), 'bin', 'closure-compiler.jar'));
+  setProcessEnvVar(ENV_CLOSURE_JAR, pathToClosureJar);
+
+  const outputJsFileName = getConfigValue(context, '--outputJsFileName', null, ENV_OUTPUT_JS_FILE_NAME, ENV_OUTPUT_JS_FILE_NAME.toLowerCase(), 'main.js');
+  setProcessEnvVar(ENV_OUTPUT_JS_FILE_NAME, outputJsFileName);
+
+  const outputJsMapFileName = getConfigValue(context, '--outputJsMapFileName', null, ENV_OUTPUT_JS_MAP_FILE_NAME, ENV_OUTPUT_JS_MAP_FILE_NAME.toLowerCase(), 'main.js.map');
+  setProcessEnvVar(ENV_OUTPUT_JS_MAP_FILE_NAME, outputJsMapFileName);
+
+  const outputCssFileName = getConfigValue(context, '--outputCssFileName', null, ENV_OUTPUT_CSS_FILE_NAME, ENV_OUTPUT_CSS_FILE_NAME.toLowerCase(), 'main.css');
+  setProcessEnvVar(ENV_OUTPUT_CSS_FILE_NAME, outputCssFileName);
+
+  const outputCssMapFileName = getConfigValue(context, '--outputCssMapFileName', null, ENV_OUTPUT_CSS_MAP_FILE_NAME, ENV_OUTPUT_CSS_MAP_FILE_NAME.toLowerCase(), 'main.css.map');
+  setProcessEnvVar(ENV_OUTPUT_CSS_MAP_FILE_NAME, outputCssMapFileName);
+
+  const webpackFactoryPath = getConfigValue(context, '--webpackFactoryPath', null, ENV_WEBPACK_FACTORY, ENV_WEBPACK_FACTORY.toLowerCase(), join(getProcessEnvVar(ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'ionic-webpack-factory.js'));
+  setProcessEnvVar(ENV_WEBPACK_FACTORY, webpackFactoryPath);
+
+  const ionicTypescriptLoaderPath = getConfigValue(context, '--ionicTypescriptLoaderPath', null, ENV_WEBPACK_LOADER, ENV_WEBPACK_LOADER.toLowerCase(), join(getProcessEnvVar(ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'typescript-sourcemap-loader-memory.js'));
+  setProcessEnvVar(ENV_WEBPACK_LOADER, ionicTypescriptLoaderPath);
+
+  if (!isValidBundler(context.bundler)) {
+    context.bundler = bundlerStrategy(context);
   }
 
   context.inlineTemplates = true;
@@ -399,11 +425,19 @@ const ENV_VAR_SRC_DIR = 'IONIC_SRC_DIR';
 const ENV_VAR_WWW_DIR = 'IONIC_WWW_DIR';
 const ENV_VAR_BUILD_DIR = 'IONIC_BUILD_DIR';
 const ENV_VAR_APP_SCRIPTS_DIR = 'IONIC_APP_SCRIPTS_DIR';
-const ENV_VAR_SOURCE_MAP = 'IONIC_SOURCE_MAP';
-const ENV_TS_CONFIG_PATH = 'IONIC_TS_CONFIG_PATH';
-const ENV_APP_ENTRY_POINT_PATH = 'IONIC_APP_ENTRY_POINT_PATH';
-const ENV_PATH_TO_GLOB_UTILS = 'IONIC_PATH_TO_GLOB_UTILS';
+const ENV_VAR_GENERATE_SOURCE_MAP = 'IONIC_GENERATE_SOURCE_MAP';
+const ENV_VAR_SOURCE_MAP_TYPE = 'IONIC_SOURCE_MAP_TYPE';
+const ENV_TS_CONFIG = 'IONIC_TS_CONFIG';
+const ENV_APP_ENTRY_POINT = 'IONIC_APP_ENTRY_POINT';
+const ENV_GLOB_UTIL = 'IONIC_GLOB_UTIL';
 const ENV_CLEAN_BEFORE_COPY = 'IONIC_CLEAN_BEFORE_COPY';
+const ENV_CLOSURE_JAR = 'IONIC_CLOSURE_JAR';
+const ENV_OUTPUT_JS_FILE_NAME = 'IONIC_OUTPUT_JS_FILE_NAME';
+const ENV_OUTPUT_JS_MAP_FILE_NAME = 'IONIC_OUTPUT_JS_MAP_FILE_NAME';
+const ENV_OUTPUT_CSS_FILE_NAME = 'IONIC_OUTPUT_CSS_FILE_NAME';
+const ENV_OUTPUT_CSS_MAP_FILE_NAME = 'IONIC_OUTPUT_CSS_MAP_FILE_NAME';
+const ENV_WEBPACK_FACTORY = 'IONIC_WEBPACK_FACTORY';
+const ENV_WEBPACK_LOADER = 'IONIC_WEBPACK_LOADER';
 
 export const BUNDLER_ROLLUP = 'rollup';
 export const BUNDLER_WEBPACK = 'webpack';

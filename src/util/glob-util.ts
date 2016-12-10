@@ -1,5 +1,7 @@
-import * as globFunction from 'glob';
 import { dirname, isAbsolute, join, normalize, resolve as pathResolve, sep } from 'path';
+import * as globFunction from 'glob';
+import { toUnixPath } from './helpers';
+
 
 function isNegative(pattern: string) {
   return pattern[0] === '!';
@@ -114,7 +116,7 @@ function isNegatedGlob(pattern: string) {
 
 // https://github.com/jonschlinkert/to-absolute-glob/blob/master/index.js
 function toAbsoluteGlob(pattern: string) {
-  const cwd = unixify(process.cwd());
+  const cwd = toUnixPath(process.cwd());
 
   // trim starting ./ from glob patterns
   if (pattern.slice(0, 2) === './') {
@@ -146,10 +148,6 @@ function toAbsoluteGlob(pattern: string) {
   return ing.negated ? '!' + pattern : pattern;
 }
 
-function unixify(filePath: string) {
-  return filePath.replace(/\\/g, '/');
-}
-
 // https://github.com/es128/glob-parent/blob/master/index.js
 function globParent(pattern: string) {
 	// special case for strings ending in enclosure containing path separator
@@ -160,7 +158,7 @@ function globParent(pattern: string) {
 
 	// remove path parts that are globby
   do {
-    pattern = unixify(dirname(pattern));
+    pattern = toUnixPath(dirname(pattern));
   }
 
   while (isGlob(pattern) || /(^|[^\\])([\{\[]|\([^\)]+$)/.test(pattern));

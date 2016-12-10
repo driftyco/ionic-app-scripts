@@ -203,3 +203,7 @@ export function rangeReplace(source: string, startIndex: number, endIndex: numbe
 export function stringSplice(source: string, startIndex: number, numToDelete: number, newContent: string) {
   return source.slice(0, startIndex) + newContent + source.slice(startIndex + Math.abs(numToDelete));
 }
+
+export function toUnixPath(filePath: string) {
+  return filePath.replace(/\\/g, '/');
+}
