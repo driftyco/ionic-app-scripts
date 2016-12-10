@@ -8,6 +8,6 @@ module.exports = {
    * Note: if the executable is on the OS's PATH, often times
    * `java` will suffice. Verify by running `java --version`
    */
-  pathToJavaExecutable: 'java'
-
+  pathToJavaExecutable: 'java',
+  pathToClosureJar: process.env.IONIC_CLOSURE_JAR
 };
