@@ -1,30 +1,18 @@
 var path = require('path');
 var webpack = require('webpack');
-
-var ionicWebpackFactoryPath = path.join(process.env.IONIC_APP_SCRIPTS_DIR, 'dist', 'webpack', 'ionic-webpack-factory.js');
-var ionicWebpackFactory = require(ionicWebpackFactoryPath);
-
-function getDevtool() {
-  if (process.env.IONIC_ENV === 'prod') {
-    // for now, just force source-map for prod builds
-    return 'source-map';
-  }
-
-  return process.env.IONIC_SOURCE_MAP;
-}
+var ionicWebpackFactory = require(process.env.IONIC_WEBPACK_FACTORY);
 
 module.exports = {
-  bail: true,
-  entry: process.env.IONIC_APP_ENTRY_POINT_PATH,
+  entry: process.env.IONIC_APP_ENTRY_POINT,
   output: {
     path: '{{BUILD}}',
-    filename: 'main.js',
+    filename: process.env.IONIC_OUTPUT_JS_FILE_NAME,
     devtoolModuleFilenameTemplate: ionicWebpackFactory.getSourceMapperFunction(),
   },
-  devtool: getDevtool(),
+  devtool: process.env.IONIC_GENERATE_SOURCE_MAP ? process.env.IONIC_SOURCE_MAP_TYPE : '',
 
   resolve: {
-    extensions: ['.js', '.ts', '.json'],
+    extensions: ['.ts', '.js', '.json'],
     modules: [path.resolve('node_modules')]
   },
 
@@ -35,8 +23,9 @@ module.exports = {
         loader: 'json-loader'
       },
       {
-        test: /\.(ts|ngfactory.js)$/,
-        loader: path.join(process.env.IONIC_APP_SCRIPTS_DIR, 'dist', 'webpack', 'typescript-sourcemap-loader-memory.js')
+        //test: /\.(ts|ngfactory.js)$/,
+        test: /\.ts$/,
+        loader: process.env.IONIC_WEBPACK_LOADER
       }
     ]
   },
