@@ -163,7 +163,7 @@ function processRemoveFile(changedFile: ChangedFile) {
   });
 }
 
-function processRemoveDir(changedFile: ChangedFile) {
+function processRemoveDir(changedFile: ChangedFile): Promise<any> {
   // remove any files from the cache where the dirname equals the provided path
   const keysToRemove: string[] = [];
   const directoriesToRemove = new Set<string>();

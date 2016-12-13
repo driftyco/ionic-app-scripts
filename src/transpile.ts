@@ -331,7 +331,6 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
     config = {
       options: parsedConfig.options,
       fileNames: parsedConfig.fileNames,
-      typingOptions: parsedConfig.typingOptions,
       raw: parsedConfig.raw
     };
   }
@@ -350,7 +349,6 @@ export function getTsConfigPath(context: BuildContext) {
 export interface TsConfig {
   options: ts.CompilerOptions;
   fileNames: string[];
-  typingOptions: ts.TypingOptions;
   raw: any;
 }
 

@@ -14,7 +14,6 @@ import { sass, sassUpdate } from './sass';
 import { templateUpdate } from './template';
 import { transpile, transpileUpdate, transpileDiagnosticsOnly } from './transpile';
 
-
 export function build(context: BuildContext) {
   setContext(context);
   const logger = new Logger(`build ${(context.isProd ? 'prod' : 'dev')}`);

@@ -116,7 +116,7 @@ export function readFileAsync(filePath: string): Promise<string> {
   });
 }
 
-export function unlinkAsync(filePath: string): Promise<void> {
+export function unlinkAsync(filePath: string): Promise<any> {
   return new Promise((resolve, reject) => {
     unlink(filePath, (err: Error) => {
       if (err) {
@@ -125,9 +125,11 @@ export function unlinkAsync(filePath: string): Promise<void> {
       return resolve();
     });
   });
+
+
 }
 
-export function rimRafAsync(directoryPath: string) {
+export function rimRafAsync(directoryPath: string): Promise<null> {
   return new Promise((resolve, reject) => {
     remove(directoryPath, (err: Error) => {
       if (err) {
@@ -138,7 +140,7 @@ export function rimRafAsync(directoryPath: string) {
   });
 }
 
-export function copyFileAsync(srcPath: string, destPath: string) {
+export function copyFileAsync(srcPath: string, destPath: string): Promise<any> {
   return new Promise((resolve, reject) => {
     const writeStream = createWriteStream(destPath);
 

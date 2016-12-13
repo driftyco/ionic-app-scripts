@@ -18,6 +18,7 @@
   },
   "scripts": {
     "build": "npm run clean && tsc && npm run sass",
+    "test-watch": "tsc --watch --target es2015",
     "build-and-test": "npm run build && npm run test",
     "changelog": "./node_modules/.bin/conventional-changelog -p angular -i CHANGELOG.md -s",
     "clean": "rimraf ./dist",
@@ -26,8 +27,8 @@
     "nightly": "npm run build && node ./scripts/publish-nightly.js",
     "sass": "node-sass ./src/dev-client/sass/ion-dev.scss --output ./bin/ --output-style compressed",
     "sass-watch": "npm run sass && node-sass ./src/dev-client/sass/ion-dev.scss --watch --output ./bin/ --output-style compressed",
-    "test": "jasmine JASMINE_CONFIG_PATH=src/spec/jasmine.config.json || true",
-    "watch": "npm run clean && tsc --watch & npm run sass-watch"
+    "test": "jasmine JASMINE_CONFIG_PATH=scripts/jasmine.config.json || true",
+    "watch": "npm run clean &&  & npm run sass-watch"
   },
   "main": "dist/index.js",
   "dependencies": {
@@ -88,10 +89,11 @@
     "jasmine": "2.5.2",
     "mock-fs": "3.11.0",
     "node-sass": "3.10.1",
+    "proxyquire": "^1.7.10",
     "rimraf": "2.5.4",
     "rxjs": "5.0.0-beta.12",
     "tslint-ionic-rules": "0.0.8",
-    "typescript": "2.0.9",
+    "typescript": "^2.1.4",
     "zone.js": "^0.6.26"
   },
   "peerDependencies": {
