@@ -117,7 +117,7 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
 
     const diagnostics = runTypeScriptDiagnostics(context, tsDiagnostics);
 
-    if (diagnostics.length) {
+    if (diagnostics.length && !context.ignoreTsErrors) {
       // darn, we've got some things wrong, transpile failed :(
       printDiagnostics(context, DiagnosticsType.TypeScript, diagnostics, true, true);
 
@@ -173,7 +173,7 @@ function transpileUpdateWorker(event: string, filePath: string, context: BuildCo
 
     const diagnostics = runTypeScriptDiagnostics(context, transpileOutput.diagnostics);
 
-    if (diagnostics.length) {
+    if (diagnostics.length && !context.ignoreTsErrors) {
       printDiagnostics(context, DiagnosticsType.TypeScript, diagnostics, false, true);
 
       // darn, we've got some errors with this transpiling :(
@@ -323,7 +323,7 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
 
     const diagnostics = runTypeScriptDiagnostics(context, parsedConfig.errors);
 
-    if (diagnostics.length) {
+    if (diagnostics.length && !context.ignoreTsErrors) {
       printDiagnostics(context, DiagnosticsType.TypeScript, diagnostics, true, true);
       throw new BuildError();
     }

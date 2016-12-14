@@ -32,7 +32,8 @@ export function serve(context: BuildContext) {
     notificationPort: getNotificationPort(context),
     useServerLogs: useServerLogs(context),
     useProxy: useProxy(context),
-    notifyOnConsoleLog: sendClientConsoleLogs(context)
+    notifyOnConsoleLog: sendClientConsoleLogs(context),
+    ignoreTsErrors: getIgnoreTsErrors(context)
   };
 
   createNotificationServer(config);
@@ -138,4 +139,8 @@ function useProxy(context: BuildContext) {
 
 function sendClientConsoleLogs(context: BuildContext) {
   return hasConfigValue(context, '--consolelogs', '-c', 'ionic_consolelogs', false);
+}
+
+function getIgnoreTsErrors(context: BuildContext) {
+  return hasConfigValue(context, '--ignorets', '-i', 'ionic_ignore_ts_errors', false);
 }
