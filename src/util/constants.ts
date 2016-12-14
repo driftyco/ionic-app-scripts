@@ -12,6 +12,9 @@ export const SRC_DIR = 'src';
 export const WWW_DIR = 'www';
 export const WWW_INDEX_FILENAME = 'index.html';
 
+export const ENV_VAR_PROD = 'prod';
+export const ENV_VAR_DEV = 'dev';
+export const ENV_VAR_IONIC_ENV = 'IONIC_ENV';
 export const ENV_VAR_ROOT_DIR = 'IONIC_ROOT_DIR';
 export const ENV_VAR_SRC_DIR = 'IONIC_SRC_DIR';
 export const ENV_VAR_WWW_DIR = 'IONIC_WWW_DIR';
