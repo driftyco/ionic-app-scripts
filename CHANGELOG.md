@@ -24,7 +24,7 @@ platformBrowserDynamic().bootstrapModule(AppModule);
 #### Dev Builds By Default Changes
 All builds are now development (non-AoT) builds by default. This allows for a better development experience when testing on a device. To get started, please follow the steps below.
 
-Make sure the `script` section of `package.json` looks like this:
+Make sure the `scripts` section of `package.json` looks like this:
 
 ```
   "scripts": {
