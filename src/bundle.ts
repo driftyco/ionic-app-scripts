@@ -1,16 +1,15 @@
 import { BuildContext, ChangedFile } from './util/interfaces';
-import { BuildError } from './util/errors';
+import { BuildError, IgnorableError } from './util/errors';
 import * as Constants from './util/constants';
 import { rollup, rollupUpdate, getRollupConfig, getOutputDest as rollupGetOutputDest } from './rollup';
 import { webpack, webpackUpdate, getWebpackConfig, getOutputDest as webpackGetOutputDest } from './webpack';
 
 
-export async function bundle(context: BuildContext, configFile?: string): Promise<void> {
-  try {
-    return await bundleWorker(context, configFile);
-  } catch (ex) {
-    throw new BuildError(ex);
-  }
+export function bundle(context: BuildContext, configFile?: string) {
+  return bundleWorker(context, configFile)
+    .catch((err: Error) => {
+      throw new BuildError(err);
+    });
 }
 
 
@@ -23,15 +22,21 @@ function bundleWorker(context: BuildContext, configFile: string) {
 }
 
 
-export async function bundleUpdate(changedFiles: ChangedFile[], context: BuildContext) {
-  try {
-    if (context.bundler === Constants.BUNDLER_ROLLUP) {
-      return await rollupUpdate(changedFiles, context);
-    }
-    return await webpackUpdate(changedFiles, context);
-  } catch (ex) {
-    throw new BuildError(ex);
+export function bundleUpdate(changedFiles: ChangedFile[], context: BuildContext) {
+  if (context.bundler === Constants.BUNDLER_ROLLUP) {
+    return rollupUpdate(changedFiles, context)
+      .catch(err => {
+        throw new BuildError(err);
+      });
   }
+
+  return webpackUpdate(changedFiles, context)
+    .catch(err => {
+      if (err instanceof IgnorableError) {
+        throw err;
+      }
+      throw new BuildError(err);
+    });
 }
 
 

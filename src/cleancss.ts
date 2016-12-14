@@ -8,28 +8,29 @@ import * as workerClient from './worker-client';
 import { CleanCssConfig, getCleanCssInstance } from './util/clean-css-factory';
 
 
-export async function cleancss(context: BuildContext, configFile?: string) {
+export function cleancss(context: BuildContext, configFile?: string) {
   const logger = new Logger('cleancss');
-  try {
-    configFile = getUserConfigFile(context, taskInfo, configFile);
-    await workerClient.runWorker('cleancss', 'cleancssWorker', context, configFile);
+  configFile = getUserConfigFile(context, taskInfo, configFile);
+  return workerClient.runWorker('cleancss', 'cleancssWorker', context, configFile).then(() => {
     logger.finish();
-  } catch (ex) {
-    throw logger.fail(ex);
-  }
+  }).catch(err => {
+    throw logger.fail(err);
+  });
 }
 
 
-export async function cleancssWorker(context: BuildContext, configFile: string): Promise<any> {
+export function cleancssWorker(context: BuildContext, configFile: string): Promise<any> {
   context = generateContext(context);
   const config: CleanCssConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   const srcFile = join(context.buildDir, config.sourceFileName);
   const destFilePath = join(context.buildDir, config.destFileName);
-  Logger.debug(`[Clean CSS] cleancssWorker: reading source file ${srcFile}`);
-  const fileContent = await readFileAsync(srcFile);
-  const minifiedContent = await runCleanCss(config, fileContent);
-  Logger.debug(`[Clean CSS] runCleanCss: writing file to disk ${destFilePath}`);
-  await writeFileAsync(destFilePath, minifiedContent);
+  Logger.debug(`[Clean CSS] cleancssWorker: reading source file ${srcFile}`)
+  return readFileAsync(srcFile).then(fileContent => {
+    return runCleanCss(config, fileContent);
+  }).then(minifiedContent => {
+    Logger.debug(`[Clean CSS] runCleanCss: writing file to disk ${destFilePath}`);
+    return writeFileAsync(destFilePath, minifiedContent);
+  });
 }
 
 // exporting for easier unit testing

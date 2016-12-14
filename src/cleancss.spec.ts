@@ -12,55 +12,56 @@ import * as workerClient from './worker-client';
 describe('clean css task', () => {
 
   describe('cleancss', () => {
-    it('should return when the worker returns', async () => {
+    it('should return when the worker returns', (done: Function) => {
       // arrange
       const context = { };
       const configFile: any = null;
       const spy = spyOn(workerClient, workerClient.runWorker.name).and.returnValue(Promise.resolve());
       // act
-      await (cleanCss as any).cleancss(context, null);
-      // assert
-      expect(spy).toHaveBeenCalledWith('cleancss', 'cleancssWorker', context, configFile);
+      (cleanCss as any).cleancss(context, null).then(() => {
+        // assert
+        expect(spy).toHaveBeenCalledWith('cleancss', 'cleancssWorker', context, configFile);
+        done();
+      });
     });
 
-    it('should throw when the worker throws', async () => {
+    it('should throw when the worker throws', (done: Function) => {
       // arrange
       const context = { };
       const errorMessage = 'Simulating an error';
-      spyOn(workerClient, workerClient.runWorker.name).and.throwError(errorMessage);
-      try {
-        // act
-        await (cleanCss as any).cleancss(context, null);
-       throw new Error('Should never get here');
-      } catch (ex) {
-         // assert
-        expect(ex.message).toEqual(errorMessage, `Expected ex.message ${ex.message} to equal ${errorMessage}`);
-      }
+      spyOn(workerClient, workerClient.runWorker.name).and.returnValue(Promise.reject(new Error(errorMessage)));
+
+      // act
+      (cleanCss as any).cleancss(context, null).then(() => {
+        throw new Error('Should never get here');
+      }).catch((err: Error) => {
+        // assert
+        expect(err.message).toEqual(errorMessage, `Expected ex.message ${err.message} to equal ${errorMessage}`);
+        done();
+      });
     });
   });
 
   describe('cleancssworker', () => {
-    it('should throw when reading the file throws', async (done) => {
+    it('should throw when reading the file throws', (done: Function) => {
        const errorMessage = 'simulating an error';
-      try {
-        // arrange
-        const context = { buildDir: 'www'};
-        const cleanCssConfig = { sourceFileName: 'sourceFileName', destFileName: 'destFileName'};
-        spyOn(config, config.generateContext.name).and.returnValue(context);
-        spyOn(config, config.fillConfigDefaults.name).and.returnValue(cleanCssConfig);
-        spyOn(helpers, helpers.readFileAsync.name).and.throwError(errorMessage);
+      // arrange
+      const context = { buildDir: 'www'};
+      const cleanCssConfig = { sourceFileName: 'sourceFileName', destFileName: 'destFileName'};
+      spyOn(config, config.generateContext.name).and.returnValue(context);
+      spyOn(config, config.fillConfigDefaults.name).and.returnValue(cleanCssConfig);
+      spyOn(helpers, helpers.readFileAsync.name).and.returnValue(Promise.reject(new Error(errorMessage)));
 
-        // act
-        await (cleanCss as any).cleancssWorker(context, null);
-
+      // act
+      (cleanCss as any).cleancssWorker(context, null).then(() => {
         throw new Error('Should never get here');
-      } catch (ex) {
-        expect(ex.message).toEqual(errorMessage);
+      }).catch((err: Error) => {
+        expect(err.message).toEqual(errorMessage);
         done();
-      }
+      });
     });
 
-    it('should return what writeFileAsync returns', async (done) => {
+    it('should return what writeFileAsync returns', (done: Function) => {
       // arrange
       const context = { buildDir: 'www'};
       const cleanCssConfig = { sourceFileName: 'sourceFileName', destFileName: 'destFileName'};
@@ -76,82 +77,76 @@ describe('clean css task', () => {
       cleanCss.__set__('runCleanCss', spy);
 
       // act
-      await (cleanCss as any).cleancssWorker(context, null);
-
-      // assert
-      expect(config.generateContext).toHaveBeenCalledWith(context);
-      expect(config.fillConfigDefaults).toHaveBeenCalledWith(null, (cleanCss as any).taskInfo.defaultConfigFile);
-      expect(helpers.readFileAsync).toHaveBeenCalledWith(join(context.buildDir, cleanCssConfig.sourceFileName));
-      expect(helpers.writeFileAsync).toHaveBeenCalledWith(join(context.buildDir, cleanCssConfig.destFileName), minifiedContent);
-      expect(spy).toHaveBeenCalledWith(cleanCssConfig, fileContent);
-      done();
+      (cleanCss as any).cleancssWorker(context, null).then(() => {
+        // assert
+        expect(config.generateContext).toHaveBeenCalledWith(context);
+        expect(config.fillConfigDefaults).toHaveBeenCalledWith(null, (cleanCss as any).taskInfo.defaultConfigFile);
+        expect(helpers.readFileAsync).toHaveBeenCalledWith(join(context.buildDir, cleanCssConfig.sourceFileName));
+        expect(helpers.writeFileAsync).toHaveBeenCalledWith(join(context.buildDir, cleanCssConfig.destFileName), minifiedContent);
+        expect(spy).toHaveBeenCalledWith(cleanCssConfig, fileContent);
+        done();
+      });
     });
   });
 
   describe('runCleanCss', () => {
-    it('should reject when minification errors out', async (done) => {
+    it('should reject when minification errors out', (done: Function) => {
       // arrange
       const errorMessage = 'simulating an error';
       const configFile = { options: {} };
       const fileContent = 'fileContent';
-      let minifySpy: jasmine.Spy = null;
-      try {
-        const destinationFilePath = 'filePath';
-        const mockMinifier = {
-          minify: () => {}
-        };
-        minifySpy = spyOn(mockMinifier, mockMinifier.minify.name);
-        spyOn(cleanCssFactory, cleanCssFactory.getCleanCssInstance.name).and.returnValue(mockMinifier);
+      const destinationFilePath = 'filePath';
+      const mockMinifier = {
+        minify: () => {}
+      };
+      const minifySpy = spyOn(mockMinifier, mockMinifier.minify.name);
+      spyOn(cleanCssFactory, cleanCssFactory.getCleanCssInstance.name).and.returnValue(mockMinifier);
 
-        // act
-        const promise = (cleanCss as any).runCleanCss(configFile, fileContent, destinationFilePath);
-        // call the callback from the spy's args
-        const callback = minifySpy.calls.mostRecent().args[1];
-        callback(new Error(errorMessage), null);
+      // act
+      const promise = (cleanCss as any).runCleanCss(configFile, fileContent, destinationFilePath);
+      // call the callback from the spy's args
+      const callback = minifySpy.calls.mostRecent().args[1];
+      callback(new Error(errorMessage), null);
 
-        await promise;
-
+      promise.then(() => {
         throw new Error('Should never get here');
-      } catch (ex) {
+      }).catch((err: Error) => {
         // assert
-        expect(ex.message).toEqual(errorMessage);
+        expect(err.message).toEqual(errorMessage);
         done();
-      }
+      });
     });
 
-    it('should reject when minification has one or more errors', async (done) => {
+    it('should reject when minification has one or more errors', (done: Function) => {
       // arrange
       const configFile = { options: {} };
       const fileContent = 'fileContent';
-      let minifySpy: jasmine.Spy = null;
       const minificationResponse = {
         errors: ['some error']
       };
-      try {
-        const destinationFilePath = 'filePath';
-        const mockMinifier = {
-          minify: () => {}
-        };
-        minifySpy = spyOn(mockMinifier, mockMinifier.minify.name);
-        spyOn(cleanCssFactory, cleanCssFactory.getCleanCssInstance.name).and.returnValue(mockMinifier);
+      const destinationFilePath = 'filePath';
+      const mockMinifier = {
+        minify: () => {}
+      };
+      const minifySpy = spyOn(mockMinifier, mockMinifier.minify.name);
+      spyOn(cleanCssFactory, cleanCssFactory.getCleanCssInstance.name).and.returnValue(mockMinifier);
 
-        // act
-        const promise = (cleanCss as any).runCleanCss(configFile, fileContent, destinationFilePath);
-        // call the callback from the spy's args
-        const callback = minifySpy.calls.mostRecent().args[1];
-        callback(null, minificationResponse);
+      // act
+      const promise = (cleanCss as any).runCleanCss(configFile, fileContent, destinationFilePath);
+      // call the callback from the spy's args
+      const callback = minifySpy.calls.mostRecent().args[1];
+      callback(null, minificationResponse);
 
-        await promise;
-
+      promise.then(() => {
         throw new Error('Should never get here');
-      } catch (ex) {
+      }).catch((err: Error) => {
         // assert
-        expect(ex.message).toEqual(minificationResponse.errors[0]);
+        expect(err.message).toEqual(minificationResponse.errors[0]);
         done();
-      }
+      });
     });
 
-    it('should return minified content', async (done) => {
+    it('should return minified content', (done: Function) => {
       const configFile = { options: {} };
       const fileContent = 'fileContent';
       let minifySpy: jasmine.Spy = null;
@@ -171,11 +166,12 @@ describe('clean css task', () => {
       const callback = minifySpy.calls.mostRecent().args[1];
       callback(null, minificationResponse);
 
-      const result = await promise;
-      expect(result).toEqual(minificationResponse.styles);
-      expect(cleanCssFactory.getCleanCssInstance).toHaveBeenCalledWith(configFile.options);
-      expect(minifySpy.calls.mostRecent().args[0]).toEqual(fileContent);
-      done();
+      promise.then((result: string) => {
+        expect(result).toEqual(minificationResponse.styles);
+        expect(cleanCssFactory.getCleanCssInstance).toHaveBeenCalledWith(configFile.options);
+        expect(minifySpy.calls.mostRecent().args[0]).toEqual(fileContent);
+        done();
+      });
     });
   });
 });

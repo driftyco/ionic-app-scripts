@@ -4,18 +4,17 @@ import * as clean from './clean';
 describe('clean task', () => {
 
   describe('clean', () => {
-    it('should empty the build directory', async (done: Function) => {
+    it('should empty the build directory', (done: Function) => {
       // arrage
       spyOn(fs, fs.emptyDirSync.name).and.returnValue('hurray');
       const context = { buildDir: 'something' };
 
       // act
-      const result = clean.clean(context);
-
-      // assert
-      await result;
-      expect(fs.emptyDirSync).toHaveBeenCalledWith(context.buildDir);
-      done();
+      clean.clean(context).then(() => {
+        // assert
+        expect(fs.emptyDirSync).toHaveBeenCalledWith(context.buildDir);
+        done();
+      });
     });
 
     it('should throw when failing to empty dir', (done: Function) => {
