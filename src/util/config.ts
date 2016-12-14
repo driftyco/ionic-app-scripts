@@ -30,6 +30,8 @@ export function generateContext(context?: BuildContext): BuildContext {
     hasArg('--prod')
   ].find(val => typeof val === 'boolean');
 
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_ENV, (context.isProd ? Constants.ENV_VAR_PROD : Constants.ENV_VAR_DEV));
+
   // If context is prod then the following flags must be set to true
   context.runAot = [
     context.runAot,
@@ -118,6 +120,10 @@ export function generateContext(context?: BuildContext): BuildContext {
 }
 
 export function getUserConfigFile(context: BuildContext, task: TaskInfo, userConfigFile: string) {
+  if (!context) {
+    context = generateContext(context);
+  }
+
   if (userConfigFile) {
     return resolve(userConfigFile);
   }
@@ -216,6 +222,10 @@ function isValidBundler(bundler: any) {
 
 
 export function getConfigValue(context: BuildContext, argFullName: string, argShortName: string, envVarName: string, packageConfigProp: string, defaultValue: string) {
+  if (!context) {
+    context = generateContext(context);
+  }
+
   // first see if the value was set in the command-line args
   const argVal = getArgValue(argFullName, argShortName);
   if (argVal !== null) {
@@ -254,6 +264,10 @@ function getArgValue(fullName: string, shortName: string): string {
 
 
 export function hasConfigValue(context: BuildContext, argFullName: string, argShortName: string, envVarName: string, defaultValue: boolean) {
+  if (!context) {
+    context = generateContext(context);
+  }
+
   if (hasArg(argFullName, argShortName)) {
     return true;
   }
