@@ -1,7 +1,7 @@
 import { mkdirpSync } from 'fs-extra';
 import { dirname as pathDirname, join as pathJoin, relative as pathRelative, resolve as pathResolve } from 'path';
 import { Logger } from './logger/logger';
-import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
+import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
 import { emit, EventType } from './util/events';
 import { generateGlobTasks, globAll, GlobObject, GlobResult } from './util/glob-util';
 import { copyFileAsync, rimRafAsync, unlinkAsync } from './util/helpers';
@@ -241,6 +241,9 @@ function cleanConfigContent(dictionaryKeys: string[], copyConfig: CopyConfig, co
 }
 
 export function copyConfigToWatchConfig(context: BuildContext): Watcher {
+  if (!context) {
+    context = generateContext(context);
+  }
   const configFile = getUserConfigFile(context, taskInfo, '');
   const copyConfig: CopyConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   let results: GlobObject[] = [];
@@ -274,7 +277,7 @@ interface CopySrcToDestResult {
   errorMessage: string;
 }
 
-const taskInfo: TaskInfo = {
+export const taskInfo: TaskInfo = {
   fullArg: '--copy',
   shortArg: '-y',
   envVar: 'IONIC_COPY',
