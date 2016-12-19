@@ -64,7 +64,7 @@ Ionic projects use the `package.json` file for configuration. There's a handy [c
 ```
   "config": {
     "ionic_bundler": "rollup",
-    "ionic_source_map": "source-map",
+    "ionic_source_map_type": "source-map",
     "ionic_cleancss": "./config/cleancss.config.js"
   },
 ```
