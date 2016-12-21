@@ -124,8 +124,11 @@ export class AotCompiler {
     .then(() => {
       const tsFiles = this.context.fileCache.getAll().filter(file => extname(file.path) === '.ts' && file.path.indexOf('.d.ts') === -1);
       for (const tsFile of tsFiles) {
-        const cleanedFileContent = removeDecorators(tsFile.path, tsFile.content);
-        tsFile.content = cleanedFileContent;
+        // Temporary fix to keep custom decorators until a
+        // proper resolution can be found.
+        /*const cleanedFileContent = removeDecorators(tsFile.path, tsFile.content);
+        tsFile.content = cleanedFileContent;*/
+        const cleanedFileContent = tsFile.content;
         const transpileOutput = this.transpileFileContent(tsFile.path, cleanedFileContent, this.tsConfig.parsed.options);
         const diagnostics = runTypeScriptDiagnostics(this.context, transpileOutput.diagnostics);
         if (diagnostics.length) {
