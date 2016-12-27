@@ -156,7 +156,7 @@ These environment variables are automatically set to [Node's `process.env`](http
 
 
 
-The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` task is `prod`, and the `watch` and `serve` tasks are `dev`. Additionally, using the `--dev` command line flag will force the build to use `dev`.
+The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` and `serve` tasks produce `dev` builds (a build that does not include Ahead of Time (AoT) compilation). To force a `prod` build you should use the `--prod` command line flag.
 
 Please take a look at the bottom of the [default Rollup config file](https://github.com/driftyco/ionic-app-scripts/blob/master/config/rollup.config.js) to see how the `IONIC_ENV` environment variable is being used to conditionally change config values for production builds.
 
