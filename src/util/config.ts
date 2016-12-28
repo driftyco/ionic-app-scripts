@@ -60,6 +60,9 @@ export function generateContext(context?: BuildContext): BuildContext {
   context.rootDir = resolve(context.rootDir || getConfigValue(context, '--rootDir', null, Constants.ENV_VAR_ROOT_DIR, Constants.ENV_VAR_ROOT_DIR.toLowerCase(), processCwd));
   setProcessEnvVar(Constants.ENV_VAR_ROOT_DIR, context.rootDir);
 
+  context.tmpDir = resolve(context.tmpDir || getConfigValue(context, '--tmpDir', null, Constants.ENV_VAR_TMP_DIR, Constants.ENV_VAR_TMP_DIR.toLowerCase(), join(context.rootDir, Constants.TMP_DIR)));
+  setProcessEnvVar(Constants.ENV_VAR_TMP_DIR, context.tmpDir);
+
   context.srcDir = resolve(context.srcDir || getConfigValue(context, '--srcDir', null, Constants.ENV_VAR_SRC_DIR, Constants.ENV_VAR_SRC_DIR.toLowerCase(), join(context.rootDir, Constants.SRC_DIR)));
   setProcessEnvVar(Constants.ENV_VAR_SRC_DIR, context.srcDir);
 

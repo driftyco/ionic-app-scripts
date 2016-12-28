@@ -9,6 +9,7 @@ export const SOURCE_MAP_TYPE_EXPENSIVE = 'source-map';
 
 export const BUILD_DIR = 'build';
 export const SRC_DIR = 'src';
+export const TMP_DIR = '.tmp';
 export const WWW_DIR = 'www';
 export const WWW_INDEX_FILENAME = 'index.html';
 
@@ -17,6 +18,7 @@ export const ENV_VAR_DEV = 'dev';
 export const ENV_VAR_IONIC_ENV = 'IONIC_ENV';
 export const ENV_VAR_ROOT_DIR = 'IONIC_ROOT_DIR';
 export const ENV_VAR_SRC_DIR = 'IONIC_SRC_DIR';
+export const ENV_VAR_TMP_DIR = 'IONIC_TMP_DIR';
 export const ENV_VAR_WWW_DIR = 'IONIC_WWW_DIR';
 export const ENV_VAR_BUILD_DIR = 'IONIC_BUILD_DIR';
 export const ENV_VAR_APP_SCRIPTS_DIR = 'IONIC_APP_SCRIPTS_DIR';

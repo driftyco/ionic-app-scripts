@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
-import { extname, normalize, resolve } from 'path';
+import { mkdirpSync, readFileSync, writeFileSync } from 'fs-extra';
+import { basename, dirname, extname, join, normalize, relative, resolve } from 'path';
 
 import 'reflect-metadata';
 import { CompilerOptions, createProgram, ParsedCommandLine, Program, ScriptTarget, transpileModule, TranspileOptions, TranspileOutput } from 'typescript';
@@ -18,6 +18,7 @@ import { getFallbackMainContent, replaceBootstrap } from './utils';
 import { Logger } from '../logger/logger';
 import { printDiagnostics, clearDiagnostics, DiagnosticsType } from '../logger/logger-diagnostics';
 import { runTypeScriptDiagnostics } from '../logger/logger-typescript';
+import { isDebugMode } from '../util/config';
 import { BuildError } from '../util/errors';
 import { changeExtension } from '../util/helpers';
 import { BuildContext } from '../util/interfaces';
@@ -73,6 +74,7 @@ export class AotCompiler {
       Logger.debug('[AotCompiler] compile: starting codegen ... ');
       return codeGenerator.codegen({transitiveModules: true});
     }).then(() => {
+      console.log('this.tsConfig.parsed.fileNames: ', this.tsConfig.parsed.fileNames);
       Logger.debug('[AotCompiler] compile: starting codegen ... DONE');
       Logger.debug('[AotCompiler] compile: Creating and validating new TypeScript Program ...');
       // Create a new Program, based on the old one. This will trigger a resolution of all
@@ -103,8 +105,7 @@ export class AotCompiler {
         const content = readFileSync(cleanedFileName).toString();
         this.context.fileCache.set(cleanedFileName, { path: cleanedFileName, content: content});
       }
-    })
-    .then(() => {
+    }).then(() => {
       Logger.debug('[AotCompiler] compile: Starting to process and modify entry point ...');
       const mainFile = this.context.fileCache.get(this.options.entryPoint);
       if (!mainFile) {
@@ -149,6 +150,11 @@ export class AotCompiler {
         const jsFilePath = changeExtension(tsFile.path, '.js');
         this.fileSystem.addVirtualFile(jsFilePath, transpileOutput.outputText);
         this.fileSystem.addVirtualFile(jsFilePath + '.map', transpileOutput.sourceMapText);
+
+        // write files to disk here if debug is enabled
+        if (isDebugMode()) {
+          writeNgcFilesToDisk(this.context, tsFile.path, tsFile.content, transpileOutput.outputText, transpileOutput.sourceMapText);
+        }
       }
       Logger.debug('[AotCompiler] compile: Removing decorators from program files ... DONE');
     });
@@ -164,6 +170,20 @@ export class AotCompiler {
     return transpileModule(sourceText, transpileOptions);
   }
 }
+
+function writeNgcFilesToDisk(context: BuildContext, typescriptFilePath: string, typescriptFileContent: string, transpiledFileContent: string, sourcemapContent: string) {
+    const dirName = dirname(typescriptFilePath);
+    const relativePath = relative(process.cwd(), dirName);
+    const tmpPath = join(context.tmpDir, relativePath);
+    const fileName = basename(typescriptFilePath);
+    const fileToWrite = join(tmpPath, fileName);
+    const jsFileToWrite = changeExtension(fileToWrite, '.js');
+
+    mkdirpSync(tmpPath);
+    writeFileSync(fileToWrite, typescriptFileContent);
+    writeFileSync(jsFileToWrite, transpiledFileContent);
+    writeFileSync(jsFileToWrite + '.map', sourcemapContent);
+  }
 
 export interface AotOptions {
   tsConfigPath: string;
