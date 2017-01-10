@@ -56,6 +56,10 @@ export function removeNode(filePath: string, fileContent: string, node: Node) {
   return modifiedContent;
 }
 
+export function getNodeStringContent(sourceFile: SourceFile, node: Node) {
+  return sourceFile.getFullText().substring(node.getStart(sourceFile), node.getEnd());
+}
+
 export function appendAfter(source: string, node: Node, toAppend: string): string {
   return stringSplice(source, node.getEnd(), 0, toAppend);
 }

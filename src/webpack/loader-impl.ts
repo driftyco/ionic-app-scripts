@@ -10,6 +10,7 @@ export function webpackLoader(source: string, map: any, webpackContex: any) {
   const context = getContext();
 
   const absolutePath = resolve(normalize(webpackContex.resourcePath));
+  console.log('absolutePath: ', absolutePath);
   Logger.debug(`[Webpack] loader: processing the following file: ${absolutePath}`);
   const javascriptPath = changeExtension(absolutePath, '.js');
   const sourceMapPath = javascriptPath + '.map';
@@ -27,9 +28,11 @@ export function webpackLoader(source: string, map: any, webpackContex: any) {
         Logger.debug(`[Webpack] loader: Attempted to parse the JSON sourcemap for ${mapFile.path} and failed -
           using the original, webpack provided source map`);
       }
-      sourceMapObject.sources = [absolutePath];
-      if (!sourceMapObject.sourcesContent || sourceMapObject.sourcesContent.length === 0) {
-        sourceMapObject.sourcesContent = [source];
+      if (sourceMapObject) {
+        sourceMapObject.sources = [absolutePath];
+        if (!sourceMapObject.sourcesContent || sourceMapObject.sourcesContent.length === 0) {
+          sourceMapObject.sourcesContent = [source];
+        }
       }
     }
     callback(null, javascriptFile.content, sourceMapObject);

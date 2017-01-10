@@ -4,6 +4,7 @@ import { createReadStream, createWriteStream, readFile, readFileSync, readJsonSy
 import * as osName from 'os-name';
 
 let _context: BuildContext;
+let _lazyLoadedModulePaths: any[];
 
 let cachedAppScriptsPackageJson: any;
 export function getAppScriptsPackageJson() {
@@ -170,6 +171,14 @@ export function setContext(context: BuildContext) {
 
 export function getContext() {
   return _context;
+}
+
+export function setLazyLoadedModulePaths(lazyLoadedModulePaths: any[]) {
+  _lazyLoadedModulePaths = lazyLoadedModulePaths;
+}
+
+export function getLazyLoadedModulePaths() {
+  return _lazyLoadedModulePaths;
 }
 
 export function transformSrcPathToTmpPath(originalPath: string, context: BuildContext) {

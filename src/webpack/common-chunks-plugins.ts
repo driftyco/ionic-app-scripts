@@ -10,7 +10,6 @@ export const IONIC = join(NODE_MODULES, 'ionic-angular');
 export function getIonicDependenciesCommonChunksPlugin() {
   return new CommonChunksPlugin({
     name: 'known-vendors',
-    chunks: ['main'],
     minChunks: checkIfModuleIsIonicDependency
   });
 }
@@ -18,7 +17,6 @@ export function getIonicDependenciesCommonChunksPlugin() {
 export function getNonIonicDependenciesCommonChunksPlugin() {
   return new CommonChunksPlugin({
     name: 'unknown-vendors',
-    chunks: ['main'],
     minChunks: checkIfModuleIsNodeModuleButNotIonicDepenedency
   });
 }
