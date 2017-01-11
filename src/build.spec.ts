@@ -1,13 +1,15 @@
 import * as Constants from './util/constants';
 import { BuildContext } from './util/interfaces';
 import * as helpers from './util/helpers';
-import * as clean  from './clean';
 import * as build  from './build';
+
 import * as bundle from './bundle';
 import * as copy from './copy';
-import * as minify from './minify';
+import * as clean  from './clean';
 import * as lint from './lint';
+import * as minify from './minify';
 import * as ngc from './ngc';
+import * as preprocess from './preprocess';
 import * as sass from './sass';
 import * as transpile from './transpile';
 
@@ -22,13 +24,16 @@ describe('build', () => {
       }
       `);
     });
-    spyOn(copy, 'copy').and.returnValue(Promise.resolve());
-    spyOn(ngc, 'ngc').and.returnValue(Promise.resolve());
+
+
     spyOn(bundle, 'bundle').and.returnValue(Promise.resolve());
-    spyOn(minify, 'minifyJs').and.returnValue(Promise.resolve());
-    spyOn(sass, 'sass').and.returnValue(Promise.resolve());
+    spyOn(copy, 'copy').and.returnValue(Promise.resolve());
     spyOn(minify, 'minifyCss').and.returnValue(Promise.resolve());
+    spyOn(minify, 'minifyJs').and.returnValue(Promise.resolve());
     spyOn(lint, 'lint').and.returnValue(Promise.resolve());
+    spyOn(ngc, 'ngc').and.returnValue(Promise.resolve());
+    spyOn(preprocess, 'preprocess').and.returnValue(Promise.resolve());
+    spyOn(sass, 'sass').and.returnValue(Promise.resolve());
     spyOn(transpile, 'transpile').and.returnValue(Promise.resolve());
   });
 
@@ -74,7 +79,7 @@ describe('build', () => {
       expect(bundle.bundle).toHaveBeenCalled();
       expect(sass.sass).toHaveBeenCalled();
       expect(lint.lint).toHaveBeenCalled();
-
+      expect(preprocess.preprocess).toHaveBeenCalled();
       expect(ngc.ngc).not.toHaveBeenCalled();
       expect(minify.minifyJs).not.toHaveBeenCalled();
       expect(minify.minifyCss).not.toHaveBeenCalled();
@@ -157,14 +162,15 @@ describe('test project requirements before building', () => {
     process.env[Constants.ENV_APP_ENTRY_POINT] = 'src/app/main.ts';
     process.env[Constants.ENV_TS_CONFIG] = 'tsConfig.js';
 
+    spyOn(bundle, 'bundle').and.returnValue(Promise.resolve());
     spyOn(clean, 'clean');
     spyOn(copy, 'copy').and.returnValue(Promise.resolve());
-    spyOn(ngc, 'ngc').and.returnValue(Promise.resolve());
-    spyOn(bundle, 'bundle').and.returnValue(Promise.resolve());
-    spyOn(minify, 'minifyJs').and.returnValue(Promise.resolve());
-    spyOn(sass, 'sass').and.returnValue(Promise.resolve());
     spyOn(minify, 'minifyCss').and.returnValue(Promise.resolve());
+    spyOn(minify, 'minifyJs').and.returnValue(Promise.resolve());
     spyOn(lint, 'lint').and.returnValue(Promise.resolve());
+    spyOn(ngc, 'ngc').and.returnValue(Promise.resolve());
+    spyOn(preprocess, 'preprocess').and.returnValue(Promise.resolve());
+    spyOn(sass, 'sass').and.returnValue(Promise.resolve());
     spyOn(transpile, 'transpile').and.returnValue(Promise.resolve());
     spyOn(helpers, 'readFileAsync').and.callFake(() => {
       return Promise.resolve(`{

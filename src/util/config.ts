@@ -87,6 +87,10 @@ export function generateContext(context?: BuildContext): BuildContext {
 
   const appEntryPointPathValue = resolve(getConfigValue(context, '--appEntryPoint', null, Constants.ENV_APP_ENTRY_POINT, Constants.ENV_APP_ENTRY_POINT.toLowerCase(), join(context.srcDir, 'app', 'main.ts')));
   setProcessEnvVar(Constants.ENV_APP_ENTRY_POINT, appEntryPointPathValue);
+  context.entryPointPath = appEntryPointPathValue;
+
+  // TODO - properly do this
+  context.appModulePath = join(context.srcDir, 'app', 'app.module.ts');
 
   setProcessEnvVar(Constants.ENV_GLOB_UTIL, join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'util', 'glob-util.js'));
 

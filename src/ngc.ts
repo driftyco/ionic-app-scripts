@@ -1,9 +1,8 @@
 import { Logger } from './logger/logger';
 import { getUserConfigFile} from './util/config';
 import * as Constants from './util/constants';
-import { setLazyLoadedModulePaths } from './util/helpers';
 import { BuildContext, TaskInfo } from './util/interfaces';
-import { AotCompiler, AotCompileResponse } from './aot/aot-compiler';
+import { AotCompiler } from './aot/aot-compiler';
 
 export function ngc(context: BuildContext, configFile?: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
@@ -19,11 +18,9 @@ export function ngc(context: BuildContext, configFile?: string) {
     });
 }
 
-export function ngcWorker(context: BuildContext, configFile: string): Promise<AotCompileResponse> {
+export function ngcWorker(context: BuildContext, configFile: string): Promise<void> {
   const compiler = new AotCompiler(context, { entryPoint: process.env[Constants.ENV_APP_ENTRY_POINT], rootDir: context.rootDir, tsConfigPath: process.env[Constants.ENV_TS_CONFIG] });
-  return compiler.compile().then((response: AotCompileResponse) => {
-    setLazyLoadedModulePaths(response.lazyLoadedModuleDictionary);
-  });
+  return compiler.compile();
 }
 
 const taskInfo: TaskInfo = {

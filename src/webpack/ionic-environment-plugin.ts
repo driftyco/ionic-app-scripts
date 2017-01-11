@@ -1,30 +1,29 @@
 import { relative, sep } from 'path';
-import { BuildContext } from '../util/interfaces';
+import { BuildContext, HydratedDeepLinkConfigEntry } from '../util/interfaces';
 import { Logger } from '../logger/logger';
 import { getInstance } from '../util/hybrid-file-system-factory';
 import { WatchMemorySystem } from './watch-memory-system';
 import { createResolveDependenciesFromContextMap } from './util';
 
 export class IonicEnvironmentPlugin {
-  constructor(private context: BuildContext, private lazyLoadedModulePaths: any) {
+  constructor(private context: BuildContext, private parsedDeepLinkConfigs: HydratedDeepLinkConfigEntry[]) {
   }
 
   apply(compiler: any) {
 
-    if (this.context.runAot) {
-      compiler.plugin('context-module-factory', (contextModuleFactory: any) => {
-        contextModuleFactory.plugin('after-resolve', (result: any, callback: Function) => {
-          if (!result) {
-            return callback();
-          }
-          result.resource = this.context.srcDir;
-          result.recursive = true;
-          result.dependencies.forEach((dependency: any) => dependency.critical = false);
-          result.resolveDependencies = createResolveDependenciesFromContextMap((_: any, cb: any) => cb(null, this.lazyLoadedModulePaths));
-          return callback(null, result);
-        });
+    compiler.plugin('context-module-factory', (contextModuleFactory: any) => {
+      const webpackDeepLinkModuleDictionary = convertDeepLinkConfigToWebpackFormat(this.parsedDeepLinkConfigs);
+      contextModuleFactory.plugin('after-resolve', (result: any, callback: Function) => {
+        if (!result) {
+          return callback();
+        }
+        result.resource = this.context.srcDir;
+        result.recursive = true;
+        result.dependencies.forEach((dependency: any) => dependency.critical = false);
+        result.resolveDependencies = createResolveDependenciesFromContextMap((_: any, cb: any) => cb(null, webpackDeepLinkModuleDictionary));
+        return callback(null, result);
       });
-    }
+    });
 
     compiler.plugin('environment', (otherCompiler: any, callback: Function) => {
       Logger.debug('[IonicEnvironmentPlugin] apply: creating environment plugin');
@@ -83,12 +82,11 @@ export class IonicEnvironmentPlugin {
   }
 }
 
-export function listToWebpackDictionary(lazyLoadedModuleList: string[], srcDirPath: string): { [index: string]: string} {
-  let dictionary: { [index: string]: string} = { };
-  lazyLoadedModuleList.forEach(lazyLoadedModulePath => {
-    const relativePath = '.' + sep + relative(srcDirPath, lazyLoadedModulePath);
-    dictionary[relativePath] = lazyLoadedModulePath;
+
+export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: HydratedDeepLinkConfigEntry[]) {
+  const dictionary: { [index: string]: string} = { };
+  parsedDeepLinkConfigs.forEach(parsedDeepLinkConfig => {
+    dictionary[parsedDeepLinkConfig.modulePath] = parsedDeepLinkConfig.absolutePath;
   });
-  console.log('listToWebpackDictionary: ', dictionary);
   return dictionary;
 }

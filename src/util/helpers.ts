@@ -1,10 +1,10 @@
 import { basename, dirname, extname, join } from 'path';
-import { BuildContext, File } from './interfaces';
+import { BuildContext, File, HydratedDeepLinkConfigEntry } from './interfaces';
 import { createReadStream, createWriteStream, readFile, readFileSync, readJsonSync, remove, unlink, writeFile } from 'fs-extra';
 import * as osName from 'os-name';
 
 let _context: BuildContext;
-let _lazyLoadedModulePaths: any[];
+let _parsedDeepLinkConfig: HydratedDeepLinkConfigEntry[];
 
 let cachedAppScriptsPackageJson: any;
 export function getAppScriptsPackageJson() {
@@ -173,12 +173,12 @@ export function getContext() {
   return _context;
 }
 
-export function setLazyLoadedModulePaths(lazyLoadedModulePaths: any[]) {
-  _lazyLoadedModulePaths = lazyLoadedModulePaths;
+export function setParsedDeepLinkConfig(parsedDeepLinkConfig: HydratedDeepLinkConfigEntry[]) {
+  _parsedDeepLinkConfig = parsedDeepLinkConfig;
 }
 
-export function getLazyLoadedModulePaths() {
-  return _lazyLoadedModulePaths;
+export function getParsedDeepLinkConfig(): HydratedDeepLinkConfigEntry[] {
+  return _parsedDeepLinkConfig;
 }
 
 export function transformSrcPathToTmpPath(originalPath: string, context: BuildContext) {

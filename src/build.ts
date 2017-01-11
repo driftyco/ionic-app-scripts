@@ -10,6 +10,7 @@ import { lint, lintUpdate } from './lint';
 import { Logger } from './logger/logger';
 import { minifyCss, minifyJs } from './minify';
 import { ngc } from './ngc';
+import { preprocess } from './preprocess';
 import { sass, sassUpdate } from './sass';
 import { templateUpdate } from './template';
 import { transpile, transpileUpdate, transpileDiagnosticsOnly } from './transpile';
@@ -38,6 +39,8 @@ function buildWorker(context: BuildContext) {
     return validateTsConfigSettings(tsConfigContents);
   })
   .then(() => {
+    return preprocess(context);
+  }).then(() => {
     return buildProject(context);
   });
 }

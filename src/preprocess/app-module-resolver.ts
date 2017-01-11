@@ -22,6 +22,7 @@ import {
 } from 'typescript';
 
 import { FileCache } from '../util/file-cache';
+import { AppNgModuleInfo } from '../util/interfaces';
 import { getTypescriptSourceFile, findNodes } from '../util/typescript-utils';
 
 
@@ -88,14 +89,16 @@ function _recursiveSymbolExportLookup(sourceFile: SourceFile,
 
         // Create the source and verify that the symbol is at least a class.
         const file = fileCache.get(module);
-        const moduleSourceFile = getTypescriptSourceFile(module, file.content, ScriptTarget.Latest, false);
-        const hasSymbol = findNodes(moduleSourceFile, moduleSourceFile, SyntaxKind.ClassDeclaration)
-          .some((cd: ClassDeclaration) => {
-            return cd.name && cd.name.text === symbolName;
-          });
+        if ( file) {
+          const moduleSourceFile = getTypescriptSourceFile(module, file.content, ScriptTarget.Latest, false);
+          const hasSymbol = findNodes(moduleSourceFile, moduleSourceFile, SyntaxKind.ClassDeclaration)
+            .some((cd: ClassDeclaration) => {
+              return cd.name && cd.name.text === symbolName;
+            });
 
-        if (hasSymbol) {
-          return module;
+          if (hasSymbol) {
+            return module;
+          }
         }
       }
     }
@@ -157,7 +160,7 @@ function _symbolImportLookup(sourceFile: SourceFile,
 }
 
 
-export function resolveAppNgModuleFromMain(mainSourceFile: SourceFile, fileCache: FileCache, host: CompilerHost, program: Program) {
+export function resolveAppNgModuleFromMain(mainSourceFile: SourceFile, fileCache: FileCache, host: CompilerHost, program: Program): AppNgModuleInfo{
 
   const bootstrap = findNodes(mainSourceFile, mainSourceFile, SyntaxKind.CallExpression, false)
     .map((node: Node) => node as CallExpression)
@@ -179,7 +182,10 @@ export function resolveAppNgModuleFromMain(mainSourceFile: SourceFile, fileCache
   const bootstrapSymbolName = bootstrap[0].text;
   const module = _symbolImportLookup(mainSourceFile, bootstrapSymbolName, fileCache, host, program);
   if (module) {
-    return `${module}#${bootstrapSymbolName}`;
+    return {
+      absolutePath: module,
+      className: bootstrapSymbolName
+    };
   }
 
   // shrug... something bad happened and we couldn't find the import statement.

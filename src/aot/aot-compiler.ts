@@ -11,7 +11,7 @@ import { HybridFileSystem } from '../util/hybrid-file-system';
 import { getInstance as getHybridFileSystem } from '../util/hybrid-file-system-factory';
 import { getInstance } from './compiler-host-factory';
 import { NgcCompilerHost } from './compiler-host';
-import { resolveAppNgModuleFromMain } from './app-module-resolver';
+import { resolveAppNgModuleFromMain } from '../preprocess/app-module-resolver';
 import { patchReflectorHost } from './reflector-host';
 import { findNodes, getNodeStringContent, getTypescriptSourceFile, removeDecorators } from '../util/typescript-utils';
 import { getFallbackMainContent, replaceBootstrap } from './utils';
@@ -51,7 +51,7 @@ export class AotCompiler {
     this.reflector = new StaticReflector(this.reflectorHost);
   }
 
-  compile(): Promise<AotCompileResponse> {
+  compile(): Promise<void> {
     return Promise.resolve().then(() => {
     }).then(() => {
       clearDiagnostics(this.context, DiagnosticsType.TypeScript);
@@ -99,13 +99,12 @@ export class AotCompiler {
       }
       const mainSourceFile = getTypescriptSourceFile(mainFile.path, mainFile.content, ScriptTarget.Latest, false);
       Logger.debug('[AotCompiler] compile: Resolving NgModule from entry point');
-      const AppNgModuleStringAndClassName = resolveAppNgModuleFromMain(mainSourceFile, this.context.fileCache, this.compilerHost, this.program);
-      const AppNgModuleTokens = AppNgModuleStringAndClassName.split('#');
-      this.appLevelNgModuleFilePath = AppNgModuleTokens[0];
+      const appNgModuleStringAndClassName = resolveAppNgModuleFromMain(mainSourceFile, this.context.fileCache, this.compilerHost, this.program);
+      this.appLevelNgModuleFilePath = appNgModuleStringAndClassName.absolutePath
       let modifiedFileContent: string = null;
       try {
         Logger.debug('[AotCompiler] compile: Dynamically changing entry point content to AOT mode content');
-        modifiedFileContent = replaceBootstrap(mainFile.path, mainFile.content, AppNgModuleTokens[0], AppNgModuleTokens[1]);
+        modifiedFileContent = replaceBootstrap(mainFile.path, mainFile.content, appNgModuleStringAndClassName.absolutePath, appNgModuleStringAndClassName.className);
       } catch (ex) {
         Logger.debug(`Failed to parse bootstrap: `, ex.message);
         Logger.warn(`Failed to parse and update ${this.options.entryPoint} content for AoT compilation.
@@ -121,11 +120,6 @@ export class AotCompiler {
       Logger.debug('[AotCompiler] compile: Starting to process and modify entry point ... DONE');
     })
     .then(() => {
-      Logger.debug('[AotCompiler] compile: Finding and Processing Lazy Loaded NgModules ...');
-      this.lazyLoadedModuleDictionary = findLazyLoadedModules(this.context, this.tsConfig);
-      Logger.debug('[AotCompiler] compile: Finding and Processing Lazy Loaded NgModules ... DONE');
-    })
-    .then(() => {
       Logger.debug('[AotCompiler] compile: Removing decorators from program files ...');
       transpileFiles(this.context, this.tsConfig, this.fileSystem);
       Logger.debug('[AotCompiler] compile: Removing decorators from program files ... DONE');
@@ -135,19 +129,6 @@ export class AotCompiler {
       };
     });
   }
-}
-
-function findLazyLoadedModules(context: BuildContext, tsConfig: ParsedTsConfig) {
-  /*
-  { './comment-page/comment-page.module': '/Users/dan/Desktop/AngularHN/src/app/comment-page/comment-page.module.ts',
-  './jobs/jobs.module': '/Users/dan/Desktop/AngularHN/src/app/jobs/jobs.module.ts',
-  './show/show.module': '/Users/dan/Desktop/AngularHN/src/app/show/show.module.ts' }
-  */
-  return {
-    '../pages/home/home.module': join(context.srcDir, 'pages/home/home.module.ts'),
-    '../pages/page-one/page-one.module': join(context.srcDir, 'pages/page-one/page-one.module.ts'),
-    '../pages/page-two/page-two.module': join(context.srcDir, 'pages/page-two/page-two.module.ts')
-  };
 }
 
 function errorCheckProgram(context: BuildContext, tsConfig: ParsedTsConfig, compilerHost: NgcCompilerHost, cachedProgram: Program) {
@@ -239,6 +220,3 @@ export interface ParsedTsConfig {
   ngOptions: AngularCompilerOptions;
 }
 
-export interface AotCompileResponse {
-  lazyLoadedModuleDictionary: any;
-}

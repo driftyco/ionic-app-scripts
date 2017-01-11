@@ -8,6 +8,8 @@ export interface BuildContext {
   wwwDir?: string;
   wwwIndex?: string;
   buildDir?: string;
+  entryPointPath?: string;
+  appModulePath?: string;
   moduleFiles?: string[];
   isProd?: boolean;
   isWatch?: boolean;
@@ -132,4 +134,19 @@ export interface VirtualFileSystem {
   getFileNamesInDirectory(directoryPath: string): string[];
   getAllFileStats():  { [filePath: string]: VirtualFileStats };
   getAllDirStats():  { [filePath: string]: VirtualDirStats };
+};
+
+export interface DeepLinkConfigEntry {
+  modulePath: string;
+  namedExport: string;
+  name: string;
+};
+
+export interface HydratedDeepLinkConfigEntry extends DeepLinkConfigEntry {
+  absolutePath: string;
+};
+
+export interface AppNgModuleInfo {
+  absolutePath: string;
+  className: string;
 };
