@@ -87,10 +87,12 @@ export function generateContext(context?: BuildContext): BuildContext {
 
   const appEntryPointPathValue = resolve(getConfigValue(context, '--appEntryPoint', null, Constants.ENV_APP_ENTRY_POINT, Constants.ENV_APP_ENTRY_POINT.toLowerCase(), join(context.srcDir, 'app', 'main.ts')));
   setProcessEnvVar(Constants.ENV_APP_ENTRY_POINT, appEntryPointPathValue);
-  context.entryPointPath = appEntryPointPathValue;
 
-  // TODO - properly do this
-  context.appModulePath = join(context.srcDir, 'app', 'app.module.ts');
+  const appNgModulePath = resolve(getConfigValue(context, '--appNgModulePath', null, Constants.ENV_APP_NG_MODULE_PATH, Constants.ENV_APP_NG_MODULE_PATH.toLowerCase(), join(context.srcDir, 'app', 'app.module.ts')));
+  setProcessEnvVar(Constants.ENV_APP_NG_MODULE_PATH, appNgModulePath);
+
+  const appNgModuleClass = resolve(getConfigValue(context, '--appNgModuleClass', null, Constants.ENV_APP_NG_MODULE_CLASS, Constants.ENV_APP_NG_MODULE_CLASS.toLowerCase(), 'AppModule'));
+  setProcessEnvVar(Constants.ENV_APP_NG_MODULE_CLASS, appNgModuleClass);
 
   setProcessEnvVar(Constants.ENV_GLOB_UTIL, join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'util', 'glob-util.js'));
 

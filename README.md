@@ -117,6 +117,8 @@ npm run build --rollup ./config/rollup.config.js
 | generate source map | `ionic_generate_source_map`  | `--generateSourceMap` | `true` | Determines whether to generate a source map or not |
 | tsconfig path | `ionic_ts_config`  | `--tsconfig` | `{{rootDir}}/tsconfig.json` | absolute path to tsconfig.json |
 | app entry point | `ionic_app_entry_point`  | `--appEntryPoint` | `{{srcDir}}/app/main.ts` | absolute path to app's entrypoint bootstrap file |
+| app ng module path | `ionic_app_ng_module_path`  | `--appNgModulePath` | `{{srcDir}}/app/app.module.ts` | absolute path to app's primary `NgModule` |
+| app ng module class | `ionic_app_ng_module_class`  | `--appNgModuleClass` | `AppModule` | Exported class name for app's primary `NgModule` |
 | clean before copy | `ionic_clean_before_copy`  | `--cleanBeforeCopy` | `false` | clean out existing files before copy task runs |
 | output js file | `ionic_output_js_file_name`  | `--outputJsFileName` | `main.js` | name of js file generated in `buildDir` |
 | output js map file | `ionic_output_js_map_file_name`  | `--outputJsMapFileName` | `main.js.map` | name of js source map file generated in `buildDir` |
@@ -144,6 +146,8 @@ These environment variables are automatically set to [Node's `process.env`](http
 | `IONIC_GENERATE_SOURCE_MAP`| Determines whether to generate a sourcemap or not.                   |
 | `IONIC_TS_CONFIG`          | The absolute path to the project's `tsconfig.json` file              |
 | `IONIC_APP_ENTRY_POINT`    | The absolute path to the project's `main.ts` entry point file        |
+| `IONIC_APP_NG_MODULE_PATH` | The absolute path to app's primary `NgModule`                        |
+| `IONIC_APP_NG_MODULE_CLASS`    | The exported class name for app's primary `NgModule`             |
 | `IONIC_GLOB_UTIL`          | The path to Ionic's `glob-util` script. Used within configs.         |
 | `IONIC_CLEAN_BEFORE_COPY`  | Attempt to clean existing directories before copying files.          |
 | `IONIC_CLOSURE_JAR`        | The absolute path ot the closure compiler jar file                   |

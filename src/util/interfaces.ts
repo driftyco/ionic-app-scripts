@@ -8,8 +8,6 @@ export interface BuildContext {
   wwwDir?: string;
   wwwIndex?: string;
   buildDir?: string;
-  entryPointPath?: string;
-  appModulePath?: string;
   moduleFiles?: string[];
   isProd?: boolean;
   isWatch?: boolean;
