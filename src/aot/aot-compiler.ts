@@ -11,7 +11,6 @@ import { HybridFileSystem } from '../util/hybrid-file-system';
 import { getInstance as getHybridFileSystem } from '../util/hybrid-file-system-factory';
 import { getInstance } from './compiler-host-factory';
 import { NgcCompilerHost } from './compiler-host';
-import { resolveAppNgModuleFromMain } from '../preprocess/app-module-resolver';
 import { patchReflectorHost } from './reflector-host';
 import { findNodes, getNodeStringContent, getTypescriptSourceFile, removeDecorators } from '../util/typescript-utils';
 import { getFallbackMainContent, replaceBootstrap } from './utils';
@@ -99,12 +98,11 @@ export class AotCompiler {
       }
       const mainSourceFile = getTypescriptSourceFile(mainFile.path, mainFile.content, ScriptTarget.Latest, false);
       Logger.debug('[AotCompiler] compile: Resolving NgModule from entry point');
-      const appNgModuleStringAndClassName = resolveAppNgModuleFromMain(mainSourceFile, this.context.fileCache, this.compilerHost, this.program);
-      this.appLevelNgModuleFilePath = appNgModuleStringAndClassName.absolutePath
+      this.appLevelNgModuleFilePath = this.options.appNgModulePath
       let modifiedFileContent: string = null;
       try {
         Logger.debug('[AotCompiler] compile: Dynamically changing entry point content to AOT mode content');
-        modifiedFileContent = replaceBootstrap(mainFile.path, mainFile.content, appNgModuleStringAndClassName.absolutePath, appNgModuleStringAndClassName.className);
+        modifiedFileContent = replaceBootstrap(mainFile.path, mainFile.content, this.options.appNgModulePath, this.options.appNgModuleClass);
       } catch (ex) {
         Logger.debug(`Failed to parse bootstrap: `, ex.message);
         Logger.warn(`Failed to parse and update ${this.options.entryPoint} content for AoT compilation.
@@ -203,6 +201,8 @@ export interface AotOptions {
   tsConfigPath: string;
   rootDir: string;
   entryPoint: string;
+  appNgModulePath: string;
+  appNgModuleClass: string;
 }
 
 export function getNgcConfig(context: BuildContext, tsConfigPath?: string): ParsedTsConfig {

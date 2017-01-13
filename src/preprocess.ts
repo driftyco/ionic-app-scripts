@@ -23,11 +23,10 @@ export function preprocess(context: BuildContext) {
 
 
 function preprocessWorker(context: BuildContext) {
-  return readFileAsync(context.appModulePath)
+  const appModulePath = process.env[Constants.ENV_APP_NG_MODULE_PATH];
+  return readFileAsync(appModulePath)
     .then((fileContent: string) => {
-      console.log('context.appModulePath: ', context.appModulePath);
-      console.log('fileContent: ', fileContent);
-      return extractDeepLinkData(context.appModulePath, fileContent);
+      return extractDeepLinkData(appModulePath, fileContent);
     });
 }
 
