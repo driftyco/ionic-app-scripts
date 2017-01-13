@@ -1,3 +1,26 @@
+<a name="1.0.0"></a>
+# [1.0.0](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.48...v1.0.0) (2017-01-06)
+
+
+### Upgrade Instructions
+Execute the following command from your ionic project. This installs a new peer dependency called `sw-toolbox` that is used to simplify implementing a service-worker.
+
+```
+npm install sw-toolbox --save --save-exact
+```
+
+
+### Bug Fixes
+
+* **build:** check to ensure tsconfig contains sourcemaps true. ([e6bcf22](https://github.com/driftyco/ionic-app-scripts/commit/e6bcf22))
+* **config:** resolve any inputs that could be paths to absolute paths ([50876eb](https://github.com/driftyco/ionic-app-scripts/commit/50876eb))
+* **copy:** check for null object and src/dest ([eabd125](https://github.com/driftyco/ionic-app-scripts/commit/eabd125))
+* **ngc:** revert change to purge decorators (Angular CLI did too) ([8aae85c](https://github.com/driftyco/ionic-app-scripts/commit/8aae85c))
+* **webpack:** update environment plugin for webpack 2 RC3 ([be3aac1](https://github.com/driftyco/ionic-app-scripts/commit/be3aac1))
+* **websockets:** fix exception when no ws clients connected during rebuild ([#616](https://github.com/driftyco/ionic-app-scripts/issues/616)) ([8685bf8](https://github.com/driftyco/ionic-app-scripts/commit/8685bf8))
+
+
+
 <a name="0.0.48"></a>
 ## [0.0.48](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.47...v0.0.48) (2016-12-19)
 

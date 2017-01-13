@@ -1,6 +1,6 @@
 {
   "name": "@ionic/app-scripts",
-  "version": "0.0.48",
+  "version": "1.0.0",
   "description": "Scripts for Ionic Projects",
   "homepage": "http://ionicframework.com/",
   "author": "Ionic Team <hi@ionic.io> (http://ionic.io)",
@@ -27,7 +27,7 @@
     "sass": "node-sass ./src/dev-client/sass/ion-dev.scss --output ./bin/ --output-style compressed",
     "sass-watch": "npm run sass && node-sass ./src/dev-client/sass/ion-dev.scss --watch --output ./bin/ --output-style compressed",
     "test": "jest",
-    "watch": "npm run clean &&  & npm run sass-watch"
+    "watch": "npm run clean && tsc --watch & npm run sass-watch"
   },
   "main": "dist/index.js",
   "dependencies": {
@@ -55,7 +55,7 @@
     "tslint": "3.15.1",
     "tslint-eslint-rules": "1.5.0",
     "uglify-js": "2.7.3",
-    "webpack": "^2.1.0-beta.27",
+    "webpack": "2.2.0-rc.3",
     "ws": "1.1.1",
     "xml2js": "^0.4.17"
   },
@@ -102,6 +102,7 @@
     "@angular/compiler-cli": "*",
     "@angular/tsc-wrapped": "*",
     "rxjs": "*",
+    "sw-toolbox": "*",
     "typescript": "*",
     "zone.js": "*"
   },

@@ -17,5 +17,9 @@ module.exports = {
   copyPolyfills: {
     src: ['{{ROOT}}/node_modules/ionic-angular/polyfills/polyfills.js'],
     dest: '{{BUILD}}'
+  },
+  copySwToolbox: {
+    src: ['{{ROOT}}/node_modules/sw-toolbox/sw-toolbox.js'],
+    dest: '{{BUILD}}'
   }
 }

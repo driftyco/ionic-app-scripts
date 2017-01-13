@@ -22,11 +22,11 @@ export function createNotificationServer(config: ServeConfig) {
 
   // drain the queue messages when the server is ready
   function drainMessageQueue(options = { broadcast: false }) {
-    let sendMethod = wsServer.send;
+    let sendMethod = wsServer && wsServer.send;
     if (options.hasOwnProperty('broadcast') && options.broadcast) {
       sendMethod = wss.broadcast;
     }
-    if (wss.clients.length > 0) {
+    if (sendMethod && wss.clients.length > 0) {
       let msg: any;
       while (msg = msgToClient.shift()) {
         try {
