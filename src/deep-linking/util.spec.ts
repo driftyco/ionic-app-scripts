@@ -2,8 +2,8 @@ import { join } from 'path';
 import * as util from './util';
 
 describe('util', () => {
-  describe('extractDeepLinkData', () => {
-    it('should return a list of the relative paths', () => {
+  describe('extractDeepLinkPathData', () => {
+    it('should return the deep link metadata', () => {
       const fileContent = `
 import { NgModule } from '@angular/core';
 import { IonicApp, IonicModule } from 'ionic-angular';
@@ -32,9 +32,9 @@ export class AppModule {}
 export function getSharedIonicModule() {
   return IonicModule.forRoot(MyApp, {}, {
     links: [
-      { path: '../pages/home/home.module', namedExport: 'HomePageModule', name: 'Home' },
-      { path: '../pages/page-one/page-one.module', namedExport: 'PageOneModule', name: 'PageOne' },
-      { path: '../pages/page-two/page-two.module', namedExport: 'PageTwoModule', name: 'PageTwo' }
+      { loadChildren: '../pages/home/home.module#HomePageModule', name: 'Home' },
+      { loadChildren: '../pages/page-one/page-one.module#PageOneModule', name: 'PageOne' },
+      { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo' }
     ]
   });
 }

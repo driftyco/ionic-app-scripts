@@ -13,18 +13,10 @@ function getLinksArrayContent(appNgModuleFileContent: string) {
 
 export function extractDeepLinkPathData(appNgModuleFileContent: string) {
   const linksInternalContent = getLinksArrayContent(appNgModuleFileContent);
-  const pathsList = extractRegexContent(appNgModuleFileContent, PATHS_REGEX);
-  const namedExportsList = extractRegexContent(appNgModuleFileContent, EXPORT_REGEX);
+  const pathsList = extractRegexContent(appNgModuleFileContent, LOAD_CHILDREN_REGEX);
   const nameList = extractRegexContent(appNgModuleFileContent, NAME_REGEX);
 
-  console.log('pathsList: ', pathsList);
-  console.log('namedExportsList: ', namedExportsList);
-  console.log('nameList: ', nameList);
-
   const expectedLength = pathsList.length;
-  if (namedExportsList.length !== expectedLength) {
-    throw new Error(`Expected ${expectedLength} named exports in deep link config, found the following: ${namedExportsList.join(',')}`);
-  }
 
   if (nameList.length !== expectedLength) {
     throw new Error(`Expected ${expectedLength} names in deep link config, found the following: ${nameList.join(',')}`);
@@ -33,8 +25,9 @@ export function extractDeepLinkPathData(appNgModuleFileContent: string) {
   // metadata looks legit, let's do some looping shall we
   const deepLinkConfig: DeepLinkConfigEntry[] = [];
   for (let i = 0; i < expectedLength; i++) {
-    const path = pathsList[i];
-    const namedExport = namedExportsList[i];
+    const moduleAndExport = pathsList[i].split('#');
+    const path = moduleAndExport[0];
+    const namedExport = moduleAndExport[1];
     const name = nameList[i];
     deepLinkConfig.push({modulePath: path, namedExport: namedExport, name: name});
   }
@@ -46,7 +39,6 @@ function extractRegexContent(content: string, regex: RegExp) {
   const results: string[] = [];
   while ((match = regex.exec(content))){
     if (!match) {
-      console.log('break');
       break;
     }
     results.push(match[1]);
@@ -56,18 +48,15 @@ function extractRegexContent(content: string, regex: RegExp) {
 
 export function getDeepLinkData(appNgModuleFilePath: string, appNgModuleFileContent: string): HydratedDeepLinkConfigEntry[] {
   const deepLinkConfigList = extractDeepLinkPathData(appNgModuleFileContent);
-  console.log('deepLinkConfigList: ', deepLinkConfigList);
   const appDirectory = dirname(appNgModuleFilePath);
   const hydratedDeepLinks = deepLinkConfigList.map(deepLinkConfigEntry => {
     return Object.assign({}, deepLinkConfigEntry, {
       absolutePath: join(appDirectory, deepLinkConfigEntry.modulePath + '.ts')
     }) as HydratedDeepLinkConfigEntry;
   });
-  console.log('hydratedDeepLinks: ', hydratedDeepLinks);
   return hydratedDeepLinks;
 }
 
 const LINKS_REGEX = /links\s*?:\s*\[([\s|\S]*)\]/igm;
-const PATHS_REGEX = /path\s*?:\s*?['"`]\s*?(.*?)['"`]/igm;
-const EXPORT_REGEX = /namedExport\s*?:\s*?['"`]\s*?(.*?)['"`]/igm;
+const LOAD_CHILDREN_REGEX = /loadChildren\s*?:\s*?['"`]\s*?(.*?)['"`]/igm;
 const NAME_REGEX = /name\s*?:\s*?['"`]\s*?(.*?)['"`]/igm;
