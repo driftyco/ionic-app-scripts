@@ -162,6 +162,11 @@ export function fillConfigDefaults(userConfigFile: string, defaultConfigFile: st
       statSync(userConfigFile);
       // create a fresh copy of the config each time
       userConfig = require(userConfigFile);
+      
+      // if user config returns a function call it to determine proper object
+      if (typeof userconfig === 'function') {
+         userConfig = userConfig(); 
+      }  
     } catch (e) {
       if (e.code === 'ENOENT') {
         console.error(`Config file "${userConfigFile}" not found. Using defaults instead.`);
