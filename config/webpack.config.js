@@ -14,7 +14,9 @@ module.exports = {
 
   resolve: {
     extensions: ['.ts', '.js', '.json'],
-    modules: [path.resolve('node_modules')]
+    alias: {
+      "@app/config": path.resolve('./src/config/config.' + process.env.IONIC_ENV + '.ts')
+    }
   },
 
   module: {
