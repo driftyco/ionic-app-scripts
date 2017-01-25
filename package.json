@@ -83,6 +83,7 @@
     "@types/uglify-js": "^2.0.27",
     "@types/webpack": "^1.12.35",
     "@types/ws": "^0.0.34",
+    "babili": "0.0.10",
     "conventional-changelog-cli": "1.2.0",
     "github": "0.2.4",
     "ionic-cz-conventional-changelog": "1.0.0",

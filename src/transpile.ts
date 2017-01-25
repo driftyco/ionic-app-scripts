@@ -301,6 +301,13 @@ function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, 
 }
 
 export function transpileBundle(context: BuildContext, target: ts.ScriptTarget = ts.ScriptTarget.ES5) {
+  return Promise.resolve()
+    .then(() => {
+      return transpileBundleImpl(context, target);
+    });
+}
+
+function transpileBundleImpl(context: BuildContext, target: ts.ScriptTarget) {
   const logger = new Logger('transpile bundle');
   try {
     const bundlePath = path.join(context.buildDir, process.env[Constants.ENV_OUTPUT_JS_FILE_NAME]);

@@ -8,6 +8,7 @@ export interface BuildContext {
   wwwDir?: string;
   wwwIndex?: string;
   buildDir?: string;
+  nodeModulesDir?: string;
   moduleFiles?: string[];
   isProd?: boolean;
   isWatch?: boolean;

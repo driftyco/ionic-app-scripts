@@ -70,11 +70,11 @@ function runClosure(closureConfig: ClosureConfig, nonMinifiedBundlePath: string,
                               `--language_out=${closureConfig.languageOut}`, '--language_in', `${closureConfig.languageIn}`, '--compilation_level', `${closureConfig.optimization}`]);
 
     closureCommand.stdout.on('data', (buffer: Buffer) => {
-      Logger.debug(`[CLOSURE] ${buffer.toString()}`);
+      Logger.debug(`[Closure] ${buffer.toString()}`);
     });
 
     closureCommand.stderr.on('data', (buffer: Buffer) => {
-      Logger.warn(`[CLOSURE] ${buffer.toString()}`);
+      Logger.warn(`[Closure] ${buffer.toString()}`);
     });
 
     closureCommand.on('close', (code: number) => {

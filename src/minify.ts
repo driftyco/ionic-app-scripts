@@ -1,4 +1,7 @@
+import * as Constants from './util/constants';
+import { getBooleanPropertyValue } from './util/helpers';
 import { BuildContext } from './util/interfaces';
+import { babili } from './babili';
 import { cleancss } from './cleancss';
 import { closure, isClosureSupported } from './closure';
 import { Logger } from './logger/logger';
@@ -35,18 +38,18 @@ export function minifyJs(context: BuildContext) {
       return closure(context);
     }
 
+    if (getBooleanPropertyValue(Constants.ENV_USE_EXPERIMENTAL_BABILI)) {
+      return babili(context);
+    }
+
     return runUglify(context);
   });
 }
 
 function runUglify(context: BuildContext) {
-  // with uglify, we need to make sure the bundle is es5 first
-  return Promise.resolve()
-  .then(() => {
-    if (context.requiresTranspileDownlevel) {
-      return transpileBundle(context);
-    }
-  }).then(() => {
+  // uglify cannot handle ES2015, so convert it to ES5 before minifying (if needed)
+  const promise = getBooleanPropertyValue(Constants.ENV_BUILD_TO_ES5) === true ? transpileBundle(context) : Promise.resolve();
+  return promise.then(() => {
     return uglifyjs(context);
   });
 }
