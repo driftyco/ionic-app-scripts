@@ -54,7 +54,7 @@ function updateCorrespondingJsFile(context: BuildContext, newTemplateContent: st
   const javascriptFiles = context.fileCache.getAll().filter((file: File) => dirname(file.path) === dirname(existingHtmlTemplatePath) && extname(file.path) === '.js');
   for (const javascriptFile of javascriptFiles) {
     const newContent = replaceExistingJsTemplate(javascriptFile.content, newTemplateContent, existingHtmlTemplatePath);
-    if (newContent !== javascriptFile.content) {
+    if (newContent && newContent !== javascriptFile.content) {
       javascriptFile.content = newContent;
       // set the file again to generate a new timestamp
       // do the same for the typescript file just to invalidate any caches, etc.

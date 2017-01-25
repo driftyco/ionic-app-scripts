@@ -3,6 +3,8 @@ import { BuildContext, ChangedFile, TaskInfo } from './util/interfaces';
 import { BuildError } from './util/errors';
 import { createProgram, findConfiguration, getFileNames } from 'tslint';
 import { getUserConfigFile } from './util/config';
+import * as Constants from './util/constants';
+import { readFileAsync, getBooleanPropertyValue } from './util/helpers';
 import { join } from 'path';
 import { Logger } from './logger/logger';
 import { printDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
@@ -14,9 +16,16 @@ import * as ts from 'typescript';
 
 
 export function lint(context: BuildContext, configFile?: string) {
+  const logger = new Logger('lint');
   return runWorker('lint', 'lintWorker', context, configFile)
+    .then(() => {
+      logger.finish();
+    })
     .catch(err => {
-      throw new BuildError(err);
+      if (getBooleanPropertyValue(Constants.ENV_BAIL_ON_LINT_ERROR)){
+        throw logger.fail(err);
+      }
+      logger.finish();
     });
 }
 
@@ -25,7 +34,7 @@ export function lintWorker(context: BuildContext, configFile: string) {
   return getLintConfig(context, configFile).then(configFile => {
     // there's a valid tslint config, let's continue
     return lintApp(context, configFile);
-  }).catch(() => {});
+  });
 }
 
 
@@ -62,57 +71,40 @@ function lintApp(context: BuildContext, configFile: string) {
     return lintFile(context, program, file);
   });
 
-  return Promise.all(promises);
+  return Promise.all(promises)
 }
 
 function lintFiles(context: BuildContext, program: ts.Program, filePaths: string[]) {
-  const promises: Promise<void>[] = [];
+  const promises: Promise<any>[] = [];
   for (const filePath of filePaths) {
     promises.push(lintFile(context, program, filePath));
   }
   return Promise.all(promises);
 }
 
-function lintFile(context: BuildContext, program: ts.Program, filePath: string) {
-  return new Promise((resolve) => {
-
+function lintFile(context: BuildContext, program: ts.Program, filePath: string): Promise<any> {
+  return Promise.resolve().then(() => {
     if (isMpegFile(filePath)) {
-      // silly .ts files actually being video files
-      resolve();
-      return;
+      throw new Error(`${filePath} is not a valid TypeScript file`);
     }
+    return readFileAsync(filePath);
+  }).then((fileContents: string) => {
+    const configuration = findConfiguration(null, filePath);
 
-    fs.readFile(filePath, 'utf8', (err, contents) => {
-      if (err) {
-        // don't care if there was an error
-        // let's just move on with our lives
-        resolve();
-        return;
-      }
+    const linter = new Linter(filePath, fileContents, {
+      configuration: configuration,
+      formatter: null,
+      formattersDirectory: null,
+      rulesDirectory: null,
+    }, program);
 
-      try {
-        const configuration = findConfiguration(null, filePath);
-
-        const linter = new Linter(filePath, contents, {
-          configuration: configuration,
-          formatter: null,
-          formattersDirectory: null,
-          rulesDirectory: null,
-        }, program);
-
-        const lintResult = linter.lint();
-        if (lintResult && lintResult.failures) {
-          const diagnostics = runTsLintDiagnostics(context, <any>lintResult.failures);
-          printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
-        }
-
-      } catch (e) {
-        Logger.debug(`Linter ${e}`);
-      }
-
-      resolve();
-    });
-
+    const lintResult = linter.lint();
+    if (lintResult && lintResult.failures && lintResult.failures.length) {
+      const diagnostics = runTsLintDiagnostics(context, <any>lintResult.failures);
+      printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
+      throw new BuildError(`${filePath} did not pass TSLint`);
+    }
+    return lintResult;
   });
 }
 

@@ -1,7 +1,7 @@
-import { BuildContext, BuildState, ChangedFile } from '../util/interfaces';
-import { FileCache } from '../util/file-cache';
-import { runBuildUpdate } from '../watch';
-import { Watcher, prepareWatcher } from '../watch';
+import { BuildContext, BuildState, ChangedFile } from './util/interfaces';
+import { FileCache } from './util/file-cache';
+import { runBuildUpdate } from './watch';
+import { Watcher, prepareWatcher } from './watch';
 import * as path from 'path';
 
 

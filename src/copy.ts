@@ -1,10 +1,11 @@
 import { mkdirpSync } from 'fs-extra';
 import { dirname as pathDirname, join as pathJoin, relative as pathRelative, resolve as pathResolve } from 'path';
 import { Logger } from './logger/logger';
-import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
+import { fillConfigDefaults, generateContext, getUserConfigFile, replacePathVars } from './util/config';
+import * as Constants from './util/constants';
 import { emit, EventType } from './util/events';
 import { generateGlobTasks, globAll, GlobObject, GlobResult } from './util/glob-util';
-import { copyFileAsync, rimRafAsync, unlinkAsync } from './util/helpers';
+import { copyFileAsync, getBooleanPropertyValue, rimRafAsync, unlinkAsync } from './util/helpers';
 import { BuildContext, ChangedFile, TaskInfo } from './util/interfaces';
 import { Watcher, copyUpdate as watchCopyUpdate } from './watch';
 
@@ -40,7 +41,7 @@ export function copyWorker(context: BuildContext, configFile: string) {
     // basically, we've got a stew goin'
     return populateFileAndDirectoryInfo(resultMap, copyConfig, toCopyList, directoriesToCreate);
   }).then(() => {
-    if (process.env.IONIC_CLEAN_BEFORE_COPY) {
+    if (getBooleanPropertyValue(Constants.ENV_CLEAN_BEFORE_COPY)) {
       cleanDirectories(context, directoriesToCreate);
     }
   }).then(() => {
@@ -163,7 +164,7 @@ function processRemoveFile(changedFile: ChangedFile) {
   });
 }
 
-function processRemoveDir(changedFile: ChangedFile) {
+function processRemoveDir(changedFile: ChangedFile): Promise<any> {
   // remove any files from the cache where the dirname equals the provided path
   const keysToRemove: string[] = [];
   const directoriesToRemove = new Set<string>();
@@ -198,11 +199,13 @@ function getFilesPathsForConfig(copyConfigKeys: string[], copyConfig: CopyConfig
   const promises: Promise<GlobResult[]>[] = [];
   copyConfigKeys.forEach(key => {
     const copyOptions = copyConfig[key];
-    const promise = globAll(copyOptions.src);
-    promises.push(promise);
-    promise.then(globResultList => {
-      srcToResultsMap.set(key, globResultList);
-    });
+    if (copyOptions && copyOptions.src) {
+      const promise = globAll(copyOptions.src);
+      promises.push(promise);
+      promise.then(globResultList => {
+        srcToResultsMap.set(key, globResultList);
+      });
+    }
   });
 
   return Promise.all(promises).then(() => {
@@ -241,6 +244,9 @@ function cleanConfigContent(dictionaryKeys: string[], copyConfig: CopyConfig, co
 }
 
 export function copyConfigToWatchConfig(context: BuildContext): Watcher {
+  if (!context) {
+    context = generateContext(context);
+  }
   const configFile = getUserConfigFile(context, taskInfo, '');
   const copyConfig: CopyConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   let results: GlobObject[] = [];
@@ -274,7 +280,7 @@ interface CopySrcToDestResult {
   errorMessage: string;
 }
 
-const taskInfo: TaskInfo = {
+export const taskInfo: TaskInfo = {
   fullArg: '--copy',
   shortArg: '-y',
   envVar: 'IONIC_COPY',

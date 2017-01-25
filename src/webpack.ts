@@ -21,7 +21,7 @@ const INCREMENTAL_BUILD_SUCCESS = 'incremental_build_success';
  * To mitigate this, store pending "webpack watch"/bundle update promises in this array and only resolve the
  * the most recent one. reject all others at that time with an IgnorableError.
  */
-let pendingPromises: Promise<void>[] = [];
+let pendingPromises: Promise<any>[] = [];
 
 export function webpack(context: BuildContext, configFile: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
@@ -40,7 +40,7 @@ export function webpack(context: BuildContext, configFile: string) {
 }
 
 
-export function webpackUpdate(changedFiles: ChangedFile[], context: BuildContext, configFile: string) {
+export function webpackUpdate(changedFiles: ChangedFile[], context: BuildContext, configFile?: string) {
   const logger = new Logger('webpack update');
   const webpackConfig = getWebpackConfig(context, configFile);
   Logger.debug('webpackUpdate: Starting Incremental Build');
@@ -68,7 +68,7 @@ export function webpackUpdate(changedFiles: ChangedFile[], context: BuildContext
 export function webpackWorker(context: BuildContext, configFile: string): Promise<any> {
   const webpackConfig = getWebpackConfig(context, configFile);
 
-  let promise: Promise<void> = null;
+  let promise: Promise<any> = null;
   if (context.isWatch) {
     promise = runWebpackIncrementalBuild(!context.webpackWatch, context, webpackConfig);
   } else {
@@ -140,7 +140,7 @@ function runWebpackIncrementalBuild(initializeWatch: boolean, context: BuildCont
   return promise;
 }
 
-function handleWebpackBuildFailure(resolve: Function, reject: Function, error: Error, promise: Promise<void>, pendingPromises: Promise<void>[]) {
+function handleWebpackBuildFailure(resolve: Function, reject: Function, error: Error, promise: Promise<any>, pendingPromises: Promise<void>[]) {
   // check if the promise if the last promise in the list of pending promises
   if (pendingPromises.length > 0 && pendingPromises[pendingPromises.length - 1] === promise) {
     // reject this one with a build error
@@ -151,7 +151,7 @@ function handleWebpackBuildFailure(resolve: Function, reject: Function, error: E
   reject(new IgnorableError());
 }
 
-function handleWebpackBuildSuccess(resolve: Function, reject: Function, stats: any, promise: Promise<void>, pendingPromises: Promise<void>[]) {
+function handleWebpackBuildSuccess(resolve: Function, reject: Function, stats: any, promise: Promise<any>, pendingPromises: Promise<void>[]) {
   // check if the promise if the last promise in the list of pending promises
   if (pendingPromises.length > 0 && pendingPromises[pendingPromises.length - 1] === promise) {
     Logger.debug('handleWebpackBuildSuccess: Resolving with Webpack data');
@@ -186,7 +186,8 @@ export function getWebpackConfig(context: BuildContext, configFile: string): Web
 }
 
 
-export function getOutputDest(context: BuildContext, webpackConfig: WebpackConfig) {
+export function getOutputDest(context: BuildContext) {
+  const webpackConfig = getWebpackConfig(context, null);
   return join(webpackConfig.output.path, webpackConfig.output.filename);
 }
 

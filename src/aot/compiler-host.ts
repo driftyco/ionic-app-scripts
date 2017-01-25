@@ -1,6 +1,7 @@
 import { CancellationToken, CompilerHost, CompilerOptions, createCompilerHost, ScriptTarget, SourceFile } from 'typescript';
 import { VirtualFileSystem } from '../util/interfaces';
 import { getTypescriptSourceFile } from '../util/typescript-utils';
+import { Logger } from '../logger/logger';
 
 export interface OnErrorFn {
   (message: string): void;
@@ -82,6 +83,7 @@ export class NgcCompilerHost implements CompilerHost {
   }
 
   writeFile(fileName: string, data: string, writeByteOrderMark: boolean, onError?: OnErrorFn) {
+    Logger.debug(`[NgcCompilerHost] writeFile: adding ${fileName} to virtual file system`);
     this.fileSystem.addVirtualFile(fileName, data);
   }
 

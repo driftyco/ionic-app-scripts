@@ -1,4 +1,4 @@
-import { BuildError } from '../util/errors';
+import { BuildError } from './errors';
 
 
 describe('Errors', () => {

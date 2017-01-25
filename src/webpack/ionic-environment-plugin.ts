@@ -1,22 +1,35 @@
-import { FileCache } from '../util/file-cache';
+import { relative, sep } from 'path';
+import { BuildContext, HydratedDeepLinkConfigEntry } from '../util/interfaces';
 import { Logger } from '../logger/logger';
 import { getInstance } from '../util/hybrid-file-system-factory';
 import { WatchMemorySystem } from './watch-memory-system';
+import { createResolveDependenciesFromContextMap } from './util';
 
 export class IonicEnvironmentPlugin {
-  constructor(private fileCache: FileCache) {
+  constructor(private context: BuildContext, private parsedDeepLinkConfigs: HydratedDeepLinkConfigEntry[]) {
   }
 
   apply(compiler: any) {
+
+    compiler.plugin('context-module-factory', (contextModuleFactory: any) => {
+      const webpackDeepLinkModuleDictionary = convertDeepLinkConfigToWebpackFormat(this.parsedDeepLinkConfigs);
+      contextModuleFactory.plugin('after-resolve', (result: any, callback: Function) => {
+        if (!result) {
+          return callback();
+        }
+        result.resource = this.context.srcDir;
+        result.recursive = true;
+        result.dependencies.forEach((dependency: any) => dependency.critical = false);
+        result.resolveDependencies = createResolveDependenciesFromContextMap((_: any, cb: any) => cb(null, webpackDeepLinkModuleDictionary));
+        return callback(null, result);
+      });
+    });
+
     compiler.plugin('environment', (otherCompiler: any, callback: Function) => {
       Logger.debug('[IonicEnvironmentPlugin] apply: creating environment plugin');
       const hybridFileSystem = getInstance();
       hybridFileSystem.setFileSystem(compiler.inputFileSystem);
       compiler.inputFileSystem = hybridFileSystem;
-      compiler.resolvers.normal.fileSystem = compiler.inputFileSystem;
-      compiler.resolvers.context.fileSystem = compiler.inputFileSystem;
-      compiler.resolvers.loader.fileSystem = compiler.inputFileSystem;
-      compiler.watchFileSystem = new WatchMemorySystem(this.fileCache);
 
       // do a bunch of webpack specific stuff here, so cast to an any
       // populate the content of the file system with any virtual files
@@ -40,7 +53,6 @@ export class IonicEnvironmentPlugin {
         webpackFileSystem._statStorage.data[dirPath] = [null, stats];
         webpackFileSystem._readdirStorage.data[dirPath] = [null, fileNames.concat(dirNames)];
       }
-
     });
   }
 
@@ -66,4 +78,13 @@ export class IonicEnvironmentPlugin {
       webpackFileSystem._readdirStorage.data = [];
     }
   }
+}
+
+
+export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: HydratedDeepLinkConfigEntry[]) {
+  const dictionary: { [index: string]: string} = { };
+  parsedDeepLinkConfigs.forEach(parsedDeepLinkConfig => {
+    dictionary[parsedDeepLinkConfig.modulePath] = parsedDeepLinkConfig.absolutePath;
+  });
+  return dictionary;
 }

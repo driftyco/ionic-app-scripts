@@ -1,4 +1,4 @@
-import { highlight, highlightError } from '../highlight/highlight';
+import { highlight, highlightError } from './highlight';
 
 
 describe('highlight.js', () => {

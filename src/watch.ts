@@ -53,7 +53,7 @@ export function watch(context?: BuildContext, configFile?: string) {
 function startWatchers(context: BuildContext, configFile: string) {
   const watchConfig: WatchConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
 
-  const promises: Promise<void>[] = [];
+  const promises: Promise<any>[] = [];
   Object.keys(watchConfig).forEach((key) => {
     promises.push(startWatcher(key, watchConfig[key], context));
   });

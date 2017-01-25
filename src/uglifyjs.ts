@@ -61,7 +61,7 @@ function runUglifyInternal(uglifyJsConfig: UglifyJsConfig): uglify.MinifyOutput 
 }
 
 
-const taskInfo: TaskInfo = {
+export const taskInfo: TaskInfo = {
   fullArg: '--uglifyjs',
   shortArg: '-u',
   envVar: 'IONIC_UGLIFYJS',

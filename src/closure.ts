@@ -1,7 +1,8 @@
 import { join } from 'path';
 import { spawn } from 'cross-spawn';
 
-import { copyFileAsync, generateRandomHexString, unlinkAsync } from './util/helpers';
+import * as Constants from './util/constants';
+import { copyFileAsync, getBooleanPropertyValue, generateRandomHexString, unlinkAsync } from './util/helpers';
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
 import { Logger } from './logger/logger';
@@ -15,8 +16,6 @@ export function closure(context: BuildContext, configFile?: string) {
 
   return runWorker('closure', 'closureWorker', context, configFile)
     .then(() => {
-      // closure automatically does this
-      context.requiresTranspileDownlevel = false;
       logger.finish();
     })
     .catch(err => {
@@ -29,7 +28,7 @@ export function closureWorker(context: BuildContext, configFile: string): Promis
   context = generateContext(context);
   const tempFilePath = join(context.buildDir, generateRandomHexString(10) + '.js');
   const closureConfig = getClosureConfig(context, configFile);
-  const bundleFilePath = join(context.buildDir, process.env.IONIC_OUTPUT_JS_FILE_NAME);
+  const bundleFilePath = join(context.buildDir, process.env[Constants.ENV_OUTPUT_JS_FILE_NAME]);
   return runClosure(closureConfig, bundleFilePath, tempFilePath)
   .then(() => {
     return copyFileAsync(tempFilePath, bundleFilePath);
@@ -89,9 +88,10 @@ function runClosure(closureConfig: ClosureConfig, nonMinifiedBundlePath: string,
 
 
 export function isClosureSupported(context: BuildContext): Promise<boolean> {
-  if (!process.env.IONIC_ENABLE_CLOSURE) {
+  if (!getBooleanPropertyValue(Constants.ENV_USE_EXPERIMENTAL_CLOSURE)) {
     return Promise.resolve(false);
   }
+  Logger.debug('[Closure] isClosureSupported: Checking if Closure Compiler is available');
   const config = getClosureConfig(context);
   return checkIfJavaIsAvailable(config).then(() => {
     return Promise.resolve(true);

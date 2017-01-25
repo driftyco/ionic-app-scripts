@@ -1,3 +1,4 @@
+import * as Constants from './util/constants';
 import { FileCache } from './util/file-cache';
 import { BuildContext, BuildState, ChangedFile } from './util/interfaces';
 import { BuildError } from './util/errors';
@@ -299,10 +300,10 @@ function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, 
   }
 }
 
-export function transpileBundle(context: BuildContext) {
+export function transpileBundle(context: BuildContext, target: ts.ScriptTarget = ts.ScriptTarget.ES5) {
   const logger = new Logger('transpile bundle');
   try {
-    const bundlePath = path.join(context.buildDir, process.env.IONIC_OUTPUT_JS_FILE_NAME);
+    const bundlePath = path.join(context.buildDir, process.env[Constants.ENV_OUTPUT_JS_FILE_NAME]);
     const bundleContent = readFileSync(bundlePath).toString();
     const tsConfig = getTsConfig(context);
     const transpileOptions: ts.TranspileOptions = {
@@ -310,6 +311,8 @@ export function transpileBundle(context: BuildContext) {
       fileName: bundlePath,
       reportDiagnostics: true
     };
+    // override the target value
+    transpileOptions.compilerOptions.target = target;
     const transpiledOutput = ts.transpileModule(bundleContent, transpileOptions);
     writeFileSync(bundlePath, transpiledOutput.outputText);
     logger.finish();
@@ -350,7 +353,6 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
     config = {
       options: parsedConfig.options,
       fileNames: parsedConfig.fileNames,
-      typingOptions: parsedConfig.typingOptions,
       raw: parsedConfig.raw
     };
   }
@@ -369,7 +371,6 @@ export function getTsConfigPath(context: BuildContext) {
 export interface TsConfig {
   options: ts.CompilerOptions;
   fileNames: string[];
-  typingOptions: ts.TypingOptions;
   raw: any;
 }
 

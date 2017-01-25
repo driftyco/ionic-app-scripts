@@ -96,7 +96,7 @@ function getPlatformBrowserFunctionNode(filePath: string, fileContent: string) {
     modifiedFileContent = appendBefore(filePath, modifiedFileContent, callsToPlatformBrowser[0].expression, toAppend);
   } else {
     // just throw it at the bottom
-    modifiedFileContent + toAppend;
+    modifiedFileContent += toAppend;
   }
   return modifiedFileContent;
 }

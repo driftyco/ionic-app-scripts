@@ -15,8 +15,6 @@ export interface BuildContext {
   runMinifyJs?: boolean;
   runMinifyCss?: boolean;
   optimizeJs?: boolean;
-  requiresTranspileDownlevel?: boolean;
-
   bundler?: string;
   fileCache?: FileCache;
   inlineTemplates?: boolean;
@@ -133,4 +131,19 @@ export interface VirtualFileSystem {
   getFileNamesInDirectory(directoryPath: string): string[];
   getAllFileStats():  { [filePath: string]: VirtualFileStats };
   getAllDirStats():  { [filePath: string]: VirtualDirStats };
+};
+
+export interface DeepLinkConfigEntry {
+  modulePath: string;
+  namedExport: string;
+  name: string;
+};
+
+export interface HydratedDeepLinkConfigEntry extends DeepLinkConfigEntry {
+  absolutePath: string;
+};
+
+export interface AppNgModuleInfo {
+  absolutePath: string;
+  className: string;
 };

@@ -1,3 +1,48 @@
+<a name="1.0.0"></a>
+# [1.0.0](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.48...v1.0.0) (2017-01-06)
+
+
+### Upgrade Instructions
+Execute the following command from your ionic project. This installs a new peer dependency called `sw-toolbox` that is used to simplify implementing a service-worker.
+
+```
+npm install sw-toolbox --save --save-exact
+```
+
+
+### Bug Fixes
+
+* **build:** check to ensure tsconfig contains sourcemaps true. ([e6bcf22](https://github.com/driftyco/ionic-app-scripts/commit/e6bcf22))
+* **config:** resolve any inputs that could be paths to absolute paths ([50876eb](https://github.com/driftyco/ionic-app-scripts/commit/50876eb))
+* **copy:** check for null object and src/dest ([eabd125](https://github.com/driftyco/ionic-app-scripts/commit/eabd125))
+* **ngc:** revert change to purge decorators (Angular CLI did too) ([8aae85c](https://github.com/driftyco/ionic-app-scripts/commit/8aae85c))
+* **webpack:** update environment plugin for webpack 2 RC3 ([be3aac1](https://github.com/driftyco/ionic-app-scripts/commit/be3aac1))
+* **websockets:** fix exception when no ws clients connected during rebuild ([#616](https://github.com/driftyco/ionic-app-scripts/issues/616)) ([8685bf8](https://github.com/driftyco/ionic-app-scripts/commit/8685bf8))
+
+
+
+<a name="0.0.48"></a>
+## [0.0.48](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.47...v0.0.48) (2016-12-19)
+
+### Upgrade Instructions
+`@ionic/app-scripts` version `0.0.47` had some breaking changes so please make sure you have performed those upgrade instructions.
+
+### Bug Fixes
+
+* **diagnostics:** fix null pointers ([72adc86](https://github.com/driftyco/ionic-app-scripts/commit/72adc86))
+* **inline-templates:** check for existence of content ([#557](https://github.com/driftyco/ionic-app-scripts/issues/557)) ([b68e125](https://github.com/driftyco/ionic-app-scripts/commit/b68e125))
+* **logging:** don't log msgs about websocket state ([18185fb](https://github.com/driftyco/ionic-app-scripts/commit/18185fb))
+* **optimization:** stop removing decorators ([45b0255](https://github.com/driftyco/ionic-app-scripts/commit/45b0255))
+* **serve:** find an open port for the notification server if port is used. ([d6de413](https://github.com/driftyco/ionic-app-scripts/commit/d6de413))
+* **copy:** generate project context if it doesn't exist ([26f6db8](https://github.com/driftyco/ionic-app-scripts/commit/26f6db8a7d3398b940cfb4c4b3eb4a6f141e1be7#diff-b477061dcc036b7490cfc73741747819))
+
+
+### Features
+
+* **sass:** enable Sass indented files compilation ([#565](https://github.com/driftyco/ionic-app-scripts/issues/565)) ([f632298](https://github.com/driftyco/ionic-app-scripts/commit/f632298))
+
+
+
 <a name="0.0.47"></a>
 ## [0.0.47](https://github.com/driftyco/ionic-app-scripts/compare/v0.0.46...v0.0.47) (2016-12-12)
 
@@ -24,7 +69,7 @@ platformBrowserDynamic().bootstrapModule(AppModule);
 #### Dev Builds By Default Changes
 All builds are now development (non-AoT) builds by default. This allows for a better development experience when testing on a device. To get started, please follow the steps below.
 
-Make sure the `script` section of `package.json` looks like this:
+Make sure the `scripts` section of `package.json` looks like this:
 
 ```
   "scripts": {

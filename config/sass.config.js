@@ -53,7 +53,7 @@ module.exports = {
    * the file will be excluded.
    */
   includeFiles: [
-    /\.(scss)$/i
+    /\.(s(c|a)ss)$/i
   ],
 
   /**

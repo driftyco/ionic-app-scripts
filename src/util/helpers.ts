@@ -1,11 +1,11 @@
 import { randomBytes } from 'crypto';
 import { basename, dirname, extname, join } from 'path';
-import { BuildContext, File } from './interfaces';
-import { BuildError } from './errors';
+import { BuildContext, File, HydratedDeepLinkConfigEntry } from './interfaces';
 import { createReadStream, createWriteStream, readFile, readFileSync, readJsonSync, remove, unlink, writeFile } from 'fs-extra';
 import * as osName from 'os-name';
 
 let _context: BuildContext;
+let _parsedDeepLinkConfig: HydratedDeepLinkConfigEntry[];
 
 let cachedAppScriptsPackageJson: any;
 export function getAppScriptsPackageJson() {
@@ -99,7 +99,7 @@ export function writeFileAsync(filePath: string, content: string): Promise<any> 
   return new Promise((resolve, reject) => {
     writeFile(filePath, content, (err) => {
       if (err) {
-        return reject(new BuildError(err));
+        return reject(err);
       }
       return resolve();
     });
@@ -110,25 +110,25 @@ export function readFileAsync(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
     readFile(filePath, 'utf-8', (err, buffer) => {
       if (err) {
-        return reject(new BuildError(err));
+        return reject(err);
       }
       return resolve(buffer);
     });
   });
 }
 
-export function unlinkAsync(filePath: string): Promise<void> {
+export function unlinkAsync(filePath: string): Promise<any> {
   return new Promise((resolve, reject) => {
     unlink(filePath, (err: Error) => {
       if (err) {
-        return reject(new BuildError(err));
+        return reject(err);
       }
       return resolve();
     });
   });
 }
 
-export function rimRafAsync(directoryPath: string) {
+export function rimRafAsync(directoryPath: string): Promise<null> {
   return new Promise((resolve, reject) => {
     remove(directoryPath, (err: Error) => {
       if (err) {
@@ -139,7 +139,7 @@ export function rimRafAsync(directoryPath: string) {
   });
 }
 
-export function copyFileAsync(srcPath: string, destPath: string) {
+export function copyFileAsync(srcPath: string, destPath: string): Promise<any> {
   return new Promise((resolve, reject) => {
     const writeStream = createWriteStream(destPath);
 
@@ -170,6 +170,14 @@ export function setContext(context: BuildContext) {
 
 export function getContext() {
   return _context;
+}
+
+export function setParsedDeepLinkConfig(parsedDeepLinkConfig: HydratedDeepLinkConfigEntry[]) {
+  _parsedDeepLinkConfig = parsedDeepLinkConfig;
+}
+
+export function getParsedDeepLinkConfig(): HydratedDeepLinkConfigEntry[] {
+  return _parsedDeepLinkConfig;
 }
 
 export function transformSrcPathToTmpPath(originalPath: string, context: BuildContext) {
@@ -211,4 +219,9 @@ export function toUnixPath(filePath: string) {
 
 export function generateRandomHexString(numCharacters: number) {
   return randomBytes(Math.ceil(numCharacters / 2)).toString('hex').slice(0, numCharacters);
+}
+
+export function getBooleanPropertyValue(propertyName: string) {
+  const result = process.env[propertyName];
+  return result === 'true';
 }

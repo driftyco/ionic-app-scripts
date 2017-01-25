@@ -38,5 +38,8 @@ function errorLog(task: string, e: any) {
   if (e && e.toString() !== 'Error') {
     Logger.error(`${e}`);
   }
+  if (e.stack) {
+    Logger.unformattedError(e.stack);
+  }
   process.exit(1);
 }

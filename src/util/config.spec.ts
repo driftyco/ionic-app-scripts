@@ -1,82 +1,100 @@
-import { BuildContext } from '../util/interfaces';
-import { bundlerStrategy, generateContext, getConfigValue, getUserConfigFile, replacePathVars, hasArg } from '../util/config';
-import { addArgv, setAppPackageJsonData, setProcessEnvVar, setProcessArgs, setProcessEnv, setCwd } from '../util/config';
+import { BuildContext } from './interfaces';
+import * as config from './config';
+
+import * as Constants from './constants';
 import { resolve } from 'path';
 
 
 describe('config', () => {
 
-  describe('generateContext', () => {
+  describe('config.config.generateContext', () => {
 
     it('should set isWatch true with isWatch true context', () => {
-      const context = generateContext({
+      const context = config.generateContext({
         isWatch: true
       });
       expect(context.isWatch).toEqual(true);
     });
 
     it('should set isWatch false by default', () => {
-      const context = generateContext();
+      const context = config.generateContext();
       expect(context.isWatch).toEqual(false);
     });
 
     it('should set isProd false with isProd false context', () => {
-      const context = generateContext({
+      const context = config.generateContext({
         isProd: false
       });
       expect(context.isProd).toEqual(false);
     });
 
     it('should set default bundler when invalid value', () => {
-      const context = generateContext();
+      const context = config.generateContext();
       expect(context.bundler).toEqual('webpack');
     });
 
     it('should set default bundler when not set', () => {
-      const context = generateContext();
+      const context = config.generateContext();
       expect(context.bundler).toEqual('webpack');
     });
 
     it('should set isProd by default', () => {
-      const context = generateContext();
+      const context = config.generateContext();
       expect(context.isProd).toEqual(false);
     });
 
     it('should create an object when passed nothing', () => {
-      const context = generateContext();
+      const context = config.generateContext();
       expect(context).toBeDefined();
     });
 
     it('should set default prod specific build flag defaults to false', () => {
-      const context = generateContext({
+      // arrange
+      const fakeConfig: any = { };
+      config.setProcessEnv(fakeConfig);
+
+      // act
+      const context = config.generateContext({
         isProd: false
       });
+
+      // assert
       expect(context.isProd).toEqual(false);
       expect(context.runAot).toEqual(false);
       expect(context.runMinifyJs).toEqual(false);
       expect(context.runMinifyCss).toEqual(false);
       expect(context.optimizeJs).toEqual(false);
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_ENV]).toEqual(Constants.ENV_VAR_DEV);
     });
 
     it('should set default prod specific build flags to true when isProd is true', () => {
-      const context = generateContext({
+      // arrange
+       // arrange
+      const fakeConfig: any = { };
+      config.setProcessEnv(fakeConfig);
+
+      // act
+      const context = config.generateContext({
         isProd: true
       });
+
+      // assert
       expect(context.isProd).toEqual(true);
       expect(context.runAot).toEqual(true);
       expect(context.runMinifyJs).toEqual(true);
       expect(context.runMinifyCss).toEqual(true);
       expect(context.optimizeJs).toEqual(true);
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_ENV]).toEqual(Constants.ENV_VAR_PROD);
     });
   });
 
-  describe('replacePathVars', () => {
+  describe('config.replacePathVars', () => {
     it('should interpolated value when string', () => {
       const context = {
         srcDir: 'src',
       };
 
-      const rtn = replacePathVars(context, '{{SRC}}');
+      const rtn = config.replacePathVars(context, '{{SRC}}');
       expect(rtn).toEqual('src');
     });
 
@@ -87,7 +105,7 @@ describe('config', () => {
       };
 
       const filePaths = ['{{SRC}}', '{{WWW}}'];
-      const rtn = replacePathVars(context, filePaths);
+      const rtn = config.replacePathVars(context, filePaths);
       expect(rtn).toEqual(['src', 'www']);
     });
 
@@ -102,7 +120,7 @@ describe('config', () => {
         www: '{{WWW}}'
       };
 
-      const rtn = replacePathVars(context, filePaths);
+      const rtn = config.replacePathVars(context, filePaths);
       expect(rtn).toEqual({
         src: 'src',
         www: 'www'
@@ -111,161 +129,161 @@ describe('config', () => {
 
   });
 
-  describe('getConfigValue', () => {
+  describe('config.getConfigValue', () => {
 
     it('should get arg full value', () => {
-      addArgv('--full');
-      addArgv('fullArgValue');
-      addArgv('-s');
-      addArgv('shortArgValue');
-      setProcessEnvVar('ENV_VAR', 'myProcessEnvVar');
-      setAppPackageJsonData({ config: { config_prop: 'myPackageConfigVal' } });
-      const val = getConfigValue(context, '--full', '-s', 'ENV_VAR', 'config_prop', 'defaultValue');
+      config.addArgv('--full');
+      config.addArgv('fullArgValue');
+      config.addArgv('-s');
+      config.addArgv('shortArgValue');
+      config.setProcessEnvVar('ENV_VAR', 'myProcessEnvVar');
+      config.setAppPackageJsonData({ config: { config_prop: 'myPackageConfigVal' } });
+      const val = config.getConfigValue(context, '--full', '-s', 'ENV_VAR', 'config_prop', 'defaultValue');
       expect(val).toEqual('fullArgValue');
     });
 
     it('should get arg short value', () => {
-      addArgv('-s');
-      addArgv('shortArgValue');
-      setProcessEnvVar('ENV_VAR', 'myProcessEnvVar');
-      setAppPackageJsonData({ config: { config_prop: 'myPackageConfigVal' } });
-      const val = getConfigValue(context, '--full', '-s', 'ENV_VAR', 'config_prop', 'defaultValue');
+      config.addArgv('-s');
+      config.addArgv('shortArgValue');
+      config.setProcessEnvVar('ENV_VAR', 'myProcessEnvVar');
+      config.setAppPackageJsonData({ config: { config_prop: 'myPackageConfigVal' } });
+      const val = config.getConfigValue(context, '--full', '-s', 'ENV_VAR', 'config_prop', 'defaultValue');
       expect(val).toEqual('shortArgValue');
     });
 
     it('should get envVar value', () => {
-      setProcessEnvVar('ENV_VAR', 'myProcessEnvVar');
-      setAppPackageJsonData({ config: { config_prop: 'myPackageConfigVal' } });
-      const val = getConfigValue(context, '--full', '-s', 'ENV_VAR', 'config_prop', 'defaultValue');
+      config.setProcessEnvVar('ENV_VAR', 'myProcessEnvVar');
+      config.setAppPackageJsonData({ config: { config_prop: 'myPackageConfigVal' } });
+      const val = config.getConfigValue(context, '--full', '-s', 'ENV_VAR', 'config_prop', 'defaultValue');
       expect(val).toEqual('myProcessEnvVar');
     });
 
     it('should get package.json config value', () => {
-      setAppPackageJsonData({ config: { config_prop: 'myPackageConfigVal' } });
-      const val = getConfigValue(context, '--full', '-s', 'ENV_VAR', 'config_prop', 'defaultValue');
+      config.setAppPackageJsonData({ config: { config_prop: 'myPackageConfigVal' } });
+      const val = config.getConfigValue(context, '--full', '-s', 'ENV_VAR', 'config_prop', 'defaultValue');
       expect(val).toEqual('myPackageConfigVal');
     });
 
     it('should get default value', () => {
-      const val = getConfigValue(context, '--full', '-s', 'ENV_VAR', 'config_prop', 'defaultValue');
+      const val = config.getConfigValue(context, '--full', '-s', 'ENV_VAR', 'config_prop', 'defaultValue');
       expect(val).toEqual('defaultValue');
     });
 
   });
 
-  describe('bundlerStrategy', () => {
+  describe('config.bundlerStrategy', () => {
 
     it('should get rollup by full arg', () => {
-      addArgv('--rollup');
-      addArgv('my.rollup.confg.js');
-      const bundler = bundlerStrategy(context);
+      config.addArgv('--rollup');
+      config.addArgv('my.rollup.confg.js');
+      const bundler = config.bundlerStrategy(context);
       expect(bundler).toEqual('rollup');
     });
 
     it('should get rollup by short arg', () => {
-      addArgv('-r');
-      addArgv('my.rollup.confg.js');
-      const bundler = bundlerStrategy(context);
+      config.addArgv('-r');
+      config.addArgv('my.rollup.confg.js');
+      const bundler = config.bundlerStrategy(context);
       expect(bundler).toEqual('rollup');
     });
 
     it('should get rollup by bundler arg', () => {
-      addArgv('--bundler');
-      addArgv('rollup');
-      const bundler = bundlerStrategy(context);
+      config.addArgv('--bundler');
+      config.addArgv('rollup');
+      const bundler = config.bundlerStrategy(context);
       expect(bundler).toEqual('rollup');
     });
 
     it('should get rollup by env var', () => {
-      setProcessEnv({
+      config.setProcessEnv({
         ionic_bundler: 'rollup'
       });
-      setAppPackageJsonData({ config: { ionic_bundler: 'rollup' } });
-      const bundler = bundlerStrategy(context);
+      config.setAppPackageJsonData({ config: { ionic_bundler: 'rollup' } });
+      const bundler = config.bundlerStrategy(context);
       expect(bundler).toEqual('rollup');
     });
 
     it('should get rollup by package.json config', () => {
-      setAppPackageJsonData({ config: { ionic_bundler: 'rollup' } });
-      const bundler = bundlerStrategy(context);
+      config.setAppPackageJsonData({ config: { ionic_bundler: 'rollup' } });
+      const bundler = config.bundlerStrategy(context);
       expect(bundler).toEqual('rollup');
     });
 
     it('should get webpack with invalid env var', () => {
-      setProcessEnv({
+      config.setProcessEnv({
         ionic_bundler: 'bobsBundler'
       });
-      const bundler = bundlerStrategy(context);
+      const bundler = config.bundlerStrategy(context);
       expect(bundler).toEqual('webpack');
     });
 
     it('should get rollup by env var', () => {
-      setProcessEnv({
+      config.setProcessEnv({
         ionic_bundler: 'rollup'
       });
-      setAppPackageJsonData({ config: { ionic_bundler: 'rollup' } });
-      const bundler = bundlerStrategy(context);
+      config.setAppPackageJsonData({ config: { ionic_bundler: 'rollup' } });
+      const bundler = config.bundlerStrategy(context);
       expect(bundler).toEqual('rollup');
     });
 
     it('should get rollup by package.json config', () => {
-      setAppPackageJsonData({ config: { ionic_bundler: 'rollup' } });
-      const bundler = bundlerStrategy(context);
+      config.setAppPackageJsonData({ config: { ionic_bundler: 'rollup' } });
+      const bundler = config.bundlerStrategy(context);
       expect(bundler).toEqual('rollup');
     });
 
     it('should get webpack by default', () => {
-      const bundler = bundlerStrategy(context);
+      const bundler = config.bundlerStrategy(context);
       expect(bundler).toEqual('webpack');
     });
 
   });
 
-  describe('getUserConfigFile', () => {
+  describe('config.getUserConfigFile', () => {
 
     it('should get config from package.json config', () => {
-      setAppPackageJsonData({
+      config.setAppPackageJsonData({
         config: { ionic_config: 'myconfig.js' }
       });
 
       const userConfigFile: string = null;
       const context = { rootDir: process.cwd() };
       const taskInfo = { fullArg: '--full', shortArg: '-s', defaultConfigFile: 'default.config.js', envVar: 'IONIC_CONFIG', packageConfig: 'ionic_config' };
-      const rtn = getUserConfigFile(context, taskInfo, userConfigFile);
+      const rtn = config.getUserConfigFile(context, taskInfo, userConfigFile);
       expect(rtn).toEqual(resolve('myconfig.js'));
     });
 
     it('should get config from env var', () => {
-      setProcessEnv({
+      config.setProcessEnv({
         IONIC_CONFIG: 'myconfig.js'
       });
 
       const userConfigFile: string = null;
       const context = { rootDir: process.cwd() };
       const taskInfo = { fullArg: '--full', shortArg: '-s', defaultConfigFile: 'default.config.js', envVar: 'IONIC_CONFIG', packageConfig: 'ionic_config' };
-      const rtn = getUserConfigFile(context, taskInfo, userConfigFile);
+      const rtn = config.getUserConfigFile(context, taskInfo, userConfigFile);
       expect(rtn).toEqual(resolve('myconfig.js'));
     });
 
     it('should get config from short arg', () => {
-      addArgv('-s');
-      addArgv('myconfig.js');
+      config.addArgv('-s');
+      config.addArgv('myconfig.js');
 
       const userConfigFile: string = null;
       const context = { rootDir: process.cwd() };
       const taskInfo = { fullArg: '--full', shortArg: '-s', defaultConfigFile: 'default.config.js', envVar: 'IONIC_CONFIG', packageConfig: 'ionic_config' };
-      const rtn = getUserConfigFile(context, taskInfo, userConfigFile);
+      const rtn = config.getUserConfigFile(context, taskInfo, userConfigFile);
       expect(rtn).toEqual(resolve('myconfig.js'));
     });
 
     it('should get config from full arg', () => {
-      addArgv('--full');
-      addArgv('myconfig.js');
+      config.addArgv('--full');
+      config.addArgv('myconfig.js');
 
       const userConfigFile: string = null;
       const context = { rootDir: process.cwd() };
       const taskInfo = { fullArg: '--full', shortArg: '-s', defaultConfigFile: 'default.config.js', envVar: 'IONIC_CONFIG', packageConfig: 'ionic_config' };
-      const rtn = getUserConfigFile(context, taskInfo, userConfigFile);
+      const rtn = config.getUserConfigFile(context, taskInfo, userConfigFile);
       expect(rtn).toEqual(resolve('myconfig.js'));
     });
 
@@ -273,7 +291,7 @@ describe('config', () => {
       const userConfigFile = 'myconfig.js';
       const context = { rootDir: process.cwd() };
       const taskInfo = { fullArg: '--full', shortArg: '-s', defaultConfigFile: 'default.config.js', envVar: 'IONIC_CONFIG', packageConfig: 'ionic_config' };
-      const rtn = getUserConfigFile(context, taskInfo, userConfigFile);
+      const rtn = config.getUserConfigFile(context, taskInfo, userConfigFile);
       expect(rtn).toEqual(resolve('myconfig.js'));
     });
 
@@ -281,48 +299,48 @@ describe('config', () => {
       const userConfigFile: string = null;
       const context = { rootDir: process.cwd() };
       const taskInfo = { fullArg: '--full', shortArg: '-s', defaultConfigFile: 'default.config.js', envVar: 'IONIC_CONFIG', packageConfig: 'ionic_config' };
-      const rtn = getUserConfigFile(context, taskInfo, userConfigFile);
+      const rtn = config.getUserConfigFile(context, taskInfo, userConfigFile);
       expect(rtn).toEqual(null);
     });
 
   });
 
-  describe('hasArg function', () => {
+  describe('config.hasArg function', () => {
     it('should return false when a match is not found', () => {
-      const result = hasArg('--full', '-f');
+      const result = config.hasArg('--full', '-f');
       expect(result).toBeFalsy();
     });
 
     it('should match on a fullname arg', () => {
-      addArgv('--full');
+      config.addArgv('--full');
 
-      const result = hasArg('--full');
+      const result = config.hasArg('--full');
       expect(result).toBeTruthy();
     });
 
     it('should match on a shortname arg', () => {
-      addArgv('-f');
+      config.addArgv('-f');
 
-      const result = hasArg('--full', '-f');
+      const result = config.hasArg('--full', '-f');
       expect(result).toBeTruthy();
     });
 
     it('should compare fullnames as case insensitive', () => {
-      addArgv('--full');
-      addArgv('--TEST');
+      config.addArgv('--full');
+      config.addArgv('--TEST');
 
-      const result = hasArg('--Full');
-      const result2 = hasArg('--test');
+      const result = config.hasArg('--Full');
+      const result2 = config.hasArg('--test');
       expect(result).toBeTruthy();
       expect(result2).toBeTruthy();
     });
 
     it('should compare shortnames as case insensitive', () => {
-      addArgv('-f');
-      addArgv('-T');
+      config.addArgv('-f');
+      config.addArgv('-T');
 
-      const result = hasArg('-F');
-      const result2 = hasArg('-t');
+      const result = config.hasArg('-F');
+      const result2 = config.hasArg('-t');
       expect(result).toBeTruthy();
       expect(result2).toBeTruthy();
     });
@@ -330,11 +348,11 @@ describe('config', () => {
 
   let context: BuildContext;
   beforeEach(() => {
-    setProcessArgs(['node', 'ionic-app-scripts']);
-    setProcessEnv({});
-    setCwd('');
-    setAppPackageJsonData(null);
-    context = generateContext({});
+    config.setProcessArgs(['node', 'ionic-app-scripts']);
+    config.setProcessEnv({});
+    config.setCwd('');
+    config.setAppPackageJsonData(null);
+    context = config.generateContext({});
   });
 
 });

@@ -9,6 +9,7 @@ import { createNotificationServer } from './dev-server/notification-server';
 import { createHttpServer } from './dev-server/http-server';
 import { createLiveReloadServer } from './dev-server/live-reload';
 import { ServeConfig, IONIC_LAB_URL } from './dev-server/serve-config';
+import { findClosestOpenPort } from './util/network';
 
 const DEV_LOGGER_DEFAULT_PORT = 53703;
 const LIVE_RELOAD_DEFAULT_PORT = 35729;
@@ -17,29 +18,38 @@ const DEV_SERVER_DEFAULT_HOST = '0.0.0.0';
 
 export function serve(context: BuildContext) {
   setContext(context);
-  const config: ServeConfig = {
-    httpPort: getHttpServerPort(context),
-    host: getHttpServerHost(context),
-    rootDir: context.rootDir,
-    wwwDir: context.wwwDir,
-    buildDir: context.buildDir,
-    isCordovaServe: isCordovaServe(context),
-    launchBrowser: launchBrowser(context),
-    launchLab: launchLab(context),
-    browserToLaunch: browserToLaunch(context),
-    useLiveReload: useLiveReload(context),
-    liveReloadPort: getLiveReloadServerPort(context),
-    notificationPort: getNotificationPort(context),
-    useServerLogs: useServerLogs(context),
-    useProxy: useProxy(context),
-    notifyOnConsoleLog: sendClientConsoleLogs(context)
-  };
 
-  createNotificationServer(config);
-  createLiveReloadServer(config);
-  createHttpServer(config);
+  let config: ServeConfig;
+  const notificationPort = getNotificationPort(context);
+  const host = getHttpServerHost(context);
 
-  return watch(context)
+  return findClosestOpenPort(host, notificationPort)
+    .then((notificationPortFound) => {
+
+      config = {
+        httpPort: getHttpServerPort(context),
+        host: host,
+        rootDir: context.rootDir,
+        wwwDir: context.wwwDir,
+        buildDir: context.buildDir,
+        isCordovaServe: isCordovaServe(context),
+        launchBrowser: launchBrowser(context),
+        launchLab: launchLab(context),
+        browserToLaunch: browserToLaunch(context),
+        useLiveReload: useLiveReload(context),
+        liveReloadPort: getLiveReloadServerPort(context),
+        notificationPort: notificationPortFound,
+        useServerLogs: useServerLogs(context),
+        useProxy: useProxy(context),
+        notifyOnConsoleLog: sendClientConsoleLogs(context)
+      };
+
+      createNotificationServer(config);
+      createLiveReloadServer(config);
+      createHttpServer(config);
+
+      return watch(context);
+    })
     .then(() => {
       onReady(config, context);
     }, (err: BuildError) => {
@@ -68,7 +78,7 @@ function onReady(config: ServeConfig, context: BuildContext) {
   Logger.newLine();
 }
 
-function getHttpServerPort(context: BuildContext) {
+function getHttpServerPort(context: BuildContext): number {
   const port = getConfigValue(context, '--port', '-p', 'IONIC_PORT', 'ionic_port', null);
   if (port) {
     return parseInt(port, 10);
@@ -76,7 +86,7 @@ function getHttpServerPort(context: BuildContext) {
   return DEV_SERVER_DEFAULT_PORT;
 }
 
-function getHttpServerHost(context: BuildContext) {
+function getHttpServerHost(context: BuildContext): string {
   const host = getConfigValue(context, '--address', '-h', 'IONIC_ADDRESS', 'ionic_address', null);
   if (host) {
     return host;
@@ -84,7 +94,7 @@ function getHttpServerHost(context: BuildContext) {
   return DEV_SERVER_DEFAULT_HOST;
 }
 
-function getLiveReloadServerPort(context: BuildContext) {
+function getLiveReloadServerPort(context: BuildContext): number {
   const port = getConfigValue(context, '--livereload-port', null, 'IONIC_LIVERELOAD_PORT', 'ionic_livereload_port', null);
   if (port) {
     return parseInt(port, 10);
@@ -92,7 +102,7 @@ function getLiveReloadServerPort(context: BuildContext) {
   return LIVE_RELOAD_DEFAULT_PORT;
 }
 
-export function getNotificationPort(context: BuildContext) {
+export function getNotificationPort(context: BuildContext): number {
   const port = getConfigValue(context, '--dev-logger-port', null, 'IONIC_DEV_LOGGER_PORT', 'ionic_dev_logger_port', null);
   if (port) {
     return parseInt(port, 10);
@@ -100,42 +110,42 @@ export function getNotificationPort(context: BuildContext) {
   return DEV_LOGGER_DEFAULT_PORT;
 }
 
-function useServerLogs(context: BuildContext) {
+function useServerLogs(context: BuildContext): boolean {
   return hasConfigValue(context, '--serverlogs', '-s', 'ionic_serverlogs', false);
 }
 
-function isCordovaServe(context: BuildContext) {
+function isCordovaServe(context: BuildContext): boolean {
   return hasConfigValue(context, '--iscordovaserve', '-z', 'ionic_cordova_serve', false);
 }
 
-function launchBrowser(context: BuildContext) {
+function launchBrowser(context: BuildContext): boolean {
   return !hasConfigValue(context, '--nobrowser', '-b', 'ionic_launch_browser', false);
 }
 
-function browserToLaunch(context: BuildContext) {
+function browserToLaunch(context: BuildContext): string {
   return getConfigValue(context, '--browser', '-w', 'IONIC_BROWSER', 'ionic_browser', null);
 }
 
-function browserOption(context: BuildContext) {
+function browserOption(context: BuildContext): string {
   return getConfigValue(context, '--browseroption', '-o', 'IONIC_BROWSEROPTION', 'ionic_browseroption', null);
 }
 
-function launchLab(context: BuildContext) {
+function launchLab(context: BuildContext): boolean {
   return hasConfigValue(context, '--lab', '-l', 'ionic_lab', false);
 }
 
-function platformOption(context: BuildContext) {
+function platformOption(context: BuildContext): string {
   return getConfigValue(context, '--platform', '-t', 'IONIC_PLATFORM_BROWSER', 'ionic_platform_browser', null);
 }
 
-function useLiveReload(context: BuildContext) {
+function useLiveReload(context: BuildContext): boolean {
   return !hasConfigValue(context, '--nolivereload', '-d', 'ionic_livereload', false);
 }
 
-function useProxy(context: BuildContext) {
+function useProxy(context: BuildContext): boolean {
   return !hasConfigValue(context, '--noproxy', '-x', 'ionic_proxy', false);
 }
 
-function sendClientConsoleLogs(context: BuildContext) {
+function sendClientConsoleLogs(context: BuildContext): boolean {
   return hasConfigValue(context, '--consolelogs', '-c', 'ionic_consolelogs', false);
 }

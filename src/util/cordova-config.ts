@@ -1,8 +1,6 @@
 import * as fs from 'fs';
 import * as xml2js from 'xml2js';
 
-import { BuildContext } from './interfaces';
-
 export interface CordovaProject {
   name?: string;
   id?: string;
@@ -18,22 +16,22 @@ let lastConfig: CordovaProject;
 export let buildCordovaConfig = (errCb: Function, cb: Function) => {
   var parser = new xml2js.Parser();
   fs.readFile('config.xml', (err: any, data: any) => {
-    if(err) {
+    if (err) {
       errCb(err);
       return;
     }
     parser.parseString(data, (err: any, result: any) => {
-      if(err) {
+      if (err) {
         errCb(err);
         return;
       }
       cb(parseConfig(result));
     });
   });
-}
+};
 
 export let parseConfig = (parsedConfig: any) : CordovaProject => {
-  if(!parsedConfig.widget) {
+  if (!parsedConfig.widget) {
     return {};
   }
 
@@ -46,7 +44,7 @@ export let parseConfig = (parsedConfig: any) : CordovaProject => {
     name: widget.name[0]
   };
 
-  if(widgetAttrs) {
+  if (widgetAttrs) {
     config.id = widgetAttrs.id;
     config.version = widgetAttrs.version;
   }
@@ -54,4 +52,4 @@ export let parseConfig = (parsedConfig: any) : CordovaProject => {
   lastConfig = config;
 
   return config;
-}
+};

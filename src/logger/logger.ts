@@ -164,6 +164,10 @@ export class Logger {
     });
   }
 
+  static unformattedError(msg: string) {
+    console.error(chalk.red(msg));
+  }
+
   /**
    * Prints out a blue colored DEBUG prefix. Only prints out when debug mode.
    */

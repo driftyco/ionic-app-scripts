@@ -8,8 +8,8 @@
     "target": "es5",
     "noImplicitAny": true,
     "types": [
-      "jasmine",
-      "node"
+      "node",
+      "jest"
     ]
   },
   "include": [

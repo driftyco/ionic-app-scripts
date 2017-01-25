@@ -1,7 +1,7 @@
 import { FileCache } from '../util/file-cache';
 import { BuildContext } from '../util/interfaces';
 import { dirname, join, resolve } from 'path';
-import { resolveId } from '../rollup/ionic-rollup-resolver-plugin';
+import { resolveId } from './ionic-rollup-resolver-plugin';
 
 const importer = '/Users/dan/Dev/ionic-conference-app/src/app/app.module.ts';
 

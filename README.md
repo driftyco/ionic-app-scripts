@@ -64,7 +64,7 @@ Ionic projects use the `package.json` file for configuration. There's a handy [c
 ```
   "config": {
     "ionic_bundler": "rollup",
-    "ionic_source_map": "source-map",
+    "ionic_source_map_type": "source-map",
     "ionic_cleancss": "./config/cleancss.config.js"
   },
 ```
@@ -117,13 +117,14 @@ npm run build --rollup ./config/rollup.config.js
 | generate source map | `ionic_generate_source_map`  | `--generateSourceMap` | `true` | Determines whether to generate a source map or not |
 | tsconfig path | `ionic_ts_config`  | `--tsconfig` | `{{rootDir}}/tsconfig.json` | absolute path to tsconfig.json |
 | app entry point | `ionic_app_entry_point`  | `--appEntryPoint` | `{{srcDir}}/app/main.ts` | absolute path to app's entrypoint bootstrap file |
+| app ng module path | `ionic_app_ng_module_path`  | `--appNgModulePath` | `{{srcDir}}/app/app.module.ts` | absolute path to app's primary `NgModule` |
+| app ng module class | `ionic_app_ng_module_class`  | `--appNgModuleClass` | `AppModule` | Exported class name for app's primary `NgModule` |
 | clean before copy | `ionic_clean_before_copy`  | `--cleanBeforeCopy` | `false` | clean out existing files before copy task runs |
 | output js file | `ionic_output_js_file_name`  | `--outputJsFileName` | `main.js` | name of js file generated in `buildDir` |
 | output js map file | `ionic_output_js_map_file_name`  | `--outputJsMapFileName` | `main.js.map` | name of js source map file generated in `buildDir` |
 | output css file | `ionic_output_css_file_name`  | `--outputCssFileName` | `main.css` | name of css file generated in `buildDir` |
 | output css map file | `ionic_output_css_map_file_name`  | `--outputCssMapFileName` | `main.css.map` | name of css source map file generated in `buildDir` |
-
-
+| bail on lint error | `ionic_bail_on_lint_error`  | `--bailOnLintError` | `null` | Set to `true` to make stand-alone lint commands fail with non-zero status code |
 
 
 
@@ -144,6 +145,8 @@ These environment variables are automatically set to [Node's `process.env`](http
 | `IONIC_GENERATE_SOURCE_MAP`| Determines whether to generate a sourcemap or not.                   |
 | `IONIC_TS_CONFIG`          | The absolute path to the project's `tsconfig.json` file              |
 | `IONIC_APP_ENTRY_POINT`    | The absolute path to the project's `main.ts` entry point file        |
+| `IONIC_APP_NG_MODULE_PATH` | The absolute path to app's primary `NgModule`                        |
+| `IONIC_APP_NG_MODULE_CLASS`    | The exported class name for app's primary `NgModule`             |
 | `IONIC_GLOB_UTIL`          | The path to Ionic's `glob-util` script. Used within configs.         |
 | `IONIC_CLEAN_BEFORE_COPY`  | Attempt to clean existing directories before copying files.          |
 | `IONIC_CLOSURE_JAR`        | The absolute path ot the closure compiler jar file                   |
@@ -153,10 +156,10 @@ These environment variables are automatically set to [Node's `process.env`](http
 | `IONIC_OUTPUT_CSS_MAP_FILE_NAME` | The file name of the generated css source map file             |
 | `IONIC_WEBPACK_FACTORY`    | The absolute path to Ionic's `webpack-factory` script                |
 | `IONIC_WEBPACK_LOADER`     | The absolute path to Ionic's custom webpack loader                   |
+| `IONIC_BAIL_ON_LINT_ERROR`     | Boolean determining whether to exit with a non-zero status code on error |
 
 
-
-The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` task is `prod`, and the `watch` and `serve` tasks are `dev`. Additionally, using the `--dev` command line flag will force the build to use `dev`.
+The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` and `serve` tasks produce `dev` builds (a build that does not include Ahead of Time (AoT) compilation or minification). To force a `prod` build you should use the `--prod` command line flag.
 
 Please take a look at the bottom of the [default Rollup config file](https://github.com/driftyco/ionic-app-scripts/blob/master/config/rollup.config.js) to see how the `IONIC_ENV` environment variable is being used to conditionally change config values for production builds.
 
@@ -167,16 +170,13 @@ These tasks are available within `ionic-app-scripts` and can be added to npm scr
 
 | Task       | Description                                                                                         |
 |------------|-----------------------------------------------------------------------------------------------------|
-| `build`    | Full production build. Use `--dev` flag for dev build.                                              |
-| `bundle`   | Bundle JS modules.                                                                                  |
-| `clean`    | Empty the `www` directory.                                                                          |
+| `build`    | A complete build of the application. It uses `development` settings by default. Use `--prod` to create an optimized build |
+| `clean`    | Empty the `www/build` directory.                                                                          |
 | `cleancss` | Compress the output CSS with [CleanCss](https://github.com/jakubpawlowicz/clean-css)                |
 | `copy`     | Run the copy tasks, which by defaults copies the `src/assets/` and `src/index.html` files to `www`. |
 | `lint`     | Run the linter against the source `.ts` files, using the `tslint.json` config file at the root.     |
 | `minify`   | Minifies the output JS bundle and compresses the compiled CSS.                                      |
-| `ngc`      | Runs just the `ngc` portion of the production build.                                                |
 | `sass`     | Sass compilation of used modules. Bundling must have as least ran once before Sass compilation.     |
-| `transpile`| Runs just the `tsc` portion of the dev build.                                                       |
 | `watch`    | Runs watch for dev builds.                                                                          |
 
 Example NPM Script:
@@ -188,7 +188,20 @@ Example NPM Script:
 ```
 
 ## Tips
-1. The Webpack `devtool` setting is driven by the `ionic_source_map` variable. It defaults to `eval` for fast builds, but can provide the original source map by changing the value to `source-map`. There are additional values that Webpack supports, but we only support `eval` and `source-maps` for now.
+1. The Webpack `devtool` setting is driven by the `ionic_source_map_type` variable. It defaults to `source-map` for the best quality source map. Developers can enable significantly faster builds by setting `ionic_source_map_type` to `eval`.
+2. By default, the `lint` command does not exit with a non-zero status code on error. To enable this, pass `--bailOnLintError true` to the command.
+
+```
+"scripts" : {
+  ...
+  "lint": "ionic-app-scripts lint"
+  ...
+}
+```
+
+```
+npm run lint --bailOnLintError true
+```
 
 
 ## The Stack
