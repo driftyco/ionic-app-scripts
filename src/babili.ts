@@ -42,13 +42,13 @@ function runBabili(context: BuildContext, config: BabiliConfig) {
 
 function runBabiliImpl(pathToBabili: string, pathToBundle: string) {
   // TODO - is there a better way to run this?
-  let toReturn: string = '';
+  let chunks: string[] = [];
   return new Promise((resolve, reject) => {
     const command = spawn(pathToBabili, [pathToBundle]);
     command.stdout.on('data', (buffer: Buffer) => {
       const stringRepresentation = buffer.toString();
       Logger.debug(`[Babili] ${stringRepresentation}`);
-      toReturn = `${toReturn} + ${stringRepresentation}`;
+      chunks.push(stringRepresentation);
     });
 
     command.stderr.on('data', (buffer: Buffer) => {
@@ -56,12 +56,10 @@ function runBabiliImpl(pathToBabili: string, pathToBundle: string) {
     });
 
     command.on('close', (code: number) => {
-      if (code === 0 && !toReturn) {
-        return reject(new Error('An Unknown error occurred while running babili'));
-      } else if ( code !== 0) {
+      if ( code !== 0) {
         return reject(new Error('Babili failed with a non-zero status code'));
       }
-      return resolve(toReturn);
+      return resolve(chunks.join(''));
     });
 
 
