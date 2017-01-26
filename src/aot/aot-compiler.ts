@@ -3,7 +3,7 @@ import { basename, dirname, extname, join, normalize, relative, resolve } from '
 
 import 'reflect-metadata';
 import { CompilerOptions, createProgram, ParsedCommandLine, Program,  transpileModule, TranspileOptions, TranspileOutput } from 'typescript';
-import { CodeGenerator, NgcCliOptions, NodeReflectorHostContext, ReflectorHost, StaticReflector }from '@angular/compiler-cli';
+import { CodeGenerator, NgcCliOptions, NodeCompilerHostContext }from '@angular/compiler-cli';
 import { tsc } from '@angular/tsc-wrapped/src/tsc';
 import AngularCompilerOptions from '@angular/tsc-wrapped/src/options';
 
@@ -26,8 +26,6 @@ export class AotCompiler {
   private tsConfig: ParsedTsConfig;
   private angularCompilerOptions: AngularCompilerOptions;
   private program: Program;
-  private reflector: StaticReflector;
-  private reflectorHost: ReflectorHost;
   private compilerHost: NgcCompilerHost;
   private fileSystem: HybridFileSystem;
   private lazyLoadedModuleDictionary: any;
@@ -43,8 +41,6 @@ export class AotCompiler {
     this.fileSystem = getHybridFileSystem();
     this.compilerHost = getInstance(this.tsConfig.parsed.options);
     this.program = createProgram(this.tsConfig.parsed.fileNames, this.tsConfig.parsed.options, this.compilerHost);
-    this.reflectorHost = new ReflectorHost(this.program, this.compilerHost, this.angularCompilerOptions);
-    this.reflector = new StaticReflector(this.reflectorHost);
   }
 
   compile(): Promise<void> {
@@ -64,14 +60,14 @@ export class AotCompiler {
         i18nOptions,
         this.program,
         this.compilerHost,
-        new NodeReflectorHostContext(this.compilerHost)
+        new NodeCompilerHostContext()
       );
 
       // We need to temporarily patch the CodeGenerator until either it's patched or allows us
       // to pass in our own ReflectorHost.
-      patchReflectorHost(codeGenerator);
+      // patchReflectorHost(codeGenerator);
       Logger.debug('[AotCompiler] compile: starting codegen ... ');
-      return codeGenerator.codegen({transitiveModules: true});
+      return codeGenerator.codegen();
     }).then(() => {
       Logger.debug('[AotCompiler] compile: starting codegen ... DONE');
       Logger.debug('[AotCompiler] compile: Creating and validating new TypeScript Program ...');
