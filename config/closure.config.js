@@ -10,7 +10,8 @@ module.exports = {
    */
   pathToJavaExecutable: 'java',
   pathToClosureJar: process.env.IONIC_CLOSURE_JAR,
-  optimization: 'SIMPLE_OPTIMIZATIONS',
+  optimization: 'ADVANCED_OPTIMIZATIONS',
   languageIn: `ECMASCRIPT6`,
-  languageOut: 'ECMASCRIPT5'
+  languageOut: 'ECMASCRIPT5',
+  debug: false
 };

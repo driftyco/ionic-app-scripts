@@ -26,19 +26,26 @@ export function closure(context: BuildContext, configFile?: string) {
 
 export function closureWorker(context: BuildContext, configFile: string): Promise<any> {
   context = generateContext(context);
-  const tempFilePath = join(context.buildDir, generateRandomHexString(10) + '.js');
+  const tempFileName = generateRandomHexString(10) + '.js';
+  const tempFilePath = join(context.buildDir, tempFileName);
   const closureConfig = getClosureConfig(context, configFile);
   const bundleFilePath = join(context.buildDir, process.env[Constants.ENV_OUTPUT_JS_FILE_NAME]);
-  return runClosure(closureConfig, bundleFilePath, tempFilePath)
+  return runClosure(closureConfig, bundleFilePath, tempFilePath, context.buildDir, closureConfig.debug)
   .then(() => {
-    return copyFileAsync(tempFilePath, bundleFilePath);
+    const promises: Promise<any>[] = [];
+    promises.push(copyFileAsync(tempFilePath, bundleFilePath));
+    promises.push(copyFileAsync(tempFilePath + '.map', bundleFilePath + '.map'));
+    return Promise.all(promises);
   }).then(() => {
     // delete the temp bundle either way
-    return unlinkAsync(tempFilePath);
+    const promises: Promise<any>[] = [];
+    promises.push(unlinkAsync(tempFilePath));
+    promises.push(unlinkAsync(tempFilePath + '.map'));
+    return Promise.all(promises);
   }).catch(err => {
-    console.log('closureWorker err: ', err);
     // delete the temp bundle either way
     unlinkAsync(tempFilePath);
+    unlinkAsync(tempFilePath + '.map');
     throw err;
   });
 }
@@ -64,17 +71,31 @@ function checkIfJavaIsAvailable(closureConfig: ClosureConfig) {
   });
 }
 
-function runClosure(closureConfig: ClosureConfig, nonMinifiedBundlePath: string, minifiedBundleFileName: string) {
+function runClosure(closureConfig: ClosureConfig, nonMinifiedBundlePath: string, minifiedBundleFileName: string, outputDir: string, isDebug: boolean) {
   return new Promise((resolve, reject) => {
-    const closureCommand = spawn(`${closureConfig.pathToJavaExecutable}`, ['-jar', `${closureConfig.pathToClosureJar}`, '--js', `${nonMinifiedBundlePath}`, '--js_output_file', `${minifiedBundleFileName}`,
-                              `--language_out=${closureConfig.languageOut}`, '--language_in', `${closureConfig.languageIn}`, '--compilation_level', `${closureConfig.optimization}`]);
+    const closureArgs = ['-jar', `${closureConfig.pathToClosureJar}`,
+                        '--js', `${nonMinifiedBundlePath}`,
+                        '--js_output_file', `${minifiedBundleFileName}`,
+                        `--language_out=${closureConfig.languageOut}`,
+                        '--language_in', `${closureConfig.languageIn}`,
+                        '--compilation_level', `${closureConfig.optimization}`,
+                        `--create_source_map=%outname%.map`,
+                        `--variable_renaming_report=${outputDir}/variable_renaming_report`,
+                        `--property_renaming_report=${outputDir}/property_renaming_report`,
+                        `--rewrite_polyfills=false`,
+                      ];
+
+    if (isDebug) {
+      closureArgs.push('--debug');
+    }
+    const closureCommand = spawn(`${closureConfig.pathToJavaExecutable}`, closureArgs);
 
     closureCommand.stdout.on('data', (buffer: Buffer) => {
       Logger.debug(`[Closure] ${buffer.toString()}`);
     });
 
     closureCommand.stderr.on('data', (buffer: Buffer) => {
-      Logger.warn(`[Closure] ${buffer.toString()}`);
+      Logger.debug(`[Closure] ${buffer.toString()}`);
     });
 
     closureCommand.on('close', (code: number) => {
@@ -123,4 +144,5 @@ export interface ClosureConfig {
   optimization: string;
   languageOut: string;
   languageIn: string;
+  debug: boolean;
 }

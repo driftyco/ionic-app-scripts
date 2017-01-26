@@ -1,11 +1,9 @@
 import { join } from 'path';
-import { spawn } from 'child_process';
-//import { spawn } from 'cross-spawn';
+import { spawn } from 'cross-spawn';
 
-import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
+import { fillConfigDefaults, getUserConfigFile } from './util/config';
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { Logger } from './logger/logger';
-import { runWorker } from './worker-client';
 import { writeFileAsync } from './util/helpers';
 
 export function babili(context: BuildContext, configFile?: string) {
@@ -13,18 +11,16 @@ export function babili(context: BuildContext, configFile?: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
   const logger = new Logger('babili - experimental');
 
-  //return runWorker('babili', 'babiliWorker', context, configFile)
-    return babiliWorker(context, configFile).then(() => {
-      logger.finish();
-    })
-    .catch(err => {
-      throw logger.fail(err);
-    });
+  return babiliWorker(context, configFile).then(() => {
+    logger.finish();
+  })
+  .catch(err => {
+    throw logger.fail(err);
+  });
 }
 
 
 export function babiliWorker(context: BuildContext, configFile: string): Promise<any> {
-  context = generateContext(context);
   const babiliConfig: BabiliConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   // TODO - figure out source maps??
   return runBabili(context, babiliConfig).then((minifiedCode: string) => {
