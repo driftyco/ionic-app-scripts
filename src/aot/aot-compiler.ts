@@ -11,7 +11,6 @@ import { HybridFileSystem } from '../util/hybrid-file-system';
 import { getInstance as getHybridFileSystem } from '../util/hybrid-file-system-factory';
 import { getInstance } from './compiler-host-factory';
 import { NgcCompilerHost } from './compiler-host';
-import { patchReflectorHost } from './reflector-host';
 import { getFallbackMainContent, replaceBootstrap } from './utils';
 import { Logger } from '../logger/logger';
 import { printDiagnostics, clearDiagnostics, DiagnosticsType } from '../logger/logger-diagnostics';
@@ -65,7 +64,6 @@ export class AotCompiler {
 
       // We need to temporarily patch the CodeGenerator until either it's patched or allows us
       // to pass in our own ReflectorHost.
-      // patchReflectorHost(codeGenerator);
       Logger.debug('[AotCompiler] compile: starting codegen ... ');
       return codeGenerator.codegen();
     }).then(() => {
