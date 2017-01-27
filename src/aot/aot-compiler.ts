@@ -3,7 +3,7 @@ import { basename, dirname, extname, join, normalize, relative, resolve } from '
 
 import 'reflect-metadata';
 import { CompilerOptions, createProgram, ParsedCommandLine, Program,  transpileModule, TranspileOptions, TranspileOutput } from 'typescript';
-import { CodeGenerator, NgcCliOptions, NodeCompilerHostContext }from '@angular/compiler-cli';
+import { NgcCliOptions }from '@angular/compiler-cli';
 import { tsc } from '@angular/tsc-wrapped/src/tsc';
 import AngularCompilerOptions from '@angular/tsc-wrapped/src/options';
 
@@ -19,6 +19,8 @@ import { isDebugMode } from '../util/config';
 import { BuildError } from '../util/errors';
 import { changeExtension } from '../util/helpers';
 import { BuildContext } from '../util/interfaces';
+
+import { doCodegen } from './codegen';
 
 export class AotCompiler {
 
@@ -53,19 +55,13 @@ export class AotCompiler {
         basePath: this.options.rootDir
       };
 
-      // Create the Code Generator.
-      const codeGenerator = CodeGenerator.create(
-        this.angularCompilerOptions,
-        i18nOptions,
-        this.program,
-        this.compilerHost,
-        new NodeCompilerHostContext()
-      );
-
-      // We need to temporarily patch the CodeGenerator until either it's patched or allows us
-      // to pass in our own ReflectorHost.
       Logger.debug('[AotCompiler] compile: starting codegen ... ');
-      return codeGenerator.codegen();
+      return doCodegen({
+        angularCompilerOptions: this.angularCompilerOptions,
+        cliOptions: i18nOptions,
+        program: this.program,
+        compilerHost: this.compilerHost
+      });
     }).then(() => {
       Logger.debug('[AotCompiler] compile: starting codegen ... DONE');
       Logger.debug('[AotCompiler] compile: Creating and validating new TypeScript Program ...');
