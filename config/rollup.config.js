@@ -3,6 +3,7 @@ var commonjs = require('rollup-plugin-commonjs');
 var globals = require('rollup-plugin-node-globals');
 var builtins = require('rollup-plugin-node-builtins');
 var json = require('rollup-plugin-json');
+var replace = require('rollup-plugin-replace');
 
 
 // https://github.com/rollup/rollup/wiki/JavaScript-API
@@ -46,7 +47,11 @@ var rollupConfig = {
       extensions: ['.js']
     }),
     globals(),
-    json()
+    json(),
+    replace({
+      exclude: 'node_modules/**',
+      IONIC_ENV: JSON.stringify(process.env.IONIC_ENV),
+    }),
   ]
 
 };
