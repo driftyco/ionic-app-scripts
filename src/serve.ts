@@ -52,6 +52,7 @@ export function serve(context: BuildContext) {
     })
     .then(() => {
       onReady(config, context);
+      return config;
     }, (err: BuildError) => {
       throw err;
     })

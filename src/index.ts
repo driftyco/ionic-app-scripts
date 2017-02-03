@@ -7,6 +7,7 @@ export { lint } from './lint';
 export { minify } from './minify';
 export { ngc } from './ngc';
 export { sass, sassUpdate } from './sass';
+export { serve } from './serve';
 export { transpile } from './transpile';
 export { uglifyjs } from './uglifyjs';
 export { watch, buildUpdate } from './watch';
