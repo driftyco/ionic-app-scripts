@@ -15,4 +15,4 @@ export let ApiCordovaProject = (req: any, res: any) => {
   }, (config: CordovaProject) => {
     res.json(config);
   });
-}
+};

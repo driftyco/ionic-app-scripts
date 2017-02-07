@@ -67,7 +67,7 @@ describe('test serve', () => {
       expect(httpServer.createHttpServer).toHaveBeenCalledWith(configResults);
       expect(open.default).toHaveBeenCalledWith('http://localhost:8100?ionicplatform=android', null);
     });
-  })
+  });
 
   it('all args should be set in the config object and should be passed on to server functions', () => {
     config.setProcessArgs([]);

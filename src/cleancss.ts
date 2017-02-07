@@ -24,7 +24,7 @@ export function cleancssWorker(context: BuildContext, configFile: string): Promi
   const config: CleanCssConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   const srcFile = join(context.buildDir, config.sourceFileName);
   const destFilePath = join(context.buildDir, config.destFileName);
-  Logger.debug(`[Clean CSS] cleancssWorker: reading source file ${srcFile}`)
+  Logger.debug(`[Clean CSS] cleancssWorker: reading source file ${srcFile}`);
   return readFileAsync(srcFile).then(fileContent => {
     return runCleanCss(config, fileContent);
   }).then(minifiedContent => {

@@ -40,7 +40,7 @@ export function extractDeepLinkPathData(appNgModuleFileContent: string) {
 function extractRegexContent(content: string, regex: RegExp) {
   let match: RegExpExecArray = null;
   const results: string[] = [];
-  while ((match = regex.exec(content))){
+  while ((match = regex.exec(content))) {
     if (!match) {
       break;
     }

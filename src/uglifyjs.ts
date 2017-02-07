@@ -3,9 +3,8 @@ import * as uglify from 'uglify-js';
 
 import { Logger } from './logger/logger';
 import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
-import * as Constants from './util/constants';
 import { BuildError } from './util/errors';
-import { getBooleanPropertyValue, writeFileAsync } from './util/helpers';
+import { writeFileAsync } from './util/helpers';
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { runWorker } from './worker-client';
 

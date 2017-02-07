@@ -36,7 +36,7 @@ function buildWorker(context: BuildContext) {
     // load any 100% required files to ensure they exist
     return validateRequiredFilesExist();
   })
-  .then(([appEntryPointContents, tsConfigContents]) => {
+  .then(([_, tsConfigContents]) => {
     return validateTsConfigSettings(tsConfigContents);
   })
   .then(() => {

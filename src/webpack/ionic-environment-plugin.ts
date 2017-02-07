@@ -1,8 +1,6 @@
-import { relative, sep } from 'path';
 import { BuildContext, HydratedDeepLinkConfigEntry } from '../util/interfaces';
 import { Logger } from '../logger/logger';
 import { getInstance } from '../util/hybrid-file-system-factory';
-import { WatchMemorySystem } from './watch-memory-system';
 import { createResolveDependenciesFromContextMap } from './util';
 
 export class IonicEnvironmentPlugin {
