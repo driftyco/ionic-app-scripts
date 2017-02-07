@@ -176,7 +176,7 @@ These tasks are available within `ionic-app-scripts` and can be added to npm scr
 | `copy`     | Run the copy tasks, which by defaults copies the `src/assets/` and `src/index.html` files to `www`. |
 | `lint`     | Run the linter against the source `.ts` files, using the `tslint.json` config file at the root.     |
 | `minify`   | Minifies the output JS bundle and compresses the compiled CSS.                                      |
-| `sass`     | Sass compilation of used modules. Bundling must have as least ran once before Sass compilation.     |
+| `sass`     | Sass compilation of used modules. Bundling must have at least ran once before Sass compilation.     |
 | `watch`    | Runs watch for dev builds.                                                                          |
 
 Example NPM Script:
