@@ -171,9 +171,11 @@ export function buildUpdate(changedFiles: ChangedFile[], context: BuildContext) 
 
         let requiresLintUpdate = false;
         for (const changedFile of changedFiles) {
-          if (changedFile.ext === '.ts' && changedFile.event === 'change') {
-            requiresLintUpdate = true;
-            break;
+          if (changedFile.ext === '.ts') {
+            if (changedFile.event === 'change' || changedFile.event === 'add') {
+              requiresLintUpdate = true;
+              break;
+            }
           }
         }
         if (requiresLintUpdate) {
