@@ -20,7 +20,7 @@ export function babili(context: BuildContext, configFile?: string) {
 }
 
 
-export function babiliWorker(context: BuildContext, configFile: string): Promise<any> {
+export function babiliWorker(context: BuildContext, configFile: string) {
   const babiliConfig: BabiliConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   // TODO - figure out source maps??
   return runBabili(context, babiliConfig).then((minifiedCode: string) => {

@@ -95,7 +95,7 @@ export function titleCase(str: string) {
 }
 
 
-export function writeFileAsync(filePath: string, content: string): Promise<any> {
+export function writeFileAsync(filePath: string, content: string) {
   return new Promise((resolve, reject) => {
     writeFile(filePath, content, (err) => {
       if (err) {
@@ -106,8 +106,8 @@ export function writeFileAsync(filePath: string, content: string): Promise<any> 
   });
 }
 
-export function readFileAsync(filePath: string): Promise<string> {
-  return new Promise((resolve, reject) => {
+export function readFileAsync(filePath: string) {
+  return new Promise<string>((resolve, reject) => {
     readFile(filePath, 'utf-8', (err, buffer) => {
       if (err) {
         return reject(err);
@@ -128,7 +128,7 @@ export function readAndCacheFile(filePath: string, purge: boolean = false): Prom
   });
 }
 
-export function unlinkAsync(filePath: string|string[]): Promise<any> {
+export function unlinkAsync(filePath: string|string[]) {
   let filePaths: string[];
 
   if (typeof filePath === 'string') {
@@ -140,7 +140,7 @@ export function unlinkAsync(filePath: string|string[]): Promise<any> {
   }
 
   let promises = filePaths.map(filePath => {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       unlink(filePath, (err: Error) => {
         if (err) {
           return reject(err);
@@ -153,8 +153,8 @@ export function unlinkAsync(filePath: string|string[]): Promise<any> {
   return Promise.all(promises);
 }
 
-export function rimRafAsync(directoryPath: string): Promise<null> {
-  return new Promise((resolve, reject) => {
+export function rimRafAsync(directoryPath: string) {
+  return new Promise<void>((resolve, reject) => {
     remove(directoryPath, (err: Error) => {
       if (err) {
         return reject(err);
@@ -164,8 +164,8 @@ export function rimRafAsync(directoryPath: string): Promise<null> {
   });
 }
 
-export function copyFileAsync(srcPath: string, destPath: string): Promise<any> {
-  return new Promise((resolve, reject) => {
+export function copyFileAsync(srcPath: string, destPath: string) {
+  return new Promise<void>((resolve, reject) => {
     const writeStream = createWriteStream(destPath);
 
     writeStream.on('error', (err: Error) => {
@@ -180,8 +180,8 @@ export function copyFileAsync(srcPath: string, destPath: string): Promise<any> {
   });
 }
 
-export function readDirAsync(pathToDir: string): Promise<string[]> {
-  return new Promise((resolve, reject) => {
+export function readDirAsync(pathToDir: string) {
+  return new Promise<string[]>((resolve, reject) => {
     readdir(pathToDir, (err: Error, fileNames: string[]) => {
       if (err) {
         return reject(err);
