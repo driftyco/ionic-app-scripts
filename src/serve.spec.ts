@@ -38,7 +38,7 @@ describe('test serve', () => {
       useProxy: true,
       notifyOnConsoleLog: false
     };
-    spyOn(network, 'findClosestOpenPort').and.callFake((host: string, port: number) => Promise.resolve(port));
+    spyOn(network, 'findClosestOpenPorts').and.callFake((host: string, ports: number[]) => Promise.resolve(ports));
     spyOn(notificationServer, 'createNotificationServer');
     spyOn(liveReloadServer, 'createLiveReloadServer');
     spyOn(httpServer, 'createHttpServer');
@@ -48,7 +48,7 @@ describe('test serve', () => {
 
   it('should work with no args on a happy path', () => {
     return serve.serve(context).then(() => {
-      expect(network.findClosestOpenPort).toHaveBeenCalledWith('0.0.0.0', 53703);
+      expect(network.findClosestOpenPorts).toHaveBeenCalledWith('0.0.0.0', [53703, 35729, 8100]);
       expect(notificationServer.createNotificationServer).toHaveBeenCalledWith(configResults);
       expect(liveReloadServer.createLiveReloadServer).toHaveBeenCalledWith(configResults);
       expect(httpServer.createHttpServer).toHaveBeenCalledWith(configResults);
@@ -61,7 +61,7 @@ describe('test serve', () => {
     config.addArgv('android');
 
     return serve.serve(context).then(() => {
-      expect(network.findClosestOpenPort).toHaveBeenCalledWith('0.0.0.0', 53703);
+      expect(network.findClosestOpenPorts).toHaveBeenCalledWith('0.0.0.0', [53703, 35729, 8100]);
       expect(notificationServer.createNotificationServer).toHaveBeenCalledWith(configResults);
       expect(liveReloadServer.createLiveReloadServer).toHaveBeenCalledWith(configResults);
       expect(httpServer.createHttpServer).toHaveBeenCalledWith(configResults);
@@ -92,14 +92,14 @@ describe('test serve', () => {
     configResults.host = '127.0.0.1';
     configResults.hostBaseUrl = 'http://127.0.0.1:8101';
     config.addArgv('--livereload-port');
-    config.addArgv('35729');
-    configResults.liveReloadPort = 35729;
+    config.addArgv('35730');
+    configResults.liveReloadPort = 35730;
     config.addArgv('--dev-logger-port');
-    config.addArgv('53703');
-    configResults.notificationPort = 53703;
+    config.addArgv('53704');
+    configResults.notificationPort = 53704;
 
     return serve.serve(context).then(() => {
-      expect(network.findClosestOpenPort).toHaveBeenCalledWith('127.0.0.1', 53703);
+      expect(network.findClosestOpenPorts).toHaveBeenCalledWith('127.0.0.1', [53704, 35730, 8101]);
       expect(notificationServer.createNotificationServer).toHaveBeenCalledWith(configResults);
       expect(liveReloadServer.createLiveReloadServer).toHaveBeenCalledWith(configResults);
       expect(httpServer.createHttpServer).toHaveBeenCalledWith(configResults);
