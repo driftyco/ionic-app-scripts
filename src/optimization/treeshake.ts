@@ -71,37 +71,43 @@ function processImportTree(dependencyMap: Map<string, Set<string>>, importee: st
 }
 
 function calculateUnusedIonicProviders(dependencyMap: Map<string, Set<string>>) {
-  const actionSheetController = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'action-sheet', 'action-sheet-controller.js');
-  const actionSheetComponentFactory = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'action-sheet', 'action-sheet-component.ngfactory.js');
-  const alertController = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'alert', 'alert-controller.js');
-  const alertComponentFactory = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'alert', 'alert-component.ngfactory.js');
-  const loadingController = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'loading', 'loading-controller.js');
-  const loadingComponentFactory = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'loading', 'loading-component.ngfactory.js');
-  const modalController = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'modal', 'modal-controller.js');
-  const modalComponentFactory = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'modal', 'modal-component.ngfactory.js');
-  const pickerController = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'picker', 'picker-controller.js');
-  const pickerComponentFactory = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'picker', 'picker-component.ngfactory.js');
-  const popoverController = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'popover', 'popover-controller.js');
-  const popoverComponentFactory = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'popover', 'popover-component.ngfactory.js');
-  const toastController = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'toast', 'toast-controller.js');
-  const toastComponentFactory = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'toast', 'toast-component.ngfactory.js');
+  const ACTION_SHEET_CONTROLLER = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'action-sheet', 'action-sheet-controller.js');
+  const ACTION_SHEET_COMPONENT_FACTORY = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'action-sheet', 'action-sheet-component.ngfactory.js');
 
-  processIonicProviders(dependencyMap, actionSheetController);
-  processIonicProviders(dependencyMap, alertController);
-  processIonicProviders(dependencyMap, loadingController);
-  processIonicProviders(dependencyMap, modalController);
-  processIonicProviders(dependencyMap, pickerController);
-  processIonicProviders(dependencyMap, popoverController);
-  processIonicProviders(dependencyMap, toastController);
+  const ALERT_CONTROLLER = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'alert', 'alert-controller.js');
+  const ALERT_COMPONENT_FACTORY = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'alert', 'alert-component.ngfactory.js');
+
+  const LOADING_CONTROLLER = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'loading', 'loading-controller.js');
+  const LOADING_COMPONENT_FACTORY = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'loading', 'loading-component.ngfactory.js');
+
+  const MODAL_CONTROLLER = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'modal', 'modal-controller.js');
+  const MODAL_COMPONENT_FACTORY = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'modal', 'modal-component.ngfactory.js');
+
+  const PICKER_CONTROLLER = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'picker', 'picker-controller.js');
+  const PICKER_COMPONENT_FACTORY = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'picker', 'picker-component.ngfactory.js');
+
+  const POPOVER_CONTROLLER = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'popover', 'popover-controller.js');
+  const POPOVER_COMPONENT_FACTORY = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'popover', 'popover-component.ngfactory.js');
+
+  const TOAST_CONTROLLER = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'toast', 'toast-controller.js');
+  const TOAST_COMPONENT_FACTORY = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'toast', 'toast-component.ngfactory.js');
+
+  processIonicProviders(dependencyMap, ACTION_SHEET_CONTROLLER);
+  processIonicProviders(dependencyMap, ALERT_CONTROLLER);
+  processIonicProviders(dependencyMap, LOADING_CONTROLLER);
+  processIonicProviders(dependencyMap, MODAL_CONTROLLER);
+  processIonicProviders(dependencyMap, PICKER_CONTROLLER);
+  processIonicProviders(dependencyMap, POPOVER_CONTROLLER);
+  processIonicProviders(dependencyMap, TOAST_CONTROLLER);
 
   // check if the controllers were deleted, if so, purge the component too
-  processIonicProviderComponents(dependencyMap, actionSheetController, actionSheetComponentFactory);
-  processIonicProviderComponents(dependencyMap, alertController, alertComponentFactory);
-  processIonicProviderComponents(dependencyMap, loadingController, loadingComponentFactory);
-  processIonicProviderComponents(dependencyMap, modalController, modalComponentFactory);
-  processIonicProviderComponents(dependencyMap, pickerController, pickerComponentFactory);
-  processIonicProviderComponents(dependencyMap, popoverController, popoverComponentFactory);
-  processIonicProviderComponents(dependencyMap, toastController, toastComponentFactory);
+  processIonicProviderComponents(dependencyMap, ACTION_SHEET_CONTROLLER, ACTION_SHEET_COMPONENT_FACTORY);
+  processIonicProviderComponents(dependencyMap, ALERT_CONTROLLER, ALERT_COMPONENT_FACTORY);
+  processIonicProviderComponents(dependencyMap, LOADING_CONTROLLER, LOADING_COMPONENT_FACTORY);
+  processIonicProviderComponents(dependencyMap, MODAL_CONTROLLER, MODAL_COMPONENT_FACTORY);
+  processIonicProviderComponents(dependencyMap, PICKER_CONTROLLER, PICKER_COMPONENT_FACTORY);
+  processIonicProviderComponents(dependencyMap, POPOVER_CONTROLLER, POPOVER_COMPONENT_FACTORY);
+  processIonicProviderComponents(dependencyMap, TOAST_CONTROLLER, TOAST_COMPONENT_FACTORY);
 }
 
 function processIonicProviderComponents(dependencyMap: Map<string, Set<string>>, providerPath: string, componentPath: string) {
@@ -122,7 +128,8 @@ function getAppModuleNgFactoryPath() {
 function processIonicProviders(dependencyMap: Map<string, Set<string>>, providerPath: string) {
   const importeeSet = dependencyMap.get(providerPath);
   const appModuleNgFactoryPath = getAppModuleNgFactoryPath();
-  if (importeeSet && importeeSet.has(appModuleNgFactoryPath)) {
+  // we can only purge an ionic provider if it is imported from one module, which is the AppModuleNgFactory
+  if (importeeSet && importeeSet.size === 1 && importeeSet.has(appModuleNgFactoryPath)) {
     importeeSet.delete(appModuleNgFactoryPath);
     // loop over the dependency map and remove this provider from importee sets
     processImportTreeForProviders(dependencyMap, providerPath);

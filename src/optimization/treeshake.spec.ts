@@ -194,7 +194,6 @@ describe('treeshake', () => {
 
       // act
       const results = treeshake.calculateUnusedComponents(dependencyMap);
-      console.log('results: ', results);
 
       // assert
       expect(results.updatedDependencyMap.get(appModule)).toBeTruthy();
@@ -207,6 +206,10 @@ describe('treeshake', () => {
       expect(results.updatedDependencyMap.get(dependencyOneHelperTwo)).toBeTruthy();
       expect(results.updatedDependencyMap.get(dependencyFour)).toBeTruthy();
       expect(results.updatedDependencyMap.get(dependencyFourNgFactory)).toBeTruthy();
+      expect(results.updatedDependencyMap.get(actionSheet)).toBeTruthy();
+      expect(results.updatedDependencyMap.get(actionSheetController)).toBeTruthy();
+      expect(results.updatedDependencyMap.get(actionSheetComponent)).toBeTruthy();
+      expect(results.updatedDependencyMap.get(actionSheetComponentNgFactory)).toBeTruthy();
 
 
       expect(results.purgedModules.get(dependencyTwo)).toBeTruthy();
@@ -218,35 +221,28 @@ describe('treeshake', () => {
 
 
       /*
-      { updatedDependencyMap:
-         Map {
-           '/Users/dan/myApp/app/app.module.js' =>
-                            Set {
-                              '/Users/dan/myApp/app/app.module.ngfactory.js' },
-           '/Users/dan/myApp/app/app.module.ngfactory.js' =>
-                            Set {},
-           '/Users/dan/myApp/pages/home.js' =>
-                            Set {
-                              '/Users/dan/myApp/app/app.module.js',
-                              '/Users/dan/myApp/pages/home.ngfactory.js' },
-           '/Users/dan/myApp/pages/home.ngfactory.js' =>
-                            Set {
-                              '/Users/dan/myApp/app/app.module.ngfactory.js' },
-           '/Users/dan/ionic-angular/components/range.js' =>
-                            Set {
-                              '/Users/dan/ionic-angular/components/range.ngfactory.js',
-                              '/Users/dan/myApp/pages/home.js' },
-           '/Users/dan/ionic-angular/components/range.ngfactory.js' => Set { '/Users/dan/myApp/pages/home.ngfactory.js' },
-           '/Users/dan/ionic-angular/components/range/helperOne.js' => Set { '/Users/dan/ionic-angular/components/range.js' },
-           '/Users/dan/ionic-angular/components/range/helperTwo.js' => Set { '/Users/dan/ionic-angular/components/range.js' },
-           '/Users/dan/ionic-angular/components/badge.js' => Set {
-           '/Users/dan/ionic-angular/components/badge.ngfactory.js',
-           '/Users/dan/myApp/pages/home.js' },
-           '/Users/dan/ionic-angular/components/badge.ngfactory.js' => Set { '/Users/dan/myApp/pages/home.ngfactory.js' } },
+      Map {
+           '/Users/dan/ionic-angular/components/action-sheet/action-sheet.js'
+                        => Set {
+                            '/Users/dan/ionic-angular/components/action-sheet/action-sheet-controller.js' },
+           '/Users/dan/ionic-angular/components/action-sheet/action-sheet-controller.js'
+                        => Set {
+                            '/Users/dan/myApp/app/app.module.ngfactory.js',
+                            '/Users/dan/myApp/pages/home.ngfactory.js' },
+           '/Users/dan/ionic-angular/components/action-sheet/action-sheet-component.js'
+                        => Set {
+                            '/Users/dan/ionic-angular/components/action-sheet/action-sheet-component.ngfactory.js' },
+           '/Users/dan/ionic-angular/components/action-sheet/action-sheet-component.ngfactory.js'
+                        => Set {
+                          '/Users/dan/myApp/app/app.module.ngfactory.js' } },
         purgedModules:
          Map {
            '/Users/dan/ionic-angular/components/radio-button.js' => Set {},
-           '/Users/dan/ionic-angular/components/check-box.js' => Set {} } }
+           '/Users/dan/ionic-angular/components/check-box.js' => Set {},
+           '/Users/dan/ionic-angular/components/alert/alert.js' => Set {},
+           '/Users/dan/ionic-angular/components/alert/alert-controller.js' => Set {},
+           '/Users/dan/ionic-angular/components/alert/alert-component.js' => Set {},
+           '/Users/dan/ionic-angular/components/alert/alert-component.ngfactory.js' => Set {} } }
       */
     });
   });
