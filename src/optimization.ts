@@ -31,17 +31,20 @@ function optimizationWorker(context: BuildContext, configFile: string) {
 
 export function doOptimizations(context: BuildContext, dependencyMap: Map<string, Set<string>>) {
   // remove decorators
+  const modifiedMap = new Map(dependencyMap);
   if (getBooleanPropertyValue(Constants.ENV_EXPERIMENTAL_PURGE_DECORATORS)) {
     removeDecorators(context);
   }
 
   // remove unused component imports
   if (getBooleanPropertyValue(Constants.ENV_EXPERIMENTAL_MANUAL_TREESHAKING)) {
-    const results = calculateUnusedComponents(dependencyMap);
+    const results = calculateUnusedComponents(modifiedMap);
     purgeUnusedImports(context, results.purgedModules);
   }
 
-  return dependencyMap;
+  printDependencyMap(modifiedMap);
+
+  return modifiedMap;
 }
 
 function removeDecorators(context: BuildContext) {

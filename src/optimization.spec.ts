@@ -81,10 +81,10 @@ describe('optimization task', () => {
       spyOn(treeshake, treeshake.calculateUnusedComponents.name);
 
       // act
-      const result = optimization.doOptimizations(context, null);
+      const result = optimization.doOptimizations(context, new Map());
 
       // assert
-      expect(result).toEqual(null);
+      expect(result).toBeTruthy();
       expect(decorators.purgeDecorators).not.toHaveBeenCalled();
       expect(treeshake.calculateUnusedComponents).not.toHaveBeenCalled();
     });

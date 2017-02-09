@@ -4,6 +4,9 @@ import * as Constants from '../util/constants';
 
 let originalEnv: any = null;
 
+const main = '/Users/dan/myApp/app/main.js';
+const appModule = '/Users/dan/myApp/app/app.module.js';
+
 describe('treeshake', () => {
   describe('calculateTreeShakeResults', () => {
 
@@ -13,6 +16,8 @@ describe('treeshake', () => {
       env[Constants.ENV_VAR_IONIC_ANGULAR_DIR] = '/Users/dan/ionic-angular';
       env[Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT] = '/Users/dan/ionic-angular/index.js';
       env[Constants.ENV_VAR_SRC_DIR] = '/Users/dan/myApp/';
+      env[Constants.ENV_APP_ENTRY_POINT] = main;
+      env[Constants.ENV_APP_NG_MODULE_PATH] = appModule;
       process.env = env;
     });
 
@@ -72,8 +77,17 @@ describe('treeshake', () => {
       const dependencyFour = '/Users/dan/ionic-angular/components/badge.js';
       const dependencyFourNgFactory = '/Users/dan/ionic-angular/components/badge.ngfactory.js';
 
-      const appModule = '/Users/dan/myApp/app/app.module.js';
       const appModuleNgFactory = '/Users/dan/myApp/app/app.module.ngfactory.js';
+
+      const alert = '/Users/dan/ionic-angular/components/alert/alert.js';
+      const alertController = '/Users/dan/ionic-angular/components/alert/alert-controller.js';
+      const alertComponent = '/Users/dan/ionic-angular/components/alert/alert-component.js';
+      const alertComponentNgFactory = '/Users/dan/ionic-angular/components/alert/alert-component.ngfactory.js';
+
+      const actionSheet = '/Users/dan/ionic-angular/components/action-sheet/action-sheet.js';
+      const actionSheetController = '/Users/dan/ionic-angular/components/action-sheet/action-sheet-controller.js';
+      const actionSheetComponent = '/Users/dan/ionic-angular/components/action-sheet/action-sheet-component.js';
+      const actionSheetComponentNgFactory = '/Users/dan/ionic-angular/components/action-sheet/action-sheet-component.ngfactory.js';
 
       const home = '/Users/dan/myApp/pages/home.js';
       const homeNgFactory = '/Users/dan/myApp/pages/home.ngfactory.js';
@@ -126,6 +140,35 @@ describe('treeshake', () => {
       dependencyOneHelperTwoSet.add(dependencyOne);
       dependencyOneHelperTwoSet.add(index);
 
+      const alertSet  = new Set<string>();
+      alertSet.add(alertController);
+
+      const alertControllerSet = new Set<string>();
+      alertControllerSet.add(index);
+      alertControllerSet.add(appModuleNgFactory);
+
+      const alertComponentSet = new Set<string>();
+      alertComponentSet.add(index);
+      alertComponentSet.add(alertComponentNgFactory);
+
+      const alertComponentNgFactorySet = new Set<string>();
+      alertComponentNgFactorySet.add(appModuleNgFactory);
+
+      const actionSheetSet  = new Set<string>();
+      actionSheetSet.add(actionSheetController);
+
+      const actionSheetControllerSet = new Set<string>();
+      actionSheetControllerSet.add(index);
+      actionSheetControllerSet.add(appModuleNgFactory);
+      actionSheetControllerSet.add(homeNgFactory);
+
+      const actionSheetComponentSet = new Set<string>();
+      actionSheetComponentSet.add(index);
+      actionSheetComponentSet.add(actionSheetComponentNgFactory);
+
+      const actionSheetComponentNgFactorySet = new Set<string>();
+      actionSheetComponentNgFactorySet.add(appModuleNgFactory);
+
       const dependencyMap = new Map<string, Set<string>>();
       dependencyMap.set(appModule, appModuleSet);
       dependencyMap.set(appModuleNgFactory, appModuleNgFactorySet);
@@ -140,11 +183,24 @@ describe('treeshake', () => {
       dependencyMap.set(dependencyFour, dependencyFourSet);
       dependencyMap.set(dependencyFourNgFactory, dependencyFourNgFactorySet);
       dependencyMap.set(index, indexSet);
+      dependencyMap.set(alert, alertSet);
+      dependencyMap.set(alertController, alertControllerSet);
+      dependencyMap.set(alertComponent, alertComponentSet);
+      dependencyMap.set(alertComponentNgFactory, alertComponentNgFactorySet);
+      dependencyMap.set(actionSheet, actionSheetSet);
+      dependencyMap.set(actionSheetController, actionSheetControllerSet);
+      dependencyMap.set(actionSheetComponent, actionSheetComponentSet);
+      dependencyMap.set(actionSheetComponentNgFactory, actionSheetComponentNgFactorySet);
 
       // act
       const results = treeshake.calculateUnusedComponents(dependencyMap);
+      console.log('results: ', results);
 
       // assert
+      expect(results.updatedDependencyMap.get(appModule)).toBeTruthy();
+      expect(results.updatedDependencyMap.get(appModuleNgFactory)).toBeTruthy();
+      expect(results.updatedDependencyMap.get(home)).toBeTruthy();
+      expect(results.updatedDependencyMap.get(homeNgFactory)).toBeTruthy();
       expect(results.updatedDependencyMap.get(dependencyOne)).toBeTruthy();
       expect(results.updatedDependencyMap.get(dependencyOneNgFactory)).toBeTruthy();
       expect(results.updatedDependencyMap.get(dependencyOneHelperOne)).toBeTruthy();
@@ -152,8 +208,46 @@ describe('treeshake', () => {
       expect(results.updatedDependencyMap.get(dependencyFour)).toBeTruthy();
       expect(results.updatedDependencyMap.get(dependencyFourNgFactory)).toBeTruthy();
 
+
       expect(results.purgedModules.get(dependencyTwo)).toBeTruthy();
       expect(results.purgedModules.get(dependencyThree)).toBeTruthy();
+      expect(results.purgedModules.get(alert)).toBeTruthy();
+      expect(results.purgedModules.get(alertController)).toBeTruthy();
+      expect(results.purgedModules.get(alertComponent)).toBeTruthy();
+      expect(results.purgedModules.get(alertComponentNgFactory)).toBeTruthy();
+
+
+      /*
+      { updatedDependencyMap:
+         Map {
+           '/Users/dan/myApp/app/app.module.js' =>
+                            Set {
+                              '/Users/dan/myApp/app/app.module.ngfactory.js' },
+           '/Users/dan/myApp/app/app.module.ngfactory.js' =>
+                            Set {},
+           '/Users/dan/myApp/pages/home.js' =>
+                            Set {
+                              '/Users/dan/myApp/app/app.module.js',
+                              '/Users/dan/myApp/pages/home.ngfactory.js' },
+           '/Users/dan/myApp/pages/home.ngfactory.js' =>
+                            Set {
+                              '/Users/dan/myApp/app/app.module.ngfactory.js' },
+           '/Users/dan/ionic-angular/components/range.js' =>
+                            Set {
+                              '/Users/dan/ionic-angular/components/range.ngfactory.js',
+                              '/Users/dan/myApp/pages/home.js' },
+           '/Users/dan/ionic-angular/components/range.ngfactory.js' => Set { '/Users/dan/myApp/pages/home.ngfactory.js' },
+           '/Users/dan/ionic-angular/components/range/helperOne.js' => Set { '/Users/dan/ionic-angular/components/range.js' },
+           '/Users/dan/ionic-angular/components/range/helperTwo.js' => Set { '/Users/dan/ionic-angular/components/range.js' },
+           '/Users/dan/ionic-angular/components/badge.js' => Set {
+           '/Users/dan/ionic-angular/components/badge.ngfactory.js',
+           '/Users/dan/myApp/pages/home.js' },
+           '/Users/dan/ionic-angular/components/badge.ngfactory.js' => Set { '/Users/dan/myApp/pages/home.ngfactory.js' } },
+        purgedModules:
+         Map {
+           '/Users/dan/ionic-angular/components/radio-button.js' => Set {},
+           '/Users/dan/ionic-angular/components/check-box.js' => Set {} } }
+      */
     });
   });
 

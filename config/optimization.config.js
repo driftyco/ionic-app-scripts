@@ -11,14 +11,14 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['.ts', '.js']
+    extensions: ['.js', '.ts']
   },
 
   module: {
     loaders: [
       {
         test: /\.ts$/,
-        loader: process.env.IONIC_WEBPACK_LOADER
+        loader: process.env.IONIC_OPTIMIZATION_LOADER
       },
       {
         test: /\.js$/,
