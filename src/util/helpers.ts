@@ -1,8 +1,12 @@
 import { randomBytes } from 'crypto';
 import { basename, dirname, extname, join } from 'path';
-import { BuildContext, File, HydratedDeepLinkConfigEntry } from './interfaces';
 import { createReadStream, createWriteStream, readdir, readFile, readFileSync, readJsonSync, remove, unlink, writeFile } from 'fs-extra';
 import * as osName from 'os-name';
+
+import * as Constants from './constants';
+import { BuildContext, File, HydratedDeepLinkConfigEntry, WebpackStats } from './interfaces';
+import { Logger } from '../logger/logger';
+
 
 let _context: BuildContext;
 let _parsedDeepLinkConfig: HydratedDeepLinkConfigEntry[];
@@ -272,4 +276,51 @@ export function convertFilePathToNgFactoryPath(filePath: string) {
   const extensionlessFileName = basename(filePath, extension);
   const ngFactoryFileName = extensionlessFileName + '.ngfactory' + extension;
   return join(directory, ngFactoryFileName);
+}
+
+export function printDependencyMap(map: Map<string, Set<string>>) {
+  map.forEach((dependencySet: Set<string>, filePath: string) => {
+    Logger.unformattedDebug('\n\n');
+    Logger.unformattedDebug(`${filePath} is imported by the following files:`);
+    dependencySet.forEach((importeePath: string) => {
+      Logger.unformattedDebug(`   ${importeePath}`);
+    });
+  });
+}
+
+export function webpackStatsToDependencyMap(context: BuildContext, stats: any) {
+  const statsObj = stats.toJson({
+    source: false,
+    timings: false,
+    version: false,
+    errorDetails: false,
+    chunks: false,
+    chunkModules: false
+  });
+  return processStatsImpl(statsObj);
+}
+
+export function processStatsImpl(webpackStats: WebpackStats) {
+  const dependencyMap = new Map<string, Set<string>>();
+  if (webpackStats && webpackStats.modules) {
+      webpackStats.modules.forEach(webpackModule => {
+      const moduleId = purgeWebpackPrefixFromPath(webpackModule.identifier);
+      const dependencySet = new Set<string>();
+      webpackModule.reasons.forEach(webpackDependency => {
+        const depId = purgeWebpackPrefixFromPath(webpackDependency.moduleIdentifier);
+        dependencySet.add(depId);
+      });
+      dependencyMap.set(moduleId, dependencySet);
+    });
+  }
+
+  if (getBooleanPropertyValue(Constants.ENV_PRINT_DEPENDENCY_TREE)) {
+    printDependencyMap(dependencyMap);
+  }
+
+  return dependencyMap;
+}
+
+export function purgeWebpackPrefixFromPath(filePath: string) {
+  return filePath.replace(process.env[Constants.ENV_OPTIMIZATION_LOADER], '').replace(process.env[Constants.ENV_WEBPACK_LOADER], '').replace('!', '');
 }

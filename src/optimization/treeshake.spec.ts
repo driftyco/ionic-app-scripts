@@ -211,6 +211,8 @@ describe('treeshake', () => {
       // act
       const results = treeshake.calculateUnusedComponents(dependencyMap);
 
+      console.log('results: ', results);
+
       // assert
       expect(results.updatedDependencyMap.get(appModule)).toBeTruthy();
       expect(results.updatedDependencyMap.get(appModuleNgFactory)).toBeTruthy();

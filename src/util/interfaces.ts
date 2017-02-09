@@ -170,3 +170,16 @@ export interface TreeShakeCalcResults {
   updatedDependencyMap: Map<string, Set<string>>;
   purgedModules: Map<string, Set<string>>;
 };
+
+export interface WebpackStats {
+  modules: WebpackModule[];
+};
+
+export interface WebpackModule {
+  identifier: string;
+  reasons: WebpackDependency[];
+};
+
+export interface WebpackDependency {
+  moduleIdentifier: string;
+};
