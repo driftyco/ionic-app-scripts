@@ -1,5 +1,10 @@
 import * as net from 'net';
 
+export function findClosestOpenPorts(host: string, ports: number[]): Promise<number[]> {
+  const promises = ports.map(port => findClosestOpenPort(host, port));
+  return Promise.all(promises);
+}
+
 export function findClosestOpenPort(host: string, port: number): Promise<number> {
   function t(portToCheck: number): Promise<number> {
     return isPortTaken(host, portToCheck).then(isTaken => {

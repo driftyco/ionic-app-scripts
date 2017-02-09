@@ -9,7 +9,7 @@ import { createNotificationServer } from './dev-server/notification-server';
 import { createHttpServer } from './dev-server/http-server';
 import { createLiveReloadServer } from './dev-server/live-reload';
 import { ServeConfig, IONIC_LAB_URL } from './dev-server/serve-config';
-import { findClosestOpenPort } from './util/network';
+import { findClosestOpenPorts } from './util/network';
 
 const DEV_LOGGER_DEFAULT_PORT = 53703;
 const LIVE_RELOAD_DEFAULT_PORT = 35729;
@@ -20,18 +20,19 @@ export function serve(context: BuildContext) {
   setContext(context);
 
   let config: ServeConfig;
-  const notificationPort = getNotificationPort(context);
   const host = getHttpServerHost(context);
+  const notificationPort = getNotificationPort(context);
+  const liveReloadServerPort = getLiveReloadServerPort(context);
+  const hostPort = getHttpServerPort(context);
 
-  return findClosestOpenPort(host, notificationPort)
-    .then((notificationPortFound) => {
-      const hostPort = getHttpServerPort(context);
+  return findClosestOpenPorts(host, [notificationPort, liveReloadServerPort, hostPort])
+    .then(([notificationPortFound, liveReloadServerPortFound, hostPortFound]) => {
       const hostLocation = (host === '0.0.0.0') ? 'localhost' : host;
 
       config = {
-        httpPort: hostPort,
+        httpPort: hostPortFound,
         host: host,
-        hostBaseUrl: `http://${hostLocation}:${hostPort}`,
+        hostBaseUrl: `http://${hostLocation}:${hostPortFound}`,
         rootDir: context.rootDir,
         wwwDir: context.wwwDir,
         buildDir: context.buildDir,
@@ -40,7 +41,7 @@ export function serve(context: BuildContext) {
         launchLab: launchLab(context),
         browserToLaunch: browserToLaunch(context),
         useLiveReload: useLiveReload(context),
-        liveReloadPort: getLiveReloadServerPort(context),
+        liveReloadPort: liveReloadServerPortFound,
         notificationPort: notificationPortFound,
         useServerLogs: useServerLogs(context),
         useProxy: useProxy(context),
