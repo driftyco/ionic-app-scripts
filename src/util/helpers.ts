@@ -314,10 +314,6 @@ export function processStatsImpl(webpackStats: WebpackStats) {
     });
   }
 
-  if (getBooleanPropertyValue(Constants.ENV_PRINT_DEPENDENCY_TREE)) {
-    printDependencyMap(dependencyMap);
-  }
-
   return dependencyMap;
 }
 

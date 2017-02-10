@@ -20,8 +20,10 @@ function generateResults(dependencyMap: Map<string, Set<string>>) {
   const updatedMap = new Map<string, Set<string>>();
   dependencyMap.forEach((importeeSet: Set<string>, modulePath: string) => {
     if ((importeeSet && importeeSet.size > 0) || requiredModule(modulePath)) {
+      Logger.debug(`[treeshake] generateResults: ${modulePath} is not purged`);
       updatedMap.set(modulePath, importeeSet);
     } else {
+      Logger.debug(`[treeshake] generateResults: ${modulePath} is purged`);
       toPurgeMap.set(modulePath, importeeSet);
     }
   });
@@ -145,18 +147,16 @@ export function purgeUnusedImportsAndExportsFromIndex(indexFilePath: string, ind
     const extensionless = changeExtension(modulePath, '');
     const importPath = './' + relative(dirname(indexFilePath), extensionless);
     const importRegex = generateImportRegex(importPath);
-    const results = importRegex.exec(indexFileContent);
-    if (results) {
-      let namedImports: string = null;
-      if (results.length >= 2) {
-        namedImports = results[1];
-      }
+    // replace the import if it's found
+    let results: RegExpExecArray = null;
+    while ((results = importRegex.exec(indexFileContent)) && results.length) {
       indexFileContent = indexFileContent.replace(importRegex, '');
-      const exportRegex = generateExportRegex(importPath);
-      const exportResults = exportRegex.exec(indexFileContent);
-      if (exportResults) {
-        indexFileContent = indexFileContent.replace(exportRegex, '');
-      }
+    }
+
+    results = null;
+    const exportRegex = generateExportRegex(importPath);
+    while ((results = exportRegex.exec(indexFileContent)) && results.length) {
+      indexFileContent = indexFileContent.replace(exportRegex, '');
     }
   }
   return indexFileContent;

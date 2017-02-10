@@ -3,7 +3,7 @@ import { Logger } from './logger/logger';
 import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
 import * as Constants from './util/constants';
 import { BuildError } from './util/errors';
-import { getBooleanPropertyValue, webpackStatsToDependencyMap } from './util/helpers';
+import { getBooleanPropertyValue, webpackStatsToDependencyMap, printDependencyMap } from './util/helpers';
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { runWebpackFullBuild, WebpackConfig } from './webpack';
 import { purgeDecorators } from './optimization/decorators';
@@ -25,6 +25,11 @@ function optimizationWorker(context: BuildContext, configFile: string) {
   const webpackConfig = getConfig(context, configFile);
   return runWebpackFullBuild(webpackConfig).then((stats: any) => {
     const dependencyMap = webpackStatsToDependencyMap(context, stats);
+    if (getBooleanPropertyValue(Constants.ENV_PRINT_ORIGINAL_DEPENDENCY_TREE)) {
+      Logger.debug('Original Dependency Map Start');
+      printDependencyMap(dependencyMap);
+      Logger.debug('Original Dependency Map End');
+    }
     return doOptimizations(context, dependencyMap);
   });
 }
@@ -42,7 +47,11 @@ export function doOptimizations(context: BuildContext, dependencyMap: Map<string
     purgeUnusedImports(context, results.purgedModules);
   }
 
-  // printDependencyMap(modifiedMap);
+  if (getBooleanPropertyValue(Constants.ENV_PRINT_MODIFIED_DEPENDENCY_TREE)) {
+    Logger.debug('Modified Dependency Map Start');
+    printDependencyMap(modifiedMap);
+    Logger.debug('Modified Dependency Map End');
+  }
 
   return modifiedMap;
 }
@@ -96,7 +105,6 @@ function attemptToPurgeUnusedProvider(context: BuildContext, dependencyMap: Map<
     let newIndexFileContent = purgeProviderClassNameFromIonicModuleForRoot(ionicIndexFile.content, providerClassName);
 
     // purge the component from the index file
-    newIndexFileContent = purgeUnusedImportsAndExportsFromIndex(indexFilePath, newIndexFileContent, [providerComponentPath]);
     context.fileCache.set(indexFilePath, { path: indexFilePath, content: newIndexFileContent});
   }
 }

@@ -1,12 +1,16 @@
-import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfaces';
-import { BuildError, IgnorableError } from './util/errors';
-import { emit, EventType } from './util/events';
+import { EventEmitter } from 'events';
 import { join } from 'path';
-import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
-import { Logger } from './logger/logger';
+
 import * as webpackApi from 'webpack';
 
-import { EventEmitter } from 'events';
+import { Logger } from './logger/logger';
+import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
+import * as Constants from './util/constants';
+import { BuildError, IgnorableError } from './util/errors';
+import { emit, EventType } from './util/events';
+import { getBooleanPropertyValue, printDependencyMap, webpackStatsToDependencyMap } from './util/helpers';
+import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfaces';
+
 
 const eventEmitter = new EventEmitter();
 const INCREMENTAL_BUILD_FAILED = 'incremental_build_failed';
@@ -82,6 +86,13 @@ export function webpackWorker(context: BuildContext, configFile: string): Promis
 }
 
 function webpackBuildComplete(stats: any, context: BuildContext, webpackConfig: WebpackConfig) {
+  if (getBooleanPropertyValue(Constants.ENV_PRINT_WEBPACK_DEPENDENCY_TREE)) {
+    Logger.debug('Webpack Dependency Map Start');
+    const dependencyMap = webpackStatsToDependencyMap(context, stats);
+    printDependencyMap(dependencyMap);
+    Logger.debug('Webpack Dependency Map End');
+  }
+
   // set the module files used in this bundle
   // this reference can be used elsewhere in the build (sass)
   const files = stats.compilation.modules.map((webpackObj: any) => {
