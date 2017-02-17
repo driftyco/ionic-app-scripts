@@ -119,7 +119,7 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_TS_CONFIG, tsConfigPathValue);
   Logger.debug(`tsconfig set to ${tsConfigPathValue}`);
 
-  const readConfigJson = resolve(getConfigValue(context, '--readConfigJson', null, Constants.ENV_READ_CONFIG_JSON, Constants.ENV_READ_CONFIG_JSON.toLowerCase(), 'true'));
+  const readConfigJson = getConfigValue(context, '--readConfigJson', null, Constants.ENV_READ_CONFIG_JSON, Constants.ENV_READ_CONFIG_JSON.toLowerCase(), 'true');
   setProcessEnvVar(Constants.ENV_READ_CONFIG_JSON, readConfigJson);
   Logger.debug(`readConfigJson set to ${readConfigJson}`);
 
