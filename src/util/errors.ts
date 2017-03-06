@@ -5,6 +5,7 @@ export class BuildError extends Error {
 
   constructor(err?: any) {
     super();
+
     if (err) {
       if (err.message) {
         this.message = err.message;
