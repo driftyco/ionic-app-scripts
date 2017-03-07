@@ -1,7 +1,9 @@
 import { join } from 'path';
 import * as util from './util';
 
-import { getTypescriptSourceFile } from '../util/typescript-utils';
+import { FileCache } from '../util/file-cache';
+import *  as helpers from '../util/helpers';
+import * as tsUtils from '../util/typescript-utils';
 
 describe('util', () => {
   describe('extractDeepLinkPathData', () => {
@@ -498,7 +500,237 @@ export function getSharedIonicModule() {
   });
 
   describe('parseDeepLinkDecorator', () => {
-    it('should do something', () => {
+    it('should return the decorator content from fully hydrated decorator', () => {
+      const knownContent = `
+import { Component } from '@angular/core';
+
+import { DeepLink, NavController } from 'ionic-angular';
+
+@DeepLink({
+  name: 'someName',
+  segment: 'someSegmentBro',
+  defaultHistory: ['page-one', 'page-two'],
+  priority: 'high'
+})
+@Component({
+  selector: 'page-home',
+  template: \`
+  <ion-header>
+    <ion-navbar>
+      <ion-title>
+        Ionic Blank
+      </ion-title>
+    </ion-navbar>
+  </ion-header>
+
+  <ion-content padding>
+    The world is your oyster.
+    <p>
+      If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
+    </p>
+    <button ion-button (click)="nextPage()">Next Page</button>
+  </ion-content>
+  \`
+})
+export class HomePage {
+
+  constructor(public navCtrl: NavController) {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageOne');
+    console.log()
+  }
+}
+
+      `;
+
+      const knownPath = '/some/fake/path';
+
+      const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
+
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      expect(result.name).toEqual('someName');
+      expect(result.segment).toEqual('someSegmentBro');
+      expect(result.defaultHistory[0]).toEqual('page-one');
+      expect(result.defaultHistory[1]).toEqual('page-two');
+      expect(result.priority).toEqual('high');
+      expect(knownContent.indexOf(result.rawString)).toBeGreaterThan(-1);
+
+    });
+
+    it('should default to using class name when name is missing', () => {
+      const knownContent = `
+import { Component } from '@angular/core';
+
+import { DeepLink, NavController } from 'ionic-angular';
+
+@DeepLink({
+  segment: 'someSegmentBro',
+  defaultHistory: ['page-one', 'page-two'],
+  priority: 'high'
+})
+@Component({
+  selector: 'page-home',
+  template: \`
+  <ion-header>
+    <ion-navbar>
+      <ion-title>
+        Ionic Blank
+      </ion-title>
+    </ion-navbar>
+  </ion-header>
+
+  <ion-content padding>
+    The world is your oyster.
+    <p>
+      If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
+    </p>
+    <button ion-button (click)="nextPage()">Next Page</button>
+  </ion-content>
+  \`
+})
+export class HomePage {
+
+  constructor(public navCtrl: NavController) {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageOne');
+    console.log()
+  }
+}
+
+      `;
+
+      const knownPath = '/some/fake/path';
+
+      const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
+
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      expect(result.name).toEqual('HomePage');
+      expect(result.segment).toEqual('someSegmentBro');
+      expect(result.defaultHistory[0]).toEqual('page-one');
+      expect(result.defaultHistory[1]).toEqual('page-two');
+      expect(result.priority).toEqual('high');
+      expect(knownContent.indexOf(result.rawString)).toBeGreaterThan(-1);
+
+    });
+
+    it('should return null segment when not in decorator', () => {
+      const knownContent = `
+import { Component } from '@angular/core';
+
+import { DeepLink, NavController } from 'ionic-angular';
+
+@DeepLink({
+  defaultHistory: ['page-one', 'page-two'],
+  priority: 'high'
+})
+@Component({
+  selector: 'page-home',
+  template: \`
+  <ion-header>
+    <ion-navbar>
+      <ion-title>
+        Ionic Blank
+      </ion-title>
+    </ion-navbar>
+  </ion-header>
+
+  <ion-content padding>
+    The world is your oyster.
+    <p>
+      If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
+    </p>
+    <button ion-button (click)="nextPage()">Next Page</button>
+  </ion-content>
+  \`
+})
+export class HomePage {
+
+  constructor(public navCtrl: NavController) {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageOne');
+    console.log()
+  }
+}
+
+      `;
+
+      const knownPath = '/some/fake/path';
+
+      const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
+
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      expect(result.name).toEqual('HomePage');
+      expect(result.segment).toEqual(null);
+      expect(result.defaultHistory[0]).toEqual('page-one');
+      expect(result.defaultHistory[1]).toEqual('page-two');
+      expect(result.priority).toEqual('high');
+      expect(knownContent.indexOf(result.rawString)).toBeGreaterThan(-1);
+
+    });
+
+    it('should return empty array for defaultHistory when not in decorator', () => {
+      const knownContent = `
+import { Component } from '@angular/core';
+
+import { DeepLink, NavController } from 'ionic-angular';
+
+@DeepLink({
+  priority: 'high'
+})
+@Component({
+  selector: 'page-home',
+  template: \`
+  <ion-header>
+    <ion-navbar>
+      <ion-title>
+        Ionic Blank
+      </ion-title>
+    </ion-navbar>
+  </ion-header>
+
+  <ion-content padding>
+    The world is your oyster.
+    <p>
+      If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
+    </p>
+    <button ion-button (click)="nextPage()">Next Page</button>
+  </ion-content>
+  \`
+})
+export class HomePage {
+
+  constructor(public navCtrl: NavController) {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageOne');
+    console.log()
+  }
+}
+
+      `;
+
+      const knownPath = '/some/fake/path';
+
+      const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
+
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      expect(result.name).toEqual('HomePage');
+      expect(result.segment).toEqual(null);
+      expect(result.defaultHistory).toBeTruthy();
+      expect(result.defaultHistory.length).toEqual(0);
+      expect(result.priority).toEqual('high');
+      expect(knownContent.indexOf(result.rawString)).toBeGreaterThan(-1);
+
+    });
+
+    it('should return priority of low when not in decorator', () => {
       const knownContent = `
 import { Component } from '@angular/core';
 
@@ -541,9 +773,359 @@ export class HomePage {
 
       const knownPath = '/some/fake/path';
 
-      const sourceFile = getTypescriptSourceFile(knownPath, knownContent);
+      const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
 
-      //util.parseDeepLinkDecorator(sourceFile);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      expect(result.name).toEqual('HomePage');
+      expect(result.segment).toEqual(null);
+      expect(result.defaultHistory).toBeTruthy();
+      expect(result.defaultHistory.length).toEqual(0);
+      expect(result.priority).toEqual('low');
+      expect(knownContent.indexOf(result.rawString)).toBeGreaterThan(-1);
+
     });
+
+    it('should return correct defaults when no param passed to decorator', () => {
+      const knownContent = `
+import { Component } from '@angular/core';
+
+import { DeepLink, NavController } from 'ionic-angular';
+
+@DeepLink()
+@Component({
+  selector: 'page-home',
+  template: \`
+  <ion-header>
+    <ion-navbar>
+      <ion-title>
+        Ionic Blank
+      </ion-title>
+    </ion-navbar>
+  </ion-header>
+
+  <ion-content padding>
+    The world is your oyster.
+    <p>
+      If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
+    </p>
+    <button ion-button (click)="nextPage()">Next Page</button>
+  </ion-content>
+  \`
+})
+export class HomePage {
+
+  constructor(public navCtrl: NavController) {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageOne');
+    console.log()
+  }
+}
+
+      `;
+
+      const knownPath = '/some/fake/path';
+
+      const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
+
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      expect(result.name).toEqual('HomePage');
+      expect(result.segment).toEqual(null);
+      expect(result.defaultHistory).toBeTruthy();
+      expect(result.defaultHistory.length).toEqual(0);
+      expect(result.priority).toEqual('low');
+      expect(knownContent.indexOf(result.rawString)).toBeGreaterThan(-1);
+
+    });
+
+    it('should throw an error when multiple deeplink decorators are found', () => {
+
+      const knownContent = `
+import { Component } from '@angular/core';
+
+import { DeepLink, NavController } from 'ionic-angular';
+
+@DeepLink({
+})
+@DeepLink({
+})
+@Component({
+  selector: 'page-home',
+  template: \`
+  <ion-header>
+    <ion-navbar>
+      <ion-title>
+        Ionic Blank
+      </ion-title>
+    </ion-navbar>
+  </ion-header>
+
+  <ion-content padding>
+    The world is your oyster.
+    <p>
+      If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
+    </p>
+    <button ion-button (click)="nextPage()">Next Page</button>
+  </ion-content>
+  \`
+})
+export class HomePage {
+
+  constructor(public navCtrl: NavController) {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageOne');
+    console.log()
+  }
+}
+
+      `;
+
+      const knownPath = '/some/fake/path';
+
+      const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
+      const knownErrorMsg = 'Should never get here';
+
+      try {
+
+        util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+        throw new Error(knownErrorMsg);
+      } catch (ex) {
+        expect(ex.message).not.toEqual(knownErrorMsg);
+      }
+    });
+
+    it('should return null when no deeplink decorator is found', () => {
+      const knownContent = `
+import { Component } from '@angular/core';
+
+import { DeepLink, NavController } from 'ionic-angular';
+
+@Component({
+  selector: 'page-home',
+  template: \`
+  <ion-header>
+    <ion-navbar>
+      <ion-title>
+        Ionic Blank
+      </ion-title>
+    </ion-navbar>
+  </ion-header>
+
+  <ion-content padding>
+    The world is your oyster.
+    <p>
+      If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
+    </p>
+    <button ion-button (click)="nextPage()">Next Page</button>
+  </ion-content>
+  \`
+})
+export class HomePage {
+
+  constructor(public navCtrl: NavController) {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageOne');
+    console.log()
+  }
+}
+
+      `;
+
+      const knownPath = '/some/fake/path';
+
+      const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      expect(result).toEqual(null);
+    });
+
+    it('should return null when there isn\'t a class declaration', () => {
+      const knownContent = `
+import {
+  CallExpression,
+  createSourceFile,
+  Identifier,
+  ImportClause,
+  ImportDeclaration,
+  ImportSpecifier,
+  NamedImports,
+  Node,
+  ScriptTarget,
+  SourceFile,
+  StringLiteral,
+  SyntaxKind
+} from 'typescript';
+
+import { rangeReplace, stringSplice } from './helpers';
+
+export function getTypescriptSourceFile(filePath: string, fileContent: string, languageVersion: ScriptTarget = ScriptTarget.Latest, setParentNodes: boolean = false): SourceFile {
+  return createSourceFile(filePath, fileContent, languageVersion, setParentNodes);
+}
+
+export function removeDecorators(fileName: string, source: string): string {
+  const sourceFile = createSourceFile(fileName, source, ScriptTarget.Latest);
+  const decorators = findNodes(sourceFile, sourceFile, SyntaxKind.Decorator, true);
+  decorators.sort((a, b) => b.pos - a.pos);
+  decorators.forEach(d => {
+    source = source.slice(0, d.pos) + source.slice(d.end);
+  });
+
+  return source;
+}
+
+      `;
+
+      const knownPath = '/some/fake/path';
+
+      const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      expect(result).toEqual(null);
+    });
+  });
+
+  describe('getNgModuleDataFromCorrespondingPage', () => {
+    it('should call the file cache with the path to an ngmodule', () => {
+      const basePath = join('Some', 'Fake', 'Path');
+      const pagePath = join(basePath, 'my-page', 'my-page.ts');
+      const ngModulePath = join(basePath, 'my-page', 'my-page.module.ts');
+
+      spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
+
+      const result = util.getNgModulePathFromCorrespondingPage(pagePath);
+      expect(result).toEqual(ngModulePath);
+    });
+  });
+
+  describe('getNgModuleClassName', () => {
+    it('should return the NgModule class name', () => {
+      const knownContent = `
+import { NgModule } from '@angular/core';
+import { DeepLinkModule } from 'ionic-angular';
+
+import { HomePage } from './home';
+
+@NgModule({
+  declarations: [
+    HomePage,
+  ],
+  imports: [
+    DeepLinkModule.forChild(HomePage),
+  ]
+})
+export class HomePageModule {}
+      `;
+
+      const knownPath = '/Users/dan/idk/some-path.module.ts';
+
+      const result = util.getNgModuleClassName(knownPath, knownContent);
+      expect(result).toEqual('HomePageModule');
+    });
+
+    it('should return the NgModule class name when there are multiple class declarations but only one is decorated', () => {
+      const knownContent = `
+import { NgModule } from '@angular/core';
+import { DeepLinkModule } from 'ionic-angular';
+
+import { HomePage } from './home';
+
+@NgModule({
+  declarations: [
+    HomePage,
+  ],
+  imports: [
+    DeepLinkModule.forChild(HomePage),
+  ]
+})
+export class HomePageModule {}
+
+export class TacoBell {
+  constructor() {
+  }
+
+  ionViewDidEnter() {
+    console.log('tacos yo');
+  }
+}
+      `;
+
+      const knownPath = '/Users/dan/idk/some-path.module.ts';
+
+      const result = util.getNgModuleClassName(knownPath, knownContent);
+      expect(result).toEqual('HomePageModule');
+    });
+
+    it('should throw an error an NgModule isn\'t found', () => {
+      const knownContent = `
+import { NgModule } from '@angular/core';
+import { DeepLinkModule } from 'ionic-angular';
+
+import { HomePage } from './home';
+
+export class HomePageModule {}
+
+      `;
+
+      const knownPath = '/Users/dan/idk/some-path.module.ts';
+
+      const knownError = 'Should never happen';
+      try {
+        util.getNgModuleClassName(knownPath, knownContent);
+        throw new Error(knownError);
+      } catch (ex) {
+        expect(ex.message).not.toEqual(knownError);
+      }
+    });
+
+    it('should throw an error an multiple NgModules are found', () => {
+      const knownContent = `
+import { NgModule } from '@angular/core';
+import { DeepLinkModule } from 'ionic-angular';
+
+import { HomePage } from './home';
+
+@NgModule({
+  declarations: [
+    HomePage,
+  ],
+  imports: [
+    DeepLinkModule.forChild(HomePage),
+  ]
+})
+export class HomePageModule {}
+
+@NgModule({
+  declarations: [
+    HomePage,
+  ],
+  imports: [
+    DeepLinkModule.forChild(HomePage),
+  ]
+})
+export class TacoBellModule {}
+
+      `;
+
+      const knownPath = '/Users/dan/idk/some-path.module.ts';
+
+      const knownError = 'Should never happen';
+      try {
+        util.getNgModuleClassName(knownPath, knownContent);
+        throw new Error(knownError);
+      } catch (ex) {
+        expect(ex.message).not.toEqual(knownError);
+      }
+    });
+  });
+
+  describe('getRelativePathToPageNgModuleFromAppNgModule', () => {
+    const prefix = join('Users', 'dan', 'myApp', 'src');
+    const appNgModulePath = join(prefix, 'app', 'app.module.ts');
+    const pageNgModulePath = join(prefix, 'pages', 'page-one', 'page-one.module.ts');
+    const result = util.getRelativePathToPageNgModuleFromAppNgModule(appNgModulePath, pageNgModulePath);
+    expect(result).toEqual('../pages/page-one/page-one.module.ts');
   });
 });

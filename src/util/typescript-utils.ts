@@ -1,5 +1,8 @@
+import { Logger } from '../logger/logger';
+
 import {
   CallExpression,
+  ClassDeclaration,
   createSourceFile,
   Identifier,
   ImportClause,
@@ -148,4 +151,14 @@ export function checkIfFunctionIsCalled(filePath: string, fileContent: string, f
   const allCalls = findNodes(sourceFile, sourceFile, SyntaxKind.CallExpression, true) as CallExpression[];
   const functionCallList = allCalls.filter(call => call.expression && call.expression.kind === SyntaxKind.Identifier && (call.expression as Identifier).text === functionName);
   return functionCallList.length > 0;
+}
+
+export function getClassDeclarations(sourceFile: SourceFile) {
+  const classDeclarations = findNodes(sourceFile, sourceFile, SyntaxKind.ClassDeclaration, true) as ClassDeclaration[];
+  if (classDeclarations.length > 1) {
+    Logger.warn(`The following file has multiple class declarations in it:
+${sourceFile}
+In general, it's considered a best practice to have at most one class declaration per file.`);
+  }
+  return classDeclarations;
 }

@@ -13,9 +13,6 @@ describe('Errors', () => {
       buildError.stack = 'stack1';
 
       const buildErrorCopy = new BuildError(buildError);
-      console.log('buildErrorCopy: ', buildErrorCopy);
-      console.log('\n\n\n\n\n');
-      console.dir(buildErrorCopy);
 
       const json = buildErrorCopy.toJson();
       expect(json.hasBeenLogged).toEqual(buildError.hasBeenLogged);

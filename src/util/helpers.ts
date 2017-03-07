@@ -265,6 +265,11 @@ export function generateRandomHexString(numCharacters: number) {
   return randomBytes(Math.ceil(numCharacters / 2)).toString('hex').slice(0, numCharacters);
 }
 
+export function getStringPropertyValue(propertyName: string) {
+  const result = process.env[propertyName];
+  return result;
+}
+
 export function getIntPropertyValue(propertyName: string) {
   const result = process.env[propertyName];
   return parseInt(result, 0);
@@ -324,4 +329,8 @@ export function processStatsImpl(webpackStats: WebpackStats) {
 
 export function purgeWebpackPrefixFromPath(filePath: string) {
   return filePath.replace(process.env[Constants.ENV_OPTIMIZATION_LOADER], '').replace(process.env[Constants.ENV_WEBPACK_LOADER], '').replace('!', '');
+}
+
+export function replaceAll(input: string, toReplace: string, replacement: string) {
+  return input.split(toReplace).join(replacement);
 }
