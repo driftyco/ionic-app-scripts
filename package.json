@@ -96,7 +96,7 @@
     "rxjs": "^5.0.1",
     "sw-toolbox": "3.4.0",
     "tslint-ionic-rules": "0.0.8",
-    "typescript": "~2.0.10",
+    "typescript": "^2.0.10",
     "zone.js": "^0.7.2"
   },
   "peerDependencies": {
