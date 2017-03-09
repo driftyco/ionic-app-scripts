@@ -144,15 +144,21 @@ export interface VirtualFileSystem {
   getAllDirStats():  { [filePath: string]: VirtualDirStats };
 };
 
-export interface DeepLinkConfigEntry {
-  modulePath: string;
-  namedExport: string;
+export interface DeepLinkDecoratorAndClass {
   name: string;
-  component: string;
+  segment: string;
+  defaultHistory: string[];
+  priority: string;
+  rawString: string;
 };
 
-export interface HydratedDeepLinkConfigEntry extends DeepLinkConfigEntry {
+export interface DeepLinkPathInfo {
   absolutePath: string;
+  userlandModulePath: string;
+  className: string;
+};
+
+export interface DeepLinkConfigEntry extends DeepLinkDecoratorAndClass, DeepLinkPathInfo {
 };
 
 export interface AppNgModuleInfo {

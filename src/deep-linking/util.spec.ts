@@ -3,502 +3,10 @@ import * as util from './util';
 
 import { FileCache } from '../util/file-cache';
 import *  as helpers from '../util/helpers';
+import { DeepLinkConfigEntry } from '../util/interfaces';
 import * as tsUtils from '../util/typescript-utils';
 
 describe('util', () => {
-  describe('extractDeepLinkPathData', () => {
-    it('should return the parsed deep link metadata', () => {
-      const fileContent = `
-import { NgModule } from '@angular/core';
-import { IonicApp, IonicModule } from 'ionic-angular';
-import { MyApp } from './app.component';
-import { HomePage } from '../pages/home/home';
-
-import * as Constants from '../util/constants';
-
-@NgModule({
-  declarations: [
-    MyApp,
-    HomePage
-  ],
-  imports: [
-    getSharedIonicModule()
-  ],
-  bootstrap: [IonicApp],
-  entryComponents: [
-    MyApp,
-    HomePage
-  ],
-  providers: []
-})
-export class AppModule {}
-
-export function getSharedIonicModule() {
-  return IonicModule.forRoot(MyApp, {}, {
-    links: [
-      { loadChildren: '../pages/home/home.module#HomePageModule', name: 'Home' },
-      { name: "PageOne", loadChildren: "../pages/page-one/page-one.module#PageOneModule" },
-      { loadChildren: \`../pages/page-two/page-two.module#PageTwoModule\`, name: \`PageTwo\` },
-      { Component: MyComponent, name: 'SomePage'},
-      { name: 'SomePage2', Component: MyComponent2 }
-    ]
-  });
-}
-      `;
-      const results = util.extractDeepLinkPathData(fileContent);
-      expect(results).toBeTruthy();
-
-      expect(results[0].component).toEqual(null);
-      expect(results[0].name).toBe('Home');
-      expect(results[0].modulePath).toBe('../pages/home/home.module');
-      expect(results[0].namedExport).toBe('HomePageModule');
-
-      expect(results[1].component).toEqual(null);
-      expect(results[1].name).toBe('PageOne');
-      expect(results[1].modulePath).toBe('../pages/page-one/page-one.module');
-      expect(results[1].namedExport).toBe('PageOneModule');
-
-      expect(results[2].component).toEqual(null);
-      expect(results[2].name).toBe('PageTwo');
-      expect(results[2].modulePath).toBe('../pages/page-two/page-two.module');
-      expect(results[2].namedExport).toBe('PageTwoModule');
-
-      expect(results[3].component).toEqual('MyComponent');
-      expect(results[3].name).toBe('SomePage');
-      expect(results[3].modulePath).toBe(null);
-      expect(results[3].namedExport).toBe(null);
-
-      expect(results[4].component).toEqual('MyComponent2');
-      expect(results[4].name).toBe('SomePage2');
-      expect(results[4].modulePath).toBe(null);
-      expect(results[4].namedExport).toBe(null);
-    });
-
-    it('should handle configs with arrays in them', () => {
-      const knownContent = `
-        @NgModule({
-  declarations: [
-    E2EApp,
-    FirstPage,
-    RedirectPage,
-    AnotherPage,
-    MyCmpTest,
-    MyCmpTest2,
-    PrimaryHeaderPage,
-    TabsPage,
-    Tab1,
-    Tab2,
-    Tab3,
-    TabItemPage
-  ],
-  imports: [
-    BrowserModule,
-    IonicModule.forRoot(E2EApp, {
-      swipeBackEnabled: true
-    }, {
-      links: [
-        { component: FirstPage, name: 'first-page' },
-        { component: AnotherPage, name: 'another-page' },
-        { component: MyCmpTest, name: 'tab1-page1' },
-
-        { loadChildren: './pages/full-page/full-page.module#LinkModule', name: 'full-page', defaultHistory: ['first-page', 'another-page'] },
-
-        { component: PrimaryHeaderPage, name: 'primary-header-page', defaultHistory: ['first-page', 'full-page'] },
-        { component: Tabs, name: 'tabs' },
-        { component: Tab1, name: 'tab1' },
-        { component: TabItemPage, name: 'item' }
-      ]
-    })
-  ],
-  bootstrap: [IonicApp],
-  entryComponents: [
-    E2EApp,
-    FirstPage,
-    RedirectPage,
-    AnotherPage,
-    PrimaryHeaderPage,
-    TabsPage,
-    Tab1,
-    Tab2,
-    Tab3,
-    TabItemPage
-  ]
-})
-export class AppModule {}
-      `;
-
-      const results = util.extractDeepLinkPathData(knownContent);
-
-      expect(results[0].component).toEqual('FirstPage');
-      expect(results[0].name).toEqual('first-page');
-      expect(results[0].modulePath).toEqual(null);
-      expect(results[0].namedExport).toEqual(null);
-
-      expect(results[1].component).toEqual('AnotherPage');
-      expect(results[1].name).toEqual('another-page');
-      expect(results[1].modulePath).toEqual(null);
-      expect(results[1].namedExport).toEqual(null);
-
-      expect(results[2].component).toEqual('MyCmpTest');
-      expect(results[2].name).toEqual('tab1-page1');
-      expect(results[2].modulePath).toEqual(null);
-      expect(results[2].namedExport).toEqual(null);
-
-      expect(results[3].component).toEqual(null);
-      expect(results[3].name).toEqual('full-page');
-      expect(results[3].modulePath).toEqual('./pages/full-page/full-page.module');
-      expect(results[3].namedExport).toEqual('LinkModule');
-
-      expect(results[4].component).toEqual('PrimaryHeaderPage');
-      expect(results[4].name).toEqual('primary-header-page');
-      expect(results[4].modulePath).toEqual(null);
-      expect(results[4].namedExport).toEqual(null);
-
-      expect(results[5].component).toEqual('Tabs');
-      expect(results[5].name).toEqual('tabs');
-      expect(results[5].modulePath).toEqual(null);
-      expect(results[5].namedExport).toEqual(null);
-
-      expect(results[6].component).toEqual('Tab1');
-      expect(results[6].name).toEqual('tab1');
-      expect(results[6].modulePath).toEqual(null);
-      expect(results[6].namedExport).toEqual(null);
-
-      expect(results[7].component).toEqual('TabItemPage');
-      expect(results[7].name).toEqual('item');
-      expect(results[7].modulePath).toEqual(null);
-      expect(results[7].namedExport).toEqual(null);
-    });
-
-    it('should throw an exception when there is an invalid deep link config', () => {
-      // arrange
-      const fileContent = `
-import { NgModule } from '@angular/core';
-import { IonicApp, IonicModule } from 'ionic-angular';
-import { MyApp } from './app.component';
-import { HomePage } from '../pages/home/home';
-
-import * as Constants from '../util/constants';
-
-@NgModule({
-  declarations: [
-    MyApp,
-    HomePage
-  ],
-  imports: [
-    getSharedIonicModule()
-  ],
-  bootstrap: [IonicApp],
-  entryComponents: [
-    MyApp,
-    HomePage
-  ],
-  providers: []
-})
-export class AppModule {}
-
-export function getSharedIonicModule() {
-  return IonicModule.forRoot(MyApp, {}, {
-    links: [
-      { loadChildren: '../pages/home/home.module#HomePageModule'},
-      { name: "PageOne", loadChildren: "../pages/page-one/page-one.module#PageOneModule" },
-      { loadChildren: \`../pages/page-two/page-two.module#PageTwoModule\`, name: \`PageTwo\` },
-      { Component: MyComponent, name: 'SomePage'},
-      { name: 'SomePage2', Component: MyComponent2 }
-    ]
-  });
-}
-      `;
-      // act
-      const knownMessage = 'Should never get here';
-      try {
-        util.extractDeepLinkPathData(fileContent);
-        throw new Error(knownMessage);
-      } catch (ex) {
-        // assert
-        expect(ex.message).not.toEqual(knownMessage);
-      }
-    });
-  });
-
-  describe('getDeepLinkData', () => {
-    it('should return an empty list when no valid deep links are found', () => {
-
-      const fileContent = `
-import { NgModule } from '@angular/core';
-import { IonicApp, IonicModule } from 'ionic-angular';
-import { MyApp } from './app.component';
-import { HomePage } from '../pages/home/home';
-
-import * as Constants from '../util/constants';
-
-@NgModule({
-  declarations: [
-    MyApp,
-    HomePage
-  ],
-  imports: [
-    getSharedIonicModule()
-  ],
-  bootstrap: [IonicApp],
-  entryComponents: [
-    MyApp,
-    HomePage
-  ],
-  providers: []
-})
-export class AppModule {}
-
-export function getSharedIonicModule() {
-  return IonicModule.forRoot(MyApp, {});
-}
-      `;
-
-      const srcDir = '/Users/dan/Dev/myApp/src';
-      const result = util.getDeepLinkData(join(srcDir, 'app/app.module.ts'), fileContent, false);
-      expect(result).toBeTruthy();
-      expect(result.length).toEqual(0);
-    });
-
-    it('should return a hydrated deep link config', () => {
-
-      const fileContent = `
-import { NgModule } from '@angular/core';
-import { IonicApp, IonicModule } from 'ionic-angular';
-import { MyApp } from './app.component';
-import { HomePage } from '../pages/home/home';
-
-import * as Constants from '../util/constants';
-
-@NgModule({
-  declarations: [
-    MyApp,
-    HomePage
-  ],
-  imports: [
-    getSharedIonicModule()
-  ],
-  bootstrap: [IonicApp],
-  entryComponents: [
-    MyApp,
-    HomePage
-  ],
-  providers: []
-})
-export class AppModule {}
-
-export function getSharedIonicModule() {
-  return IonicModule.forRoot(MyApp, {}, {
-    links: [
-      { loadChildren: '../pages/home/home.module#HomePageModule', name: 'Home' },
-      { name: "PageOne", loadChildren: "../pages/page-one/page-one.module#PageOneModule" },
-      { loadChildren: \`../pages/page-two/page-two.module#PageTwoModule\`, name: \`PageTwo\` },
-      { Component: MyComponent, name: 'SomePage'},
-    ]
-  });
-}
-      `;
-
-      const srcDir = '/Users/dan/Dev/myApp/src';
-      const result = util.getDeepLinkData(join(srcDir, 'app/app.module.ts'), fileContent, false);
-      expect(result[0].modulePath).toEqual('../pages/home/home.module');
-      expect(result[0].namedExport).toEqual('HomePageModule');
-      expect(result[0].name).toEqual('Home');
-      expect(result[0].component).toEqual(null);
-      expect(result[0].absolutePath).toEqual('/Users/dan/Dev/myApp/src/pages/home/home.module.ts');
-
-      expect(result[1].modulePath).toEqual('../pages/page-one/page-one.module');
-      expect(result[1].namedExport).toEqual('PageOneModule');
-      expect(result[1].name).toEqual('PageOne');
-      expect(result[1].component).toEqual(null);
-      expect(result[1].absolutePath).toEqual('/Users/dan/Dev/myApp/src/pages/page-one/page-one.module.ts');
-
-      expect(result[2].modulePath).toEqual('../pages/page-two/page-two.module');
-      expect(result[2].namedExport).toEqual('PageTwoModule');
-      expect(result[2].name).toEqual('PageTwo');
-      expect(result[2].component).toEqual(null);
-      expect(result[2].absolutePath).toEqual('/Users/dan/Dev/myApp/src/pages/page-two/page-two.module.ts');
-
-      expect(result[3].modulePath).toEqual(null);
-      expect(result[3].namedExport).toEqual(null);
-      expect(result[3].name).toEqual('SomePage');
-      expect(result[3].component).toEqual('MyComponent');
-      expect(result[3].absolutePath).toEqual(null);
-    });
-
-    it('should return a deep link data adjusted for AoT', () => {
-
-      const fileContent = `
-import { NgModule } from '@angular/core';
-import { IonicApp, IonicModule } from 'ionic-angular';
-import { MyApp } from './app.component';
-import { HomePage } from '../pages/home/home';
-
-import * as Constants from '../util/constants';
-
-@NgModule({
-  declarations: [
-    MyApp,
-    HomePage
-  ],
-  imports: [
-    getSharedIonicModule()
-  ],
-  bootstrap: [IonicApp],
-  entryComponents: [
-    MyApp,
-    HomePage
-  ],
-  providers: []
-})
-export class AppModule {}
-
-export function getSharedIonicModule() {
-  return IonicModule.forRoot(MyApp, {}, {
-    links: [
-      { loadChildren: '../pages/home/home.module#HomePageModule', name: 'Home' },
-      { name: "PageOne", loadChildren: "../pages/page-one/page-one.module#PageOneModule" },
-      { loadChildren: \`../pages/page-two/page-two.module#PageTwoModule\`, name: \`PageTwo\` },
-      { Component: MyComponent, name: 'SomePage'},
-    ]
-  });
-}
-      `;
-
-      const srcDir = '/Users/dan/Dev/myApp/src';
-      const result = util.getDeepLinkData(join(srcDir, 'app/app.module.ts'), fileContent, true);
-      expect(result[0].modulePath).toEqual('../pages/home/home.module.ngfactory');
-      expect(result[0].namedExport).toEqual('HomePageModuleNgFactory');
-      expect(result[0].name).toEqual('Home');
-      expect(result[0].component).toEqual(null);
-      expect(result[0].absolutePath).toEqual('/Users/dan/Dev/myApp/src/pages/home/home.module.ngfactory.ts');
-
-      expect(result[1].modulePath).toEqual('../pages/page-one/page-one.module.ngfactory');
-      expect(result[1].namedExport).toEqual('PageOneModuleNgFactory');
-      expect(result[1].name).toEqual('PageOne');
-      expect(result[1].component).toEqual(null);
-      expect(result[1].absolutePath).toEqual('/Users/dan/Dev/myApp/src/pages/page-one/page-one.module.ngfactory.ts');
-
-      expect(result[2].modulePath).toEqual('../pages/page-two/page-two.module.ngfactory');
-      expect(result[2].namedExport).toEqual('PageTwoModuleNgFactory');
-      expect(result[2].name).toEqual('PageTwo');
-      expect(result[2].component).toEqual(null);
-      expect(result[2].absolutePath).toEqual('/Users/dan/Dev/myApp/src/pages/page-two/page-two.module.ngfactory.ts');
-
-      expect(result[3].modulePath).toEqual(null);
-      expect(result[3].namedExport).toEqual(null);
-      expect(result[3].name).toEqual('SomePage');
-      expect(result[3].component).toEqual('MyComponent');
-      expect(result[3].absolutePath).toEqual(null);
-    });
-  });
-
-  describe('validateDeepLinks', () => {
-    it('should return false when one entry is missing name', () => {
-      // arrange
-      const invalidDeepLinkConfig: any = {
-       name: null,
-       component: {}
-      };
-      // act
-      const result = util.validateDeepLinks([invalidDeepLinkConfig]);
-
-      // assert
-      expect(result).toEqual(false);
-    });
-
-    it('should return false when one entry has empty name', () => {
-      // arrange
-      const invalidDeepLinkConfig: any = {
-       name: '',
-       component: {}
-      };
-      // act
-      const result = util.validateDeepLinks([invalidDeepLinkConfig]);
-
-      // assert
-      expect(result).toEqual(false);
-    });
-
-    it('should return false when missing component and (modulePath or namedExport)', () => {
-      // arrange
-      const invalidDeepLinkConfig: any = {
-       name: 'someName',
-       component: null,
-       modulePath: null
-      };
-
-      // act
-      const result = util.validateDeepLinks([invalidDeepLinkConfig]);
-
-      // assert
-      expect(result).toEqual(false);
-    });
-
-    it('should return false when missing component and (modulePath or namedExport)', () => {
-      // arrange
-      const invalidDeepLinkConfig: any = {
-       name: 'someName',
-       component: '',
-       modulePath: ''
-      };
-
-      // act
-      const result = util.validateDeepLinks([invalidDeepLinkConfig]);
-
-      // assert
-      expect(result).toEqual(false);
-    });
-
-    it('should return false when missing component and has valid modulePath but missing namedExport', () => {
-      // arrange
-      const invalidDeepLinkConfig: any = {
-       name: 'someName',
-       component: '',
-       modulePath: 'somePath',
-       namedExport: ''
-      };
-
-      // act
-      const result = util.validateDeepLinks([invalidDeepLinkConfig]);
-
-      // assert
-      expect(result).toEqual(false);
-    });
-
-    it('should return true when it has a valid modulePath and namedExport', () => {
-      // arrange
-      const invalidDeepLinkConfig: any = {
-       name: 'someName',
-       component: '',
-       modulePath: 'somePath',
-       namedExport: 'someNamedExport'
-      };
-
-      // act
-      const result = util.validateDeepLinks([invalidDeepLinkConfig]);
-
-      // assert
-      expect(result).toEqual(true);
-    });
-
-    it('should return true when it has a valid component', () => {
-      // arrange
-      const invalidDeepLinkConfig: any = {
-       name: 'someName',
-       component: 'MyComponent',
-       modulePath: null,
-       namedExport: null
-      };
-
-      // act
-      const result = util.validateDeepLinks([invalidDeepLinkConfig]);
-
-      // assert
-      expect(result).toEqual(true);
-    });
-  });
-
   describe('parseDeepLinkDecorator', () => {
     it('should return the decorator content from fully hydrated decorator', () => {
       const knownContent = `
@@ -1127,5 +635,1041 @@ export class TacoBellModule {}
     const pageNgModulePath = join(prefix, 'pages', 'page-one', 'page-one.module.ts');
     const result = util.getRelativePathToPageNgModuleFromAppNgModule(appNgModulePath, pageNgModulePath);
     expect(result).toEqual('../pages/page-one/page-one.module.ts');
+  });
+
+  describe('getNgModuleDataFromPage', () => {
+    it('should throw when NgModule is not in cache', () => {
+      const prefix = join('Users', 'dan', 'myApp', 'src');
+      const appNgModulePath = join(prefix, 'app', 'app.module.ts');
+      const pagePath = join(prefix, 'pages', 'page-one', 'page-one.ts');
+      const fileCache = new FileCache();
+      spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
+      const knownErrorMsg = 'Should never happen';
+      try {
+        util.getNgModuleDataFromPage(appNgModulePath, pagePath, fileCache, false);
+        throw new Error(knownErrorMsg);
+      } catch (ex) {
+        expect(ex.message).not.toEqual(knownErrorMsg);
+      }
+    });
+
+    it('should return non-aot adjusted paths when not in AoT', () => {
+      const pageNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { DeepLinkModule } from 'ionic-angular';
+
+import { HomePage } from './home';
+
+@NgModule({
+  declarations: [
+    HomePage,
+  ],
+  imports: [
+    DeepLinkModule.forChild(HomePage),
+  ]
+})
+export class HomePageModule {}
+      `;
+      const prefix = join('Users', 'dan', 'myApp', 'src');
+      const appNgModulePath = join(prefix, 'app', 'app.module.ts');
+      const pageNgModulePath = join(prefix, 'pages', 'page-one', 'page-one.module.ts');
+      const pagePath = join(prefix, 'pages', 'page-one', 'page-one.ts');
+      const fileCache = new FileCache();
+      fileCache.set(pageNgModulePath, { path: pageNgModulePath, content: pageNgModuleContent});
+      spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
+
+      const result = util.getNgModuleDataFromPage(appNgModulePath, pagePath, fileCache, false);
+
+      expect(result.absolutePath).toEqual(pageNgModulePath);
+      expect(result.userlandModulePath).toEqual('../pages/page-one/page-one.module');
+      expect(result.className).toEqual('HomePageModule');
+    });
+
+    it('should return adjusted paths to account for AoT', () => {
+      const pageNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { DeepLinkModule } from 'ionic-angular';
+
+import { HomePage } from './home';
+
+@NgModule({
+  declarations: [
+    HomePage,
+  ],
+  imports: [
+    DeepLinkModule.forChild(HomePage),
+  ]
+})
+export class HomePageModule {}
+      `;
+      const prefix = join('Users', 'dan', 'myApp', 'src');
+      const appNgModulePath = join(prefix, 'app', 'app.module.ts');
+      const pageNgModulePath = join(prefix, 'pages', 'page-one', 'page-one.module.ts');
+      const pagePath = join(prefix, 'pages', 'page-one', 'page-one.ts');
+      const fileCache = new FileCache();
+      fileCache.set(pageNgModulePath, { path: pageNgModulePath, content: pageNgModuleContent});
+      spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
+
+      const result = util.getNgModuleDataFromPage(appNgModulePath, pagePath, fileCache, true);
+      expect(result.absolutePath).toEqual(helpers.changeExtension(pageNgModulePath, '.ngfactory.ts'));
+      expect(result.userlandModulePath).toEqual('../pages/page-one/page-one.module.ngfactory');
+      expect(result.className).toEqual('HomePageModuleNgFactory');
+    });
+  });
+
+  describe('getDeepLinkData', () => {
+    it('should return an empty list when no deep link decorators are found', () => {
+
+      const pageOneContent = `
+import { Component } from '@angular/core';
+import { DeepLink, NavController } from 'ionic-angular';
+
+
+@Component({
+  selector: 'page-page-one',
+  templateUrl: './page-one.html'
+})
+export class PageOne {
+
+  constructor(public navCtrl: NavController) {}
+
+  ionViewDidLoad() {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageTwo');
+  }
+
+  previousPage() {
+    this.navCtrl.pop();
+  }
+
+}
+      `;
+
+      const pageOneNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageOne } from './page-one';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageOne,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageOne)
+  ],
+  entryComponents: [
+    PageOne
+  ]
+})
+export class PageOneModule {}
+
+      `;
+
+      const pageTwoContent = `
+import { Component } from '@angular/core';
+import { LoadingController, ModalController, NavController, PopoverController } from 'ionic-angular';
+
+
+@Component({
+  selector: 'page-page-two',
+  templateUrl: './page-two.html'
+})
+export class PageTwo {
+
+  constructor(public loadingController: LoadingController, public modalController: ModalController, public navCtrl: NavController, public popoverCtrl: PopoverController) {}
+
+  ionViewDidLoad() {
+  }
+
+  goBack() {
+    this.navCtrl.pop();
+  }
+
+  showLoader() {
+    const viewController = this.loadingController.create({
+      duration: 2000
+    });
+
+    viewController.present();
+  }
+
+  openModal() {
+    /*const viewController = this.modalController.create('PageThree');
+    viewController.present();
+    */
+
+    const viewController = this.popoverCtrl.create('PageThree');
+    viewController.present();
+
+
+    //this.navCtrl.push('PageThree');
+  }
+}
+
+      `;
+
+      const pageTwoNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageTwo } from './page-two';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageTwo,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageTwo)
+  ]
+})
+export class PageTwoModule {
+
+}
+      `;
+
+      const pageSettingsContent = `
+import { Component } from '@angular/core';
+import { DeepLink, NavController } from 'ionic-angular';
+
+/*
+  Generated class for the PageTwo page.
+
+  See http://ionicframework.com/docs/v2/components/#navigation for more info on
+  Ionic pages and navigation.
+*/
+@Component({
+  selector: 'page-three',
+  templateUrl: './page-three.html'
+})
+export class PageThree {
+
+  constructor(public navCtrl: NavController) {}
+
+  ionViewDidLoad() {
+  }
+
+  goBack() {
+    this.navCtrl.pop();
+  }
+
+}
+
+      `;
+
+      const pageSettingsNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageThree } from './page-three';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageThree,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageThree)
+  ]
+})
+export class PageThreeModule {
+
+}
+
+      `;
+
+      const prefix = join('Users', 'dan', 'myApp', 'src');
+      const appNgModulePath = join(prefix, 'app', 'app.module.ts');
+      const pageOneNgModulePath = join(prefix, 'pages', 'page-one', 'page-one.module.ts');
+      const pageOnePath = join(prefix, 'pages', 'page-one', 'page-one.ts');
+      const pageTwoNgModulePath = join(prefix, 'pages', 'page-two', 'page-two.module.ts');
+      const pageTwoPath = join(prefix, 'pages', 'page-two', 'page-two.ts');
+      const pageSettingsNgModulePath = join(prefix, 'pages', 'settings-page', 'settings-page.module.ts');
+      const pageSettingsPath = join(prefix, 'pages', 'settings-page', 'settings-page.ts');
+
+      const fileCache = new FileCache();
+      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent});
+      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent});
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
+      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent});
+      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent});
+
+      spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
+
+      const results = util.getDeepLinkData(appNgModulePath, fileCache, false);
+      expect(Array.isArray(results)).toBeTruthy();
+      expect(results.length).toEqual(0);
+    });
+
+    it('should return an a list of deeplink configs from all pages that have them, and not include pages that dont', () => {
+
+      const pageOneContent = `
+import { Component } from '@angular/core';
+import { DeepLink, NavController } from 'ionic-angular';
+
+
+@DeepLink({
+  name: 'SomeOtherName'
+})
+@Component({
+  selector: 'page-page-one',
+  templateUrl: './page-one.html'
+})
+export class PageOne {
+
+  constructor(public navCtrl: NavController) {}
+
+  ionViewDidLoad() {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageTwo');
+  }
+
+  previousPage() {
+    this.navCtrl.pop();
+  }
+
+}
+      `;
+
+      const pageOneNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageOne } from './page-one';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageOne,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageOne)
+  ],
+  entryComponents: [
+    PageOne
+  ]
+})
+export class PageOneModule {}
+
+      `;
+
+      const pageTwoContent = `
+import { Component } from '@angular/core';
+import { LoadingController, ModalController, NavController, PopoverController } from 'ionic-angular';
+
+
+@Component({
+  selector: 'page-page-two',
+  templateUrl: './page-two.html'
+})
+export class PageTwo {
+
+  constructor(public loadingController: LoadingController, public modalController: ModalController, public navCtrl: NavController, public popoverCtrl: PopoverController) {}
+
+  ionViewDidLoad() {
+  }
+
+  goBack() {
+    this.navCtrl.pop();
+  }
+
+  showLoader() {
+    const viewController = this.loadingController.create({
+      duration: 2000
+    });
+
+    viewController.present();
+  }
+
+  openModal() {
+    /*const viewController = this.modalController.create('PageThree');
+    viewController.present();
+    */
+
+    const viewController = this.popoverCtrl.create('PageThree');
+    viewController.present();
+
+
+    //this.navCtrl.push('PageThree');
+  }
+}
+
+      `;
+
+      const pageTwoNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageTwo } from './page-two';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageTwo,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageTwo)
+  ]
+})
+export class PageTwoModule {
+
+}
+      `;
+
+      const pageSettingsContent = `
+import { Component } from '@angular/core';
+import { DeepLink, NavController } from 'ionic-angular';
+
+@DeepLink({
+  segment: 'someSegmentBro',
+  defaultHistory: ['page-one', 'page-two'],
+  priority: 'high'
+})
+@Component({
+  selector: 'page-three',
+  templateUrl: './page-three.html'
+})
+export class PageThree {
+
+  constructor(public navCtrl: NavController) {}
+
+  ionViewDidLoad() {
+  }
+
+  goBack() {
+    this.navCtrl.pop();
+  }
+
+}
+
+      `;
+
+      const pageSettingsNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageThree } from './page-three';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageThree,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageThree)
+  ]
+})
+export class PageThreeModule {
+
+}
+
+      `;
+
+      const prefix = join('Users', 'dan', 'myApp', 'src');
+      const appNgModulePath = join(prefix, 'app', 'app.module.ts');
+      const pageOneNgModulePath = join(prefix, 'pages', 'page-one', 'page-one.module.ts');
+      const pageOnePath = join(prefix, 'pages', 'page-one', 'page-one.ts');
+      const pageTwoNgModulePath = join(prefix, 'pages', 'page-two', 'page-two.module.ts');
+      const pageTwoPath = join(prefix, 'pages', 'page-two', 'page-two.ts');
+      const pageSettingsNgModulePath = join(prefix, 'pages', 'settings-page', 'settings-page.module.ts');
+      const pageSettingsPath = join(prefix, 'pages', 'settings-page', 'settings-page.ts');
+
+      const fileCache = new FileCache();
+      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent});
+      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent});
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
+      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent});
+      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent});
+
+      spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
+
+      const results = util.getDeepLinkData(appNgModulePath, fileCache, false);
+      expect(results.length).toEqual(2);
+    });
+
+    it('should return an a list of deeplink configs from all pages that have them', () => {
+
+      const pageOneContent = `
+import { Component } from '@angular/core';
+import { DeepLink, NavController } from 'ionic-angular';
+
+
+@DeepLink({
+  name: 'SomeOtherName'
+})
+@Component({
+  selector: 'page-page-one',
+  templateUrl: './page-one.html'
+})
+export class PageOne {
+
+  constructor(public navCtrl: NavController) {}
+
+  ionViewDidLoad() {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageTwo');
+  }
+
+  previousPage() {
+    this.navCtrl.pop();
+  }
+
+}
+      `;
+
+      const pageOneNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageOne } from './page-one';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageOne,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageOne)
+  ],
+  entryComponents: [
+    PageOne
+  ]
+})
+export class PageOneModule {}
+
+      `;
+
+      const pageTwoContent = `
+import { Component } from '@angular/core';
+import { LoadingController, ModalController, NavController, PopoverController } from 'ionic-angular';
+
+
+
+@Component({
+  selector: 'page-page-two',
+  templateUrl: './page-two.html'
+})
+@DeepLink()
+export class PageTwo {
+
+  constructor(public loadingController: LoadingController, public modalController: ModalController, public navCtrl: NavController, public popoverCtrl: PopoverController) {}
+
+  ionViewDidLoad() {
+  }
+
+  goBack() {
+    this.navCtrl.pop();
+  }
+
+  showLoader() {
+    const viewController = this.loadingController.create({
+      duration: 2000
+    });
+
+    viewController.present();
+  }
+
+  openModal() {
+    /*const viewController = this.modalController.create('PageThree');
+    viewController.present();
+    */
+
+    const viewController = this.popoverCtrl.create('PageThree');
+    viewController.present();
+
+
+    //this.navCtrl.push('PageThree');
+  }
+}
+
+      `;
+
+      const pageTwoNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageTwo } from './page-two';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageTwo,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageTwo)
+  ]
+})
+export class PageTwoModule {
+
+}
+      `;
+
+      const pageSettingsContent = `
+import { Component } from '@angular/core';
+import { DeepLink, NavController } from 'ionic-angular';
+
+@DeepLink({
+  segment: 'someSegmentBro',
+  defaultHistory: ['page-one', 'page-two'],
+  priority: 'high'
+})
+@Component({
+  selector: 'page-three',
+  templateUrl: './page-three.html'
+})
+export class PageThree {
+
+  constructor(public navCtrl: NavController) {}
+
+  ionViewDidLoad() {
+  }
+
+  goBack() {
+    this.navCtrl.pop();
+  }
+
+}
+
+      `;
+
+      const pageSettingsNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageThree } from './page-three';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageThree,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageThree)
+  ]
+})
+export class PageThreeModule {
+
+}
+
+      `;
+
+      const prefix = join('/Users', 'dan', 'myApp', 'src');
+      const appNgModulePath = join(prefix, 'app', 'app.module.ts');
+      const pageOneNgModulePath = join(prefix, 'pages', 'page-one', 'page-one.module.ts');
+      const pageOnePath = join(prefix, 'pages', 'page-one', 'page-one.ts');
+      const pageTwoNgModulePath = join(prefix, 'pages', 'page-two', 'page-two.module.ts');
+      const pageTwoPath = join(prefix, 'pages', 'page-two', 'page-two.ts');
+      const pageSettingsNgModulePath = join(prefix, 'pages', 'settings-page', 'fake-dir', 'settings-page.module.ts');
+      const pageSettingsPath = join(prefix, 'pages', 'settings-page', 'fake-dir', 'settings-page.ts');
+
+      const fileCache = new FileCache();
+      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent});
+      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent});
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
+      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent});
+      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent});
+
+      spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
+
+      const results = util.getDeepLinkData(appNgModulePath, fileCache, false);
+      expect(results.length).toEqual(3);
+
+      expect(results[0].name).toEqual('SomeOtherName');
+      expect(results[0].segment).toEqual(null);
+      expect(results[0].priority).toEqual('low');
+      expect(results[0].defaultHistory.length).toEqual(0);
+      expect(results[0].absolutePath).toEqual('/Users/dan/myApp/src/pages/page-one/page-one.module.ts');
+      expect(results[0].userlandModulePath).toEqual('../pages/page-one/page-one.module');
+      expect(results[0].className).toEqual('PageOneModule');
+
+      expect(results[1].name).toEqual('PageTwo');
+      expect(results[1].segment).toEqual(null);
+      expect(results[1].priority).toEqual('low');
+      expect(results[1].defaultHistory.length).toEqual(0);
+      expect(results[1].absolutePath).toEqual('/Users/dan/myApp/src/pages/page-two/page-two.module.ts');
+      expect(results[1].userlandModulePath).toEqual('../pages/page-two/page-two.module');
+      expect(results[1].className).toEqual('PageTwoModule');
+
+      expect(results[2].name).toEqual('PageThree');
+      expect(results[2].segment).toEqual('someSegmentBro');
+      expect(results[2].priority).toEqual('high');
+      expect(results[2].defaultHistory.length).toEqual(2);
+      expect(results[2].defaultHistory[0]).toEqual('page-one');
+      expect(results[2].defaultHistory[1]).toEqual('page-two');
+      expect(results[2].absolutePath).toEqual('/Users/dan/myApp/src/pages/settings-page/fake-dir/settings-page.module.ts');
+      expect(results[2].userlandModulePath).toEqual('../pages/settings-page/fake-dir/settings-page.module');
+      expect(results[2].className).toEqual('PageThreeModule');
+    });
+
+    it('should throw when it cant find an NgModule as a peer to the page with a deep link config', () => {
+      const pageOneContent = `
+import { Component } from '@angular/core';
+import { DeepLink, NavController } from 'ionic-angular';
+
+
+@DeepLink({
+  name: 'SomeOtherName'
+})
+@Component({
+  selector: 'page-page-one',
+  templateUrl: './page-one.html'
+})
+export class PageOne {
+
+  constructor(public navCtrl: NavController) {}
+
+  ionViewDidLoad() {
+  }
+
+  nextPage() {
+    this.navCtrl.push('PageTwo');
+  }
+
+  previousPage() {
+    this.navCtrl.pop();
+  }
+
+}
+      `;
+
+      const pageOneNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageOne } from './page-one';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageOne,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageOne)
+  ],
+  entryComponents: [
+    PageOne
+  ]
+})
+export class PageOneModule {}
+
+      `;
+
+      const pageTwoContent = `
+import { Component } from '@angular/core';
+import { LoadingController, ModalController, NavController, PopoverController } from 'ionic-angular';
+
+
+
+@Component({
+  selector: 'page-page-two',
+  templateUrl: './page-two.html'
+})
+@DeepLink()
+export class PageTwo {
+
+  constructor(public loadingController: LoadingController, public modalController: ModalController, public navCtrl: NavController, public popoverCtrl: PopoverController) {}
+
+  ionViewDidLoad() {
+  }
+
+  goBack() {
+    this.navCtrl.pop();
+  }
+
+  showLoader() {
+    const viewController = this.loadingController.create({
+      duration: 2000
+    });
+
+    viewController.present();
+  }
+
+  openModal() {
+    /*const viewController = this.modalController.create('PageThree');
+    viewController.present();
+    */
+
+    const viewController = this.popoverCtrl.create('PageThree');
+    viewController.present();
+
+
+    //this.navCtrl.push('PageThree');
+  }
+}
+
+      `;
+
+      const pageTwoNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageTwo } from './page-two';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageTwo,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageTwo)
+  ]
+})
+export class PageTwoModule {
+
+}
+      `;
+
+      const pageSettingsContent = `
+import { Component } from '@angular/core';
+import { DeepLink, NavController } from 'ionic-angular';
+
+@DeepLink({
+  segment: 'someSegmentBro',
+  defaultHistory: ['page-one', 'page-two'],
+  priority: 'high'
+})
+@Component({
+  selector: 'page-three',
+  templateUrl: './page-three.html'
+})
+export class PageThree {
+
+  constructor(public navCtrl: NavController) {}
+
+  ionViewDidLoad() {
+  }
+
+  goBack() {
+    this.navCtrl.pop();
+  }
+
+}
+
+      `;
+
+      const pageSettingsNgModuleContent = `
+import { NgModule } from '@angular/core';
+import { PageThree } from './page-three';
+import { DeepLinkModule } from 'ionic-angular';
+
+@NgModule({
+  declarations: [
+    PageThree,
+  ],
+  imports: [
+    DeepLinkModule.forChild(PageThree)
+  ]
+})
+export class PageThreeModule {
+
+}
+
+      `;
+
+      const prefix = join('/Users', 'dan', 'myApp', 'src');
+      const appNgModulePath = join(prefix, 'app', 'app.module.ts');
+      const pageOneNgModulePath = join(prefix, 'pages', 'page-one', 'page-one.not-module.ts');
+      const pageOnePath = join(prefix, 'pages', 'page-one', 'page-one.ts');
+      const pageTwoNgModulePath = join(prefix, 'pages', 'page-two', 'page-two.module.ts');
+      const pageTwoPath = join(prefix, 'pages', 'page-two', 'page-two.ts');
+      const pageSettingsNgModulePath = join(prefix, 'pages', 'settings-page', 'fake-dir', 'settings-page.module.ts');
+      const pageSettingsPath = join(prefix, 'pages', 'settings-page', 'fake-dir', 'settings-page.ts');
+
+      const fileCache = new FileCache();
+      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent});
+      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent});
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
+      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent});
+      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent});
+
+      spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
+
+      const knownError = 'should never get here';
+
+      try {
+        util.getDeepLinkData(appNgModulePath, fileCache, false);
+        throw new Error(knownError);
+      } catch (ex) {
+        expect(ex.message).not.toEqual(knownError);
+      }
+    });
+  });
+
+  describe('hasExistingDeepLinkConfig', () => {
+    it('should return true when there is an existing deep link config', () => {
+      const knownContent = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, {}, {
+      links: [
+        { loadChildren: '../pages/page-one/page-one.module#PageOneModule', name: 'PageOne' },
+        { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo' },
+        { loadChildren: '../pages/page-three/page-three.module#PageThreeModule', name: 'PageThree' }
+      ]
+    }),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const knownPath = '/idk/yo/some/path';
+
+      const result = util.hasExistingDeepLinkConfig(knownPath, knownContent);
+      expect(result).toEqual(true);
+    });
+
+
+    it('should return false when there isnt a deeplink config', () => {
+      const knownContent = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, {}),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const knownPath = '/idk/yo/some/path';
+
+      const result = util.hasExistingDeepLinkConfig(knownPath, knownContent);
+      expect(result).toEqual(false);
+    });
+
+    it('should return false when null/undefined is passed in place on deeplink config', () => {
+      const knownContent = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, {}, null),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const knownPath = '/idk/yo/some/path';
+
+      const result = util.hasExistingDeepLinkConfig(knownPath, knownContent);
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('convertDeepLinkEntryToJsObjectString', () => {
+    it('should convert to a flat string format', () => {
+      const entry: DeepLinkConfigEntry = {
+        name: 'HomePage',
+        segment: null,
+        defaultHistory: [],
+        priority: 'low',
+        rawString: 'irrelevant for this test',
+        absolutePath: '/Users/dan/test/taco',
+        userlandModulePath: '../pages/home-page/home-page.module',
+        className: 'HomePageModule'
+      };
+
+      const result = util.convertDeepLinkEntryToJsObjectString(entry);
+      expect(result).toEqual(`{ loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: null, priority: 'low', defaultHistory: [] }`);
+    });
+
+    it('should handle defaultHistory entries and segment', () => {
+      const entry: DeepLinkConfigEntry = {
+        name: 'HomePage',
+        segment: 'idkMan',
+        defaultHistory: ['page-two', 'page-three', 'page-four'],
+        priority: 'low',
+        rawString: 'irrelevant for this test',
+        absolutePath: '/Users/dan/test/taco',
+        userlandModulePath: '../pages/home-page/home-page.module',
+        className: 'HomePageModule'
+      };
+
+      const result = util.convertDeepLinkEntryToJsObjectString(entry);
+      expect(result).toEqual(`{ loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] }`);
+    });
+  });
+
+  describe('convertDeepLinkConfigEntriesToString', () => {
+    it('should convert list of decorator data to legacy ionic data structure as a string', () => {
+      const list: DeepLinkConfigEntry[] = [];
+      list.push({
+        name: 'HomePage',
+        segment: 'idkMan',
+        defaultHistory: ['page-two', 'page-three', 'page-four'],
+        priority: 'low',
+        rawString: 'irrelevant for this test',
+        absolutePath: '/Users/dan/test/taco',
+        userlandModulePath: '../pages/home-page/home-page.module',
+        className: 'HomePageModule'
+      });
+      list.push({
+        name: 'PageTwo',
+        segment: null,
+        defaultHistory: [],
+        priority: 'low',
+        rawString: 'irrelevant for this test',
+        absolutePath: '/Users/dan/test/taco',
+        userlandModulePath: '../pages/page-two/page-two.module',
+        className: 'PageTwoModule'
+      });
+      list.push({
+        name: 'SettingsPage',
+        segment: null,
+        defaultHistory: [],
+        priority: 'low',
+        rawString: 'irrelevant for this test',
+        absolutePath: '/Users/dan/test/taco',
+        userlandModulePath: '../pages/settings-page/setting-page.module',
+        className: 'SettingsPageModule'
+      });
+
+      const result = util.convertDeepLinkConfigEntriesToString(list);
+      expect(result).toBeTruthy();
+      /*expect(result).toEqual(`{
+        links: [
+          { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
+          { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
+          { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
+        ]
+      }`);
+      */
+    });
   });
 });

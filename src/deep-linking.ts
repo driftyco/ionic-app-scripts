@@ -4,7 +4,7 @@ import { Logger } from './logger/logger';
 import * as Constants from './util/constants';
 import { BuildError } from './util/errors';
 import { FileCache } from './util/file-cache';
-import { readFileAsync, setParsedDeepLinkConfig } from './util/helpers';
+import { getStringPropertyValue, readFileAsync, setParsedDeepLinkConfig } from './util/helpers';
 import { BuildContext, ChangedFile, HydratedDeepLinkConfigEntry } from './util/interfaces';
 
 import { getDeepLinkData } from './deep-linking/util';
@@ -31,9 +31,14 @@ function deepLinkingWorker(context: BuildContext) {
   });
   */
 
-  const typescriptFiles = context.fileCache.getAll().filter(file => extname(file.path) === '.ts').filter(file => file.path.indexOf('ngfactory') === -1);
+  //const typescriptFiles = context.fileCache.getAll().filter(file => extname(file.path) === '.ts').filter(file => file.path.indexOf('ngfactory') === -1);
 
-  return Promise.resolve([]);
+  //return Promise.resolve([]);
+
+  return Promise.resolve().then(() => {
+    const deepLinkConfigEntries = getDeepLinkData(getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH), context.fileCache, context.runAot);
+
+  });
 }
 
 function getAppNgModuleContent(filePath: string, fileCache: FileCache): Promise<string> {

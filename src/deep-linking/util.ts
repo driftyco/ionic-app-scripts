@@ -1,172 +1,71 @@
-import { basename, dirname, join, relative } from 'path';
+import { dirname, extname, relative } from 'path';
 
 import {
     ArrayLiteralExpression,
     CallExpression,
+    Decorator,
     Expression,
     Identifier,
     Node,
     ObjectLiteralExpression,
+    PropertyAccessExpression,
     PropertyAssignment,
-    SourceFile
+    SourceFile,
+    SyntaxKind
 } from 'typescript';
 
 import { Logger } from '../logger/logger';
 import * as Constants from '../util/constants';
 import { FileCache } from '../util/file-cache';
-import { getStringPropertyValue, replaceAll } from '../util/helpers';
-import { DeepLinkConfigEntry, File, HydratedDeepLinkConfigEntry } from '../util/interfaces';
+import { changeExtension, getStringPropertyValue, replaceAll } from '../util/helpers';
+import { DeepLinkConfigEntry, DeepLinkDecoratorAndClass, DeepLinkPathInfo } from '../util/interfaces';
 import { getClassDeclarations, getTypescriptSourceFile, getNodeStringContent } from '../util/typescript-utils';
 
-const LOAD_CHILDREN_SPLIT_TOKEN = '#';
-
-/* this is a very temporary approach to extracting deeplink data since the Angular compiler API has changed a bit */
-
-function getLinksArrayContent(appNgModuleFileContent: string) {
-  const LINKS_REGEX = /links\s*?:\s*\[([\s\S]*?)}\)/igm;
-  const deepLinksContentMatches = LINKS_REGEX.exec(appNgModuleFileContent.toString());
-  if (deepLinksContentMatches && deepLinksContentMatches.length === 2) {
-    return deepLinksContentMatches[1];
-  }
-  return null;
-}
-
-export function extractDeepLinkPathData(appNgModuleFileContent: string): DeepLinkConfigEntry[] {
-  const linksInternalContent = getLinksArrayContent(appNgModuleFileContent);
-  if (!linksInternalContent) {
-    return null;
-  }
-  // parse into individual entries
-  const results = getIndividualConfigEntries(linksInternalContent);
-  // convert each long, multi-element string into it's proper fields
-  const deepLinks = results.map(result => convertRawContentStringToParsedDeepLink(result));
-  const valid = validateDeepLinks(deepLinks);
-  if (!valid) {
-    throw new Error('Each deep link entry must contain a "name" entry, and a "component" or "loadChildren" entry');
-  }
-
-
-  return deepLinks;
-}
-
-export function validateDeepLinks(deepLinks: DeepLinkConfigEntry[]) {
-  for (const deepLink of deepLinks) {
-    if (!deepLink.name || deepLink.name.length === 0) {
-      return false;
-    }
-    const missingComponent = !deepLink.component || deepLink.component.length === 0;
-    const missingModulePath = !deepLink.modulePath || deepLink.modulePath.length === 0;
-    const missingNamedExport = !deepLink.namedExport || deepLink.namedExport.length === 0;
-
-    if (missingComponent && (missingModulePath || missingNamedExport)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function convertRawContentStringToParsedDeepLink(input: string): DeepLinkConfigEntry {
-  const LOAD_CHILDREN_REGEX = /loadChildren\s*?:\s*?['"`]\s*?(.*?)['"`]/igm;
-  const NAME_REGEX = /name\s*?:\s*?['"`]\s*?(.*?)['"`]/igm;
-  const COMPONENT_REGEX = /component\s*?:(.*?)[,}]/igm;
-  const loadChildrenValue = extractContentWithKnownMatch(input, LOAD_CHILDREN_REGEX);
-  const nameValue = extractContentWithKnownMatch(input, NAME_REGEX);
-  const componentValue = extractContentWithKnownMatch(input, COMPONENT_REGEX);
-  let modulePath: string = null;
-  let namedExport: string = null;
-  if (loadChildrenValue) {
-    const tokens = loadChildrenValue.split(LOAD_CHILDREN_SPLIT_TOKEN);
-    if (tokens.length === 2) {
-      modulePath = tokens[0];
-      namedExport = tokens[1];
-    }
-  }
-
-  return {
-    component: componentValue,
-    name: nameValue,
-    modulePath: modulePath,
-    namedExport: namedExport
-  };
-}
-
-function extractContentWithKnownMatch(input: string, regex: RegExp) {
-  const result = regex.exec(input);
-  if (result && result.length > 1) {
-    return result[1].trim();
-  }
-  return null;
-}
-
-function getIndividualConfigEntries(content: string) {
-  let match: RegExpExecArray = null;
-  const results: string[] = [];
-  const INDIVIDUAL_ENTRIES_REGEX = /({.*?})/igm;
-  while ((match = INDIVIDUAL_ENTRIES_REGEX.exec(content))) {
-    if (!match) {
-      break;
-    }
-    results.push(match[1].trim());
-  }
-  return results;
-}
-
-export function getDeepLinkData(appNgModuleFilePath: string, appNgModuleFileContent: string, isAot: boolean): HydratedDeepLinkConfigEntry[] {
-  const deepLinkConfigList = extractDeepLinkPathData(appNgModuleFileContent);
-  if (!deepLinkConfigList) {
-    return [];
-  }
-  const appDirectory = dirname(appNgModuleFilePath);
-  const absolutePathSuffix = isAot ? '.ngfactory.ts' : '.ts';
-  const modulePathSuffix = isAot ? '.ngfactory' : '';
-  const namedExportSuffix = isAot ? 'NgFactory' : '';
-  const hydratedDeepLinks = deepLinkConfigList.map((deepLinkConfigEntry: DeepLinkConfigEntry) => {
-    return Object.assign({}, deepLinkConfigEntry, {
-      modulePath: deepLinkConfigEntry.modulePath ? deepLinkConfigEntry.modulePath + modulePathSuffix : null,
-      namedExport: deepLinkConfigEntry.namedExport ? deepLinkConfigEntry.namedExport + namedExportSuffix : null,
-      absolutePath: deepLinkConfigEntry.modulePath ? join(appDirectory, deepLinkConfigEntry.modulePath + absolutePathSuffix) : null
-    }) as HydratedDeepLinkConfigEntry;
-  });
-  return hydratedDeepLinks;
-}
-
-interface ParsedDeepLink {
-  component: string;
-  name: string;
-  loadChildren: string;
-};
-
-
-
-export function test(typescriptFiles: File[]) {
+export function getDeepLinkData(appNgModuleFilePath: string, fileCache: FileCache, isAot: boolean): DeepLinkConfigEntry[] {
+  const typescriptFiles = fileCache.getAll().filter(file => extname(file.path) === '.ts');
+  const deepLinkConfigEntries: DeepLinkConfigEntry[] = [];
   typescriptFiles.forEach(file => {
     const sourceFile = getTypescriptSourceFile(file.path, file.content);
     const deepLinkDecoratorData = getDeepLinkDecoratorContentForSourceFile(sourceFile);
+
     if (deepLinkDecoratorData) {
       // sweet, the page has a DeepLinkDecorator, which means it meets the criteria to process that bad boy
-
+      const pathInfo = getNgModuleDataFromPage(appNgModuleFilePath, file.path, fileCache, isAot);
+      const deepLinkConfigEntry = Object.assign({}, deepLinkDecoratorData, pathInfo);
+      deepLinkConfigEntries.push(deepLinkConfigEntry);
     }
-
   });
+  return deepLinkConfigEntries;
 }
 
 export function getNgModulePathFromCorrespondingPage(filePath: string) {
-  return join(dirname(filePath), `${basename(filePath, '.ts')}${getStringPropertyValue(Constants.ENV_NG_MODULE_FILE_NAME_SUFFIX)}`);
+  const newExtension = getStringPropertyValue(Constants.ENV_NG_MODULE_FILE_NAME_SUFFIX);
+  return changeExtension(filePath, newExtension);
 }
 
 export function getRelativePathToPageNgModuleFromAppNgModule(pathToAppNgModule: string, pathToPageNgModule: string) {
   return relative(dirname(pathToAppNgModule), pathToPageNgModule);
 }
 
-export function getNgModuleDataFromPage(appNgModuleFilePath: string, filePath: string, fileCache: FileCache) {
+export function getNgModuleDataFromPage(appNgModuleFilePath: string, filePath: string, fileCache: FileCache, isAot: boolean): DeepLinkPathInfo {
   const ngModulePath = getNgModulePathFromCorrespondingPage(filePath);
   const ngModuleFile = fileCache.get(ngModulePath);
   if (!ngModuleFile) {
-    throw new Error(`File ${ngModuleFile} is not found`);
+    throw new Error(`${filePath} has a @DeepLink decorator, but it does not have a corresponding "NgModule" at ${ngModulePath}`);
   }
   // get the class declaration out of NgModule class content
   const exportedClassName = getNgModuleClassName(ngModuleFile.path, ngModuleFile.content);
-  const relativePathToAppNgModule
+  const relativePathToAppNgModule = getRelativePathToPageNgModuleFromAppNgModule(appNgModuleFilePath, ngModulePath);
+
+  const absolutePath = isAot ? changeExtension(ngModulePath, '.ngfactory.ts') : ngModulePath;
+  const userlandModulePath = isAot ? changeExtension(relativePathToAppNgModule, '.ngfactory') : changeExtension(relativePathToAppNgModule, '');
+  const namedExport = isAot ? `${exportedClassName}NgFactory` : exportedClassName;
+
+  return {
+    absolutePath: absolutePath,
+    userlandModulePath: userlandModulePath,
+    className: namedExport
+  };
 }
 
 export function getNgModuleClassName(filePath: string, fileContent: string) {
@@ -186,11 +85,11 @@ export function getNgModuleClassName(filePath: string, fileContent: string) {
   });
 
   if (classNameList.length === 0) {
-    throw new Error(`Could not class name declaration in ${filePath}`);
+    throw new Error(`Could not find a class declaration in ${filePath}`);
   }
 
   if (classNameList.length > 1) {
-    throw new Error(`Multiple class class declarations with NgModule in ${filePath}. Could not determine the correct one`);
+    throw new Error(`Multiple class declarations with NgModule in ${filePath}. The correct class to use could not be determined.`);
   }
 
   return classNameList[0];
@@ -292,6 +191,109 @@ function getArrayValueFromDeepLinkDecorator(sourceFile: SourceFile, propertyNode
   }
 }
 
+export function hasExistingDeepLinkConfig(appNgModuleFilePath: string, appNgModuleFileContent: string) {
+  const sourceFile = getTypescriptSourceFile(appNgModuleFilePath, appNgModuleFileContent);
+  const decorator = getAppNgModuleDecorator(appNgModuleFilePath, sourceFile);
+  const functionCall = getIonicModuleForRootCall(decorator);
+
+  if (functionCall.arguments.length <= 2) {
+    return false;
+  }
+
+  const deepLinkConfigArg = functionCall.arguments[2];
+  return deepLinkConfigArg.kind === SyntaxKind.ObjectLiteralExpression;
+}
+
+function getAppNgModuleDecorator(appNgModuleFilePath: string, sourceFile: SourceFile) {
+  const ngModuleDecorators: Decorator[] = [];
+  const classDeclarations = getClassDeclarations(sourceFile);
+  classDeclarations.forEach(classDeclaration => {
+    if (classDeclaration && classDeclaration.decorators) {
+      classDeclaration.decorators.forEach(decorator => {
+        if (decorator.expression && (decorator.expression as CallExpression).expression && ((decorator.expression as CallExpression).expression as Identifier).text === NG_MODULE_DECORATOR_TEXT) {
+          ngModuleDecorators.push(decorator);
+        }
+      });
+    }
+  });
+
+  if (ngModuleDecorators.length === 0) {
+    throw new Error(`Could not find an "NgModule" decorator in ${appNgModuleFilePath}`);
+  }
+
+  if (ngModuleDecorators.length > 1) {
+    throw new Error(`Multiple "NgModule" decorators found in ${appNgModuleFilePath}. The correct one to use could not be determined`);
+  }
+
+  return ngModuleDecorators[0];
+}
+
+function getNgModuleObjectLiteralArg(decorator: Decorator) {
+  const ngModuleArgs = (decorator.expression as CallExpression).arguments;
+  if (!ngModuleArgs || ngModuleArgs.length === 0 || ngModuleArgs.length > 1) {
+    throw new Error(`Invalid NgModule Argument`);
+  }
+  return ngModuleArgs[0] as ObjectLiteralExpression;
+}
+
+function getIonicModuleForRootCall(decorator: Decorator) {
+  const argument = getNgModuleObjectLiteralArg(decorator);
+  const properties = argument.properties.filter((property: PropertyAssignment) => {
+    return (property.name as Identifier).text === NG_MODULE_IMPORT_DECLARATION;
+  });
+
+  if (properties.length === 0) {
+    throw new Error('Could not find "import" property in NgModule arguments');
+  }
+
+  if (properties.length > 1) {
+    throw new Error('Found multiple "import" properties in NgModule arguments. Only one is allowed');
+  }
+
+  const property = properties[0] as PropertyAssignment;
+  const importArrayLiteral = property.initializer as ArrayLiteralExpression;
+  const functionsInImport = importArrayLiteral.elements.filter(element => {
+    return element.kind === SyntaxKind.CallExpression;
+  });
+
+  const ionicModuleFunctionCalls = functionsInImport.filter((functionNode: CallExpression) => {
+
+    return (functionNode.expression
+      && (functionNode.expression as PropertyAccessExpression).name
+      && (functionNode.expression as PropertyAccessExpression).name.text === FOR_ROOT_METHOD
+      && ((functionNode.expression as PropertyAccessExpression).expression as Identifier)
+      && ((functionNode.expression as PropertyAccessExpression).expression as Identifier).text === IONIC_MODULE_NAME);
+  });
+
+  if (ionicModuleFunctionCalls.length === 0) {
+    throw new Error('Could not find IonicModule.forRoot call in "imports"');
+  }
+
+  if (ionicModuleFunctionCalls.length > 1) {
+    throw new Error('Found multiple IonicModule.forRoot calls in "imports". Only one is allowed');
+  }
+
+  return ionicModuleFunctionCalls[0] as CallExpression;
+}
+
+export function convertDeepLinkConfigEntriesToString(entries: DeepLinkConfigEntry[]) {
+  const individualLinks = entries.map(entry => convertDeepLinkEntryToJsObjectString(entry));
+  const deepLinkConfigString =
+`
+{
+  links: [
+    ${individualLinks.join(',\n    ')}
+  ]
+}`;
+  return deepLinkConfigString;
+}
+
+export function convertDeepLinkEntryToJsObjectString(entry: DeepLinkConfigEntry) {
+  const defaultHistoryWithQuotes = entry.defaultHistory.map(defaultHistoryEntry => `'${defaultHistoryEntry}'`);
+  const segmentString = entry.segment && entry.segment.length ? `'${entry.segment}'` : null;
+  return `{ loadChildren: '${entry.userlandModulePath}${LOAD_CHILDREN_SEPARATOR}${entry.className}', name: '${entry.name}', segment: ${segmentString}, priority: '${entry.priority}', defaultHistory: [${defaultHistoryWithQuotes.join(', ')}] }`;
+}
+
 const DEEPLINK_DECORATOR_TEXT = 'DeepLink';
 const NG_MODULE_DECORATOR_TEXT = 'NgModule';
 const DEEPLINK_DECORATOR_NAME_ATTRIBUTE = 'name';
@@ -299,10 +301,7 @@ const DEEPLINK_DECORATOR_SEGMENT_ATTRIBUTE = 'segment';
 const DEEPLINK_DECORATOR_PRIORITY_ATTRIBUTE = 'priority';
 const DEEPLINK_DECORATOR_DEFAULT_HISTORY_ATTRIBUTE = 'defaultHistory';
 
-export interface DeepLinkDecoratorAndClass {
-  name: string;
-  segment: string;
-  defaultHistory: string[];
-  priority: string;
-  rawString: string;
-};
+const NG_MODULE_IMPORT_DECLARATION = 'imports';
+const IONIC_MODULE_NAME = 'IonicModule';
+const FOR_ROOT_METHOD = 'forRoot';
+const LOAD_CHILDREN_SEPARATOR = '#';
