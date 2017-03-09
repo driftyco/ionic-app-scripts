@@ -21,20 +21,24 @@ export function optimization(context: BuildContext, configFile: string) {
     });
 }
 
-function optimizationWorker(context: BuildContext, configFile: string) {
+function optimizationWorker(context: BuildContext, configFile: string): Promise<any> {
   const webpackConfig = getConfig(context, configFile);
   let dependencyMap: Map<string, Set<string>> = null;
-  return runWebpackFullBuild(webpackConfig).then((stats: any) => {
-    dependencyMap = webpackStatsToDependencyMap(context, stats);
-    if (getBooleanPropertyValue(Constants.ENV_PRINT_ORIGINAL_DEPENDENCY_TREE)) {
-      Logger.debug('Original Dependency Map Start');
-      printDependencyMap(dependencyMap);
-      Logger.debug('Original Dependency Map End');
-    }
-    return deleteOptimizationJsFile(join(webpackConfig.output.path, webpackConfig.output.filename));
-  }).then(() => {
-    return doOptimizations(context, dependencyMap);
-  });
+  if (optimizationEnabled()) {
+    return runWebpackFullBuild(webpackConfig).then((stats: any) => {
+      dependencyMap = webpackStatsToDependencyMap(context, stats);
+      if (getBooleanPropertyValue(Constants.ENV_PRINT_ORIGINAL_DEPENDENCY_TREE)) {
+        Logger.debug('Original Dependency Map Start');
+        printDependencyMap(dependencyMap);
+        Logger.debug('Original Dependency Map End');
+      }
+      return deleteOptimizationJsFile(join(webpackConfig.output.path, webpackConfig.output.filename));
+    }).then(() => {
+      return doOptimizations(context, dependencyMap);
+    });
+  } else {
+    return Promise.resolve();
+  }
 }
 
 export function deleteOptimizationJsFile(fileToDelete: string) {
@@ -61,6 +65,12 @@ export function doOptimizations(context: BuildContext, dependencyMap: Map<string
   }
 
   return modifiedMap;
+}
+
+function optimizationEnabled() {
+  const purgeDecorators = getBooleanPropertyValue(Constants.ENV_EXPERIMENTAL_PURGE_DECORATORS);
+  const manualTreeshaking = getBooleanPropertyValue(Constants.ENV_EXPERIMENTAL_MANUAL_TREESHAKING);
+  return purgeDecorators || manualTreeshaking;
 }
 
 function removeDecorators(context: BuildContext) {
