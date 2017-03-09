@@ -334,12 +334,6 @@ export function updateAppNgModuleAndFactoryWithDeepLinkConfig(context: BuildCont
 
   const appNgModuleFileDan = context.fileCache.get(appNgModulePath);
   const appNgModuleFactoryFileDan = context.fileCache.get(appNgModuleFactoryPath);
-
-  console.log('appNgModuleFileDan: ', appNgModuleFileDan.content);
-
-  console.log('\n\n\n\n');
-
-  console.log('appNgModuleFactoryFileDan: ', appNgModuleFactoryFileDan.content);
 }
 
 export function getUpdatedAppNgModuleContentWithDeepLinkConfig(appNgModuleFilePath: string, appNgModuleFileContent: string, deepLinkStringContent: string) {
