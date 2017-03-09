@@ -2,9 +2,9 @@ import { join } from 'path';
 import * as uglify from 'uglify-js';
 
 import { Logger } from './logger/logger';
+import { readdirSync, writeFileSync } from 'fs';
 import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
 import { BuildError } from './util/errors';
-import { writeFileAsync } from './util/helpers';
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { runWorker } from './worker-client';
 
@@ -30,21 +30,24 @@ export function uglifyjsWorker(context: BuildContext, configFile: string): Promi
     try {
       // provide a full path for the config options
       context = generateContext(context);
-      const uglifyJsConfig: UglifyJsConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
-      uglifyJsConfig.sourceFile = join(context.buildDir, uglifyJsConfig.sourceFile);
-      uglifyJsConfig.inSourceMap = join(context.buildDir, uglifyJsConfig.inSourceMap);
-      uglifyJsConfig.destFileName = join(context.buildDir, uglifyJsConfig.destFileName);
+      const files = readdirSync(context.buildDir);
 
-      const minifiedOutputPath = join(context.buildDir, uglifyJsConfig.outSourceMap);
-      const minifyOutput: uglify.MinifyOutput = runUglifyInternal(uglifyJsConfig);
+      files.forEach((file) => {
+        if (file.indexOf('deptree') === -1 && file.indexOf('map') === -1 && file.indexOf('sw-toolbox') === -1 && file.indexOf('polyfills') === -1) {
+          const uglifyJsConfig: UglifyJsConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+          uglifyJsConfig.sourceFile = join(context.buildDir, uglifyJsConfig.sourceFile);
+          uglifyJsConfig.inSourceMap = join(context.buildDir, uglifyJsConfig.inSourceMap);
+          uglifyJsConfig.destFileName = join(context.buildDir, uglifyJsConfig.destFileName);
 
-      const writeFilePromises = [
-        writeFileAsync(uglifyJsConfig.destFileName, minifyOutput.code),
-        writeFileAsync(minifiedOutputPath, minifyOutput.map)
-      ];
+          const minifiedOutputPath = join(context.buildDir, uglifyJsConfig.outSourceMap);
+          const minifyOutput: uglify.MinifyOutput = runUglifyInternal(uglifyJsConfig);
 
-      return Promise.all(writeFilePromises).then(() => {
-        resolve();
+
+          writeFileSync(uglifyJsConfig.destFileName, minifyOutput.code)
+          writeFileSync(minifiedOutputPath, minifyOutput.map)
+
+          resolve();
+        }
       });
 
     } catch (e) {
