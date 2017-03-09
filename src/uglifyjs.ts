@@ -43,8 +43,8 @@ export function uglifyjsWorker(context: BuildContext, configFile: string): Promi
           const minifyOutput: uglify.MinifyOutput = runUglifyInternal(uglifyJsConfig);
 
 
-          writeFileSync(uglifyJsConfig.destFileName, minifyOutput.code)
-          writeFileSync(minifiedOutputPath, minifyOutput.map)
+          writeFileSync(uglifyJsConfig.destFileName, minifyOutput.code);
+          writeFileSync(minifiedOutputPath, minifyOutput.map);
 
           resolve();
         }
