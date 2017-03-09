@@ -1661,15 +1661,725 @@ export class AppModule {}
       });
 
       const result = util.convertDeepLinkConfigEntriesToString(list);
-      expect(result).toBeTruthy();
-      /*expect(result).toEqual(`{
-        links: [
-          { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
-          { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
-          { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
-        ]
-      }`);
-      */
+      expect(result.indexOf('links: [')).toBeGreaterThanOrEqual(0);
+      expect(result.indexOf(`{ loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },`)).toBeGreaterThanOrEqual(0);
+      expect(result.indexOf(`{ loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },`)).toBeGreaterThanOrEqual(0);
+      expect(result.indexOf(`{ loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }`)).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('addDeepLinkConfigStringToAppNgModule', () => {
+    it('should add a default argument for the second param of forRoot, then add the deeplink config', () => {
+      const knownStringToInject = `{
+  links: [
+    { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
+    { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
+    { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
+  ]
+}
+`;
+
+      const knownContent = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const expectedResult = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, {}, {
+  links: [
+    { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
+    { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
+    { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
+  ]
+}
+),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const knownPath = '/idk/yo/some/path/app.module.ts';
+
+      const result = util.getUpdatedAppNgModuleContentWithDeepLinkConfig(knownPath, knownContent, knownStringToInject);
+      expect(result).toEqual(expectedResult);
+
+    });
+
+    it('should append the deeplink config as the third argument when second arg is null', () => {
+      const knownStringToInject = `{
+  links: [
+    { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
+    { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
+    { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
+  ]
+}
+`;
+
+      const knownContent = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, null),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const expectedResult = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, null, {
+  links: [
+    { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
+    { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
+    { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
+  ]
+}
+),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const knownPath = '/idk/yo/some/path/app.module.ts';
+
+      const result = util.getUpdatedAppNgModuleContentWithDeepLinkConfig(knownPath, knownContent, knownStringToInject);
+      expect(result).toEqual(expectedResult);
+
+    });
+
+    it('should append the deeplink config as the third argument when second arg is object', () => {
+      const knownStringToInject = `{
+  links: [
+    { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
+    { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
+    { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
+  ]
+}
+`;
+
+      const knownContent = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, {}),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const expectedResult = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, {}, {
+  links: [
+    { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
+    { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
+    { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
+  ]
+}
+),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const knownPath = '/idk/yo/some/path/app.module.ts';
+
+      const result = util.getUpdatedAppNgModuleContentWithDeepLinkConfig(knownPath, knownContent, knownStringToInject);
+      expect(result).toEqual(expectedResult);
+
+    });
+
+    it('should replace the third argument with deeplink config', () => {
+      const knownStringToInject = `{
+  links: [
+    { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
+    { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
+    { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
+  ]
+}
+`;
+
+      const knownContent = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, {}, null),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const expectedResult = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, {}, {
+  links: [
+    { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
+    { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
+    { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
+  ]
+}
+),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const knownPath = '/idk/yo/some/path/app.module.ts';
+
+      const result = util.getUpdatedAppNgModuleContentWithDeepLinkConfig(knownPath, knownContent, knownStringToInject);
+      expect(result).toEqual(expectedResult);
+
+    });
+  });
+
+  describe('getUpdatedAppNgModuleFactoryContentWithDeepLinksConfig', () => {
+    it('should find and replace the content for DeepLinkConfigToken when existing content is null', () => {
+
+      const knownDeepLinkString = `this._DeepLinkConfigToken_21 = (null as any);`;
+
+      const knownContent = `
+/**
+ * @fileoverview This file is generated by the Angular template compiler.
+ * Do not edit.
+ * @suppress {suspiciousCode,uselessCode,missingProperties}
+ */
+ /* tslint:disable */
+
+import * as import0 from '@angular/core';
+import * as import1 from './app.module';
+import * as import2 from '@angular/common';
+import * as import3 from '@angular/platform-browser';
+import * as import4 from '@angular/forms';
+import * as import5 from 'ionic-angular/index';
+import * as import6 from '../pages/home/home.module';
+import * as import7 from 'ionic-angular/platform/dom-controller';
+import * as import8 from 'ionic-angular/components/menu/menu-controller';
+import * as import9 from 'ionic-angular/components/app/app';
+import * as import10 from 'ionic-angular/gestures/gesture-controller';
+import * as import11 from 'ionic-angular/util/ng-module-loader';
+import * as import12 from 'ionic-angular/components/action-sheet/action-sheet-controller';
+import * as import13 from 'ionic-angular/components/alert/alert-controller';
+import * as import14 from 'ionic-angular/util/events';
+import * as import15 from 'ionic-angular/util/form';
+import * as import16 from 'ionic-angular/tap-click/haptic';
+import * as import17 from 'ionic-angular/platform/keyboard';
+import * as import18 from 'ionic-angular/components/loading/loading-controller';
+import * as import19 from 'ionic-angular/components/modal/modal-controller';
+import * as import20 from 'ionic-angular/components/picker/picker-controller';
+import * as import21 from 'ionic-angular/components/popover/popover-controller';
+import * as import22 from 'ionic-angular/tap-click/tap-click';
+import * as import23 from 'ionic-angular/components/toast/toast-controller';
+import * as import24 from 'ionic-angular/transitions/transition-controller';
+import * as import25 from '../../node_modules/ionic-angular/components/action-sheet/action-sheet-component.ngfactory';
+import * as import26 from '../../node_modules/ionic-angular/components/alert/alert-component.ngfactory';
+import * as import27 from '../../node_modules/ionic-angular/components/app/app-root.ngfactory';
+import * as import28 from '../../node_modules/ionic-angular/components/loading/loading-component.ngfactory';
+import * as import29 from '../../node_modules/ionic-angular/components/modal/modal-component.ngfactory';
+import * as import30 from '../../node_modules/ionic-angular/components/picker/picker-component.ngfactory';
+import * as import31 from '../../node_modules/ionic-angular/components/popover/popover-component.ngfactory';
+import * as import32 from '../../node_modules/ionic-angular/components/toast/toast-component.ngfactory';
+import * as import33 from '../pages/home/home.ngfactory';
+import * as import34 from './app.component.ngfactory';
+import * as import35 from '../pages/home/home';
+import * as import36 from './app.component';
+import * as import37 from 'ionic-angular/navigation/url-serializer';
+import * as import38 from 'ionic-angular/navigation/deep-linker';
+import * as import39 from 'ionic-angular/platform/platform-registry';
+import * as import40 from 'ionic-angular/platform/platform';
+import * as import41 from 'ionic-angular/config/config';
+import * as import42 from 'ionic-angular/util/module-loader';
+import * as import43 from 'ionic-angular/config/mode-registry';
+import * as import44 from 'ionic-angular/components/app/app-root';
+class AppModuleInjector extends import0.ɵNgModuleInjector<import1.AppModule> {
+  _CommonModule_0:import2.CommonModule;
+  _ApplicationModule_1:import0.ApplicationModule;
+  _BrowserModule_2:import3.BrowserModule;
+  _ɵba_3:import4.ɵba;
+  _FormsModule_4:import4.FormsModule;
+  _ReactiveFormsModule_5:import4.ReactiveFormsModule;
+  _IonicModule_6:import5.IonicModule;
+  _DeepLinkModule_7:import5.DeepLinkModule;
+  _HomePageModule_8:import6.HomePageModule;
+  _AppModule_9:import1.AppModule;
+  __LOCALE_ID_10:any;
+  __NgLocalization_11:import2.NgLocaleLocalization;
+  _ErrorHandler_12:any;
+  _ConfigToken_13:any;
+  _PlatformConfigToken_14:any;
+  _Platform_15:any;
+  _Config_16:any;
+  _DomController_17:import7.DomController;
+  _MenuController_18:import8.MenuController;
+  _App_19:import9.App;
+  _GestureController_20:import10.GestureController;
+  _DeepLinkConfigToken_21:any;
+  _Compiler_22:import0.Compiler;
+  _NgModuleLoader_23:import11.NgModuleLoader;
+  _ModuleLoader_24:any;
+  _APP_INITIALIZER_25:any[];
+  _ApplicationInitStatus_26:import0.ApplicationInitStatus;
+  _ɵf_27:import0.ɵf;
+  __ApplicationRef_28:any;
+  __APP_ID_29:any;
+  __IterableDiffers_30:any;
+  __KeyValueDiffers_31:any;
+  __DomSanitizer_32:import3.ɵe;
+  __Sanitizer_33:any;
+  __HAMMER_GESTURE_CONFIG_34:import3.HammerGestureConfig;
+  __EVENT_MANAGER_PLUGINS_35:any[];
+  __EventManager_36:import3.EventManager;
+  _ɵDomSharedStylesHost_37:import3.ɵDomSharedStylesHost;
+  __ɵDomRendererFactoryV2_38:import3.ɵDomRendererFactoryV2;
+  __RendererFactoryV2_39:any;
+  __ɵSharedStylesHost_40:any;
+  __Testability_41:import0.Testability;
+  __Meta_42:import3.Meta;
+  __Title_43:import3.Title;
+  __ɵi_44:import4.ɵi;
+  __FormBuilder_45:import4.FormBuilder;
+  __LAZY_LOADED_TOKEN_46:any;
+  __AppRootToken_47:any;
+  __APP_BASE_HREF_48:any;
+  __ActionSheetController_49:import12.ActionSheetController;
+  __AlertController_50:import13.AlertController;
+  __Events_51:import14.Events;
+  __Form_52:import15.Form;
+  __Haptic_53:import16.Haptic;
+  __Keyboard_54:import17.Keyboard;
+  __LoadingController_55:import18.LoadingController;
+  __LocationStrategy_56:any;
+  __Location_57:import2.Location;
+  __UrlSerializer_58:any;
+  __DeepLinker_59:any;
+  __ModalController_60:import19.ModalController;
+  __PickerController_61:import20.PickerController;
+  __PopoverController_62:import21.PopoverController;
+  __TapClick_63:import22.TapClick;
+  __ToastController_64:import23.ToastController;
+  __TransitionController_65:import24.TransitionController;
+  constructor(parent:import0.Injector) {
+    super(parent,[
+      import25.ActionSheetCmpNgFactory,
+      import26.AlertCmpNgFactory,
+      import27.IonicAppNgFactory,
+      import28.LoadingCmpNgFactory,
+      import29.ModalCmpNgFactory,
+      import30.PickerCmpNgFactory,
+      import31.PopoverCmpNgFactory,
+      import32.ToastCmpNgFactory,
+      import33.HomePageNgFactory,
+      import34.MyAppNgFactory
+    ]
+    ,[import27.IonicAppNgFactory]);
+  }
+  get _LOCALE_ID_10():any {
+    if ((this.__LOCALE_ID_10 == null)) { (this.__LOCALE_ID_10 = import0.ɵo(this.parent.get(import0.LOCALE_ID,(null as any)))); }
+    return this.__LOCALE_ID_10;
+  }
+  get _NgLocalization_11():import2.NgLocaleLocalization {
+    if ((this.__NgLocalization_11 == null)) { (this.__NgLocalization_11 = new import2.NgLocaleLocalization(this._LOCALE_ID_10)); }
+    return this.__NgLocalization_11;
+  }
+  get _ApplicationRef_28():any {
+    if ((this.__ApplicationRef_28 == null)) { (this.__ApplicationRef_28 = this._ɵf_27); }
+    return this.__ApplicationRef_28;
+  }
+  get _APP_ID_29():any {
+    if ((this.__APP_ID_29 == null)) { (this.__APP_ID_29 = import0.ɵg()); }
+    return this.__APP_ID_29;
+  }
+  get _IterableDiffers_30():any {
+    if ((this.__IterableDiffers_30 == null)) { (this.__IterableDiffers_30 = import0.ɵm()); }
+    return this.__IterableDiffers_30;
+  }
+  get _KeyValueDiffers_31():any {
+    if ((this.__KeyValueDiffers_31 == null)) { (this.__KeyValueDiffers_31 = import0.ɵn()); }
+    return this.__KeyValueDiffers_31;
+  }
+  get _DomSanitizer_32():import3.ɵe {
+    if ((this.__DomSanitizer_32 == null)) { (this.__DomSanitizer_32 = new import3.ɵe(this.parent.get(import3.DOCUMENT))); }
+    return this.__DomSanitizer_32;
+  }
+  get _Sanitizer_33():any {
+    if ((this.__Sanitizer_33 == null)) { (this.__Sanitizer_33 = this._DomSanitizer_32); }
+    return this.__Sanitizer_33;
+  }
+  get _HAMMER_GESTURE_CONFIG_34():import3.HammerGestureConfig {
+    if ((this.__HAMMER_GESTURE_CONFIG_34 == null)) { (this.__HAMMER_GESTURE_CONFIG_34 = new import3.HammerGestureConfig()); }
+    return this.__HAMMER_GESTURE_CONFIG_34;
+  }
+  get _EVENT_MANAGER_PLUGINS_35():any[] {
+    if ((this.__EVENT_MANAGER_PLUGINS_35 == null)) { (this.__EVENT_MANAGER_PLUGINS_35 = [
+      new import3.ɵDomEventsPlugin(this.parent.get(import3.DOCUMENT)),
+      new import3.ɵKeyEventsPlugin(this.parent.get(import3.DOCUMENT)),
+      new import3.ɵHammerGesturesPlugin(this.parent.get(import3.DOCUMENT),this._HAMMER_GESTURE_CONFIG_34)
+    ]
+    ); }
+    return this.__EVENT_MANAGER_PLUGINS_35;
+  }
+  get _EventManager_36():import3.EventManager {
+    if ((this.__EventManager_36 == null)) { (this.__EventManager_36 = new import3.EventManager(this._EVENT_MANAGER_PLUGINS_35,this.parent.get(import0.NgZone))); }
+    return this.__EventManager_36;
+  }
+  get _ɵDomRendererFactoryV2_38():import3.ɵDomRendererFactoryV2 {
+    if ((this.__ɵDomRendererFactoryV2_38 == null)) { (this.__ɵDomRendererFactoryV2_38 = new import3.ɵDomRendererFactoryV2(this._EventManager_36,this._ɵDomSharedStylesHost_37)); }
+    return this.__ɵDomRendererFactoryV2_38;
+  }
+  get _RendererFactoryV2_39():any {
+    if ((this.__RendererFactoryV2_39 == null)) { (this.__RendererFactoryV2_39 = this._ɵDomRendererFactoryV2_38); }
+    return this.__RendererFactoryV2_39;
+  }
+  get _ɵSharedStylesHost_40():any {
+    if ((this.__ɵSharedStylesHost_40 == null)) { (this.__ɵSharedStylesHost_40 = this._ɵDomSharedStylesHost_37); }
+    return this.__ɵSharedStylesHost_40;
+  }
+  get _Testability_41():import0.Testability {
+    if ((this.__Testability_41 == null)) { (this.__Testability_41 = new import0.Testability(this.parent.get(import0.NgZone))); }
+    return this.__Testability_41;
+  }
+  get _Meta_42():import3.Meta {
+    if ((this.__Meta_42 == null)) { (this.__Meta_42 = new import3.Meta(this.parent.get(import3.DOCUMENT))); }
+    return this.__Meta_42;
+  }
+  get _Title_43():import3.Title {
+    if ((this.__Title_43 == null)) { (this.__Title_43 = new import3.Title(this.parent.get(import3.DOCUMENT))); }
+    return this.__Title_43;
+  }
+  get _ɵi_44():import4.ɵi {
+    if ((this.__ɵi_44 == null)) { (this.__ɵi_44 = new import4.ɵi()); }
+    return this.__ɵi_44;
+  }
+  get _FormBuilder_45():import4.FormBuilder {
+    if ((this.__FormBuilder_45 == null)) { (this.__FormBuilder_45 = new import4.FormBuilder()); }
+    return this.__FormBuilder_45;
+  }
+  get _LAZY_LOADED_TOKEN_46():any {
+    if ((this.__LAZY_LOADED_TOKEN_46 == null)) { (this.__LAZY_LOADED_TOKEN_46 = import35.HomePage); }
+    return this.__LAZY_LOADED_TOKEN_46;
+  }
+  get _AppRootToken_47():any {
+    if ((this.__AppRootToken_47 == null)) { (this.__AppRootToken_47 = import36.MyApp); }
+    return this.__AppRootToken_47;
+  }
+  get _APP_BASE_HREF_48():any {
+    if ((this.__APP_BASE_HREF_48 == null)) { (this.__APP_BASE_HREF_48 = '/'); }
+    return this.__APP_BASE_HREF_48;
+  }
+  get _ActionSheetController_49():import12.ActionSheetController {
+    if ((this.__ActionSheetController_49 == null)) { (this.__ActionSheetController_49 = new import12.ActionSheetController(this._App_19,this._Config_16)); }
+    return this.__ActionSheetController_49;
+  }
+  get _AlertController_50():import13.AlertController {
+    if ((this.__AlertController_50 == null)) { (this.__AlertController_50 = new import13.AlertController(this._App_19,this._Config_16)); }
+    return this.__AlertController_50;
+  }
+  get _Events_51():import14.Events {
+    if ((this.__Events_51 == null)) { (this.__Events_51 = new import14.Events()); }
+    return this.__Events_51;
+  }
+  get _Form_52():import15.Form {
+    if ((this.__Form_52 == null)) { (this.__Form_52 = new import15.Form()); }
+    return this.__Form_52;
+  }
+  get _Haptic_53():import16.Haptic {
+    if ((this.__Haptic_53 == null)) { (this.__Haptic_53 = new import16.Haptic(this._Platform_15)); }
+    return this.__Haptic_53;
+  }
+  get _Keyboard_54():import17.Keyboard {
+    if ((this.__Keyboard_54 == null)) { (this.__Keyboard_54 = new import17.Keyboard(this._Config_16,this._Platform_15,this.parent.get(import0.NgZone),this._DomController_17)); }
+    return this.__Keyboard_54;
+  }
+  get _LoadingController_55():import18.LoadingController {
+    if ((this.__LoadingController_55 == null)) { (this.__LoadingController_55 = new import18.LoadingController(this._App_19,this._Config_16)); }
+    return this.__LoadingController_55;
+  }
+  get _LocationStrategy_56():any {
+    if ((this.__LocationStrategy_56 == null)) { (this.__LocationStrategy_56 = import5.provideLocationStrategy(this.parent.get(import2.PlatformLocation),this._APP_BASE_HREF_48,this._Config_16)); }
+    return this.__LocationStrategy_56;
+  }
+  get _Location_57():import2.Location {
+    if ((this.__Location_57 == null)) { (this.__Location_57 = new import2.Location(this._LocationStrategy_56)); }
+    return this.__Location_57;
+  }
+  get _UrlSerializer_58():any {
+    if ((this.__UrlSerializer_58 == null)) { (this.__UrlSerializer_58 = import37.setupUrlSerializer(this._DeepLinkConfigToken_21)); }
+    return this.__UrlSerializer_58;
+  }
+  get _DeepLinker_59():any {
+    if ((this.__DeepLinker_59 == null)) { (this.__DeepLinker_59 = import38.setupDeepLinker(this._App_19,this._UrlSerializer_58,this._Location_57,this._ModuleLoader_24,this)); }
+    return this.__DeepLinker_59;
+  }
+  get _ModalController_60():import19.ModalController {
+    if ((this.__ModalController_60 == null)) { (this.__ModalController_60 = new import19.ModalController(this._App_19,this._Config_16,this._DeepLinker_59)); }
+    return this.__ModalController_60;
+  }
+  get _PickerController_61():import20.PickerController {
+    if ((this.__PickerController_61 == null)) { (this.__PickerController_61 = new import20.PickerController(this._App_19,this._Config_16)); }
+    return this.__PickerController_61;
+  }
+  get _PopoverController_62():import21.PopoverController {
+    if ((this.__PopoverController_62 == null)) { (this.__PopoverController_62 = new import21.PopoverController(this._App_19,this._Config_16,this._DeepLinker_59)); }
+    return this.__PopoverController_62;
+  }
+  get _TapClick_63():import22.TapClick {
+    if ((this.__TapClick_63 == null)) { (this.__TapClick_63 = new import22.TapClick(this._Config_16,this._Platform_15,this._DomController_17,this._App_19,this.parent.get(import0.NgZone),this._GestureController_20)); }
+    return this.__TapClick_63;
+  }
+  get _ToastController_64():import23.ToastController {
+    if ((this.__ToastController_64 == null)) { (this.__ToastController_64 = new import23.ToastController(this._App_19,this._Config_16)); }
+    return this.__ToastController_64;
+  }
+  get _TransitionController_65():import24.TransitionController {
+    if ((this.__TransitionController_65 == null)) { (this.__TransitionController_65 = new import24.TransitionController(this._Platform_15,this._Config_16)); }
+    return this.__TransitionController_65;
+  }
+  createInternal():import1.AppModule {
+    this._CommonModule_0 = new import2.CommonModule();
+    this._ApplicationModule_1 = new import0.ApplicationModule();
+    this._BrowserModule_2 = new import3.BrowserModule(this.parent.get(import3.BrowserModule,(null as any)));
+    this._ɵba_3 = new import4.ɵba();
+    this._FormsModule_4 = new import4.FormsModule();
+    this._ReactiveFormsModule_5 = new import4.ReactiveFormsModule();
+    this._IonicModule_6 = new import5.IonicModule();
+    this._DeepLinkModule_7 = new import5.DeepLinkModule();
+    this._HomePageModule_8 = new import6.HomePageModule();
+    this._AppModule_9 = new import1.AppModule();
+    this._ErrorHandler_12 = import3.ɵa();
+    this._ConfigToken_13 = {};
+    this._PlatformConfigToken_14 = import39.providePlatformConfigs();
+    this._Platform_15 = import40.setupPlatform(this.parent.get(import3.DOCUMENT),this._PlatformConfigToken_14,this.parent.get(import0.NgZone));
+    this._Config_16 = import41.setupConfig(this._ConfigToken_13,this._Platform_15);
+    this._DomController_17 = new import7.DomController(this._Platform_15);
+    this._MenuController_18 = new import8.MenuController();
+    this._App_19 = new import9.App(this._Config_16,this._Platform_15,this._MenuController_18);
+    this._GestureController_20 = new import10.GestureController(this._App_19);
+    ${knownDeepLinkString}
+    this._Compiler_22 = new import0.Compiler();
+    this._NgModuleLoader_23 = new import11.NgModuleLoader(this._Compiler_22,this.parent.get(import11.NgModuleLoaderConfig,(null as any)));
+    this._ModuleLoader_24 = import42.provideModuleLoader(this._NgModuleLoader_23,this);
+    this._APP_INITIALIZER_25 = [
+      import0.ɵp,
+      import3.ɵc(this.parent.get(import3.NgProbeToken,(null as any)),this.parent.get(import0.NgProbeToken,(null as any))),
+      import43.registerModeConfigs(this._Config_16),
+      import14.setupProvideEvents(this._Platform_15,this._DomController_17),
+      import22.setupTapClick(this._Config_16,this._Platform_15,this._DomController_17,this._App_19,this.parent.get(import0.NgZone),this._GestureController_20),
+      import42.setupPreloading(this._Config_16,this._DeepLinkConfigToken_21,this._ModuleLoader_24,this.parent.get(import0.NgZone))
+    ]
+    ;
+    this._ApplicationInitStatus_26 = new import0.ApplicationInitStatus(this._APP_INITIALIZER_25);
+    this._ɵf_27 = new import0.ɵf(this.parent.get(import0.NgZone),this.parent.get(import0.ɵConsole),this,this._ErrorHandler_12,this,this._ApplicationInitStatus_26);
+    this._ɵDomSharedStylesHost_37 = new import3.ɵDomSharedStylesHost(this.parent.get(import3.DOCUMENT));
+    return this._AppModule_9;
+  }
+  getInternal(token:any,notFoundResult:any):any {
+    if ((token === import2.CommonModule)) { return this._CommonModule_0; }
+    if ((token === import0.ApplicationModule)) { return this._ApplicationModule_1; }
+    if ((token === import3.BrowserModule)) { return this._BrowserModule_2; }
+    if ((token === import4.ɵba)) { return this._ɵba_3; }
+    if ((token === import4.FormsModule)) { return this._FormsModule_4; }
+    if ((token === import4.ReactiveFormsModule)) { return this._ReactiveFormsModule_5; }
+    if ((token === import5.IonicModule)) { return this._IonicModule_6; }
+    if ((token === import5.DeepLinkModule)) { return this._DeepLinkModule_7; }
+    if ((token === import6.HomePageModule)) { return this._HomePageModule_8; }
+    if ((token === import1.AppModule)) { return this._AppModule_9; }
+    if ((token === import0.LOCALE_ID)) { return this._LOCALE_ID_10; }
+    if ((token === import2.NgLocalization)) { return this._NgLocalization_11; }
+    if ((token === import0.ErrorHandler)) { return this._ErrorHandler_12; }
+    if ((token === import41.ConfigToken)) { return this._ConfigToken_13; }
+    if ((token === import39.PlatformConfigToken)) { return this._PlatformConfigToken_14; }
+    if ((token === import40.Platform)) { return this._Platform_15; }
+    if ((token === import41.Config)) { return this._Config_16; }
+    if ((token === import7.DomController)) { return this._DomController_17; }
+    if ((token === import8.MenuController)) { return this._MenuController_18; }
+    if ((token === import9.App)) { return this._App_19; }
+    if ((token === import10.GestureController)) { return this._GestureController_20; }
+    if ((token === import37.DeepLinkConfigToken)) { return this._DeepLinkConfigToken_21; }
+    if ((token === import0.Compiler)) { return this._Compiler_22; }
+    if ((token === import11.NgModuleLoader)) { return this._NgModuleLoader_23; }
+    if ((token === import42.ModuleLoader)) { return this._ModuleLoader_24; }
+    if ((token === import0.APP_INITIALIZER)) { return this._APP_INITIALIZER_25; }
+    if ((token === import0.ApplicationInitStatus)) { return this._ApplicationInitStatus_26; }
+    if ((token === import0.ɵf)) { return this._ɵf_27; }
+    if ((token === import0.ApplicationRef)) { return this._ApplicationRef_28; }
+    if ((token === import0.APP_ID)) { return this._APP_ID_29; }
+    if ((token === import0.IterableDiffers)) { return this._IterableDiffers_30; }
+    if ((token === import0.KeyValueDiffers)) { return this._KeyValueDiffers_31; }
+    if ((token === import3.DomSanitizer)) { return this._DomSanitizer_32; }
+    if ((token === import0.Sanitizer)) { return this._Sanitizer_33; }
+    if ((token === import3.HAMMER_GESTURE_CONFIG)) { return this._HAMMER_GESTURE_CONFIG_34; }
+    if ((token === import3.EVENT_MANAGER_PLUGINS)) { return this._EVENT_MANAGER_PLUGINS_35; }
+    if ((token === import3.EventManager)) { return this._EventManager_36; }
+    if ((token === import3.ɵDomSharedStylesHost)) { return this._ɵDomSharedStylesHost_37; }
+    if ((token === import3.ɵDomRendererFactoryV2)) { return this._ɵDomRendererFactoryV2_38; }
+    if ((token === import0.RendererFactoryV2)) { return this._RendererFactoryV2_39; }
+    if ((token === import3.ɵSharedStylesHost)) { return this._ɵSharedStylesHost_40; }
+    if ((token === import0.Testability)) { return this._Testability_41; }
+    if ((token === import3.Meta)) { return this._Meta_42; }
+    if ((token === import3.Title)) { return this._Title_43; }
+    if ((token === import4.ɵi)) { return this._ɵi_44; }
+    if ((token === import4.FormBuilder)) { return this._FormBuilder_45; }
+    if ((token === import42.LAZY_LOADED_TOKEN)) { return this._LAZY_LOADED_TOKEN_46; }
+    if ((token === import44.AppRootToken)) { return this._AppRootToken_47; }
+    if ((token === import2.APP_BASE_HREF)) { return this._APP_BASE_HREF_48; }
+    if ((token === import12.ActionSheetController)) { return this._ActionSheetController_49; }
+    if ((token === import13.AlertController)) { return this._AlertController_50; }
+    if ((token === import14.Events)) { return this._Events_51; }
+    if ((token === import15.Form)) { return this._Form_52; }
+    if ((token === import16.Haptic)) { return this._Haptic_53; }
+    if ((token === import17.Keyboard)) { return this._Keyboard_54; }
+    if ((token === import18.LoadingController)) { return this._LoadingController_55; }
+    if ((token === import2.LocationStrategy)) { return this._LocationStrategy_56; }
+    if ((token === import2.Location)) { return this._Location_57; }
+    if ((token === import37.UrlSerializer)) { return this._UrlSerializer_58; }
+    if ((token === import38.DeepLinker)) { return this._DeepLinker_59; }
+    if ((token === import19.ModalController)) { return this._ModalController_60; }
+    if ((token === import20.PickerController)) { return this._PickerController_61; }
+    if ((token === import21.PopoverController)) { return this._PopoverController_62; }
+    if ((token === import22.TapClick)) { return this._TapClick_63; }
+    if ((token === import23.ToastController)) { return this._ToastController_64; }
+    if ((token === import24.TransitionController)) { return this._TransitionController_65; }
+    return notFoundResult;
+  }
+  destroyInternal():void {
+    this._ɵf_27.ngOnDestroy();
+    this._ɵDomSharedStylesHost_37.ngOnDestroy();
+  }
+}
+export const AppModuleNgFactory:import0.NgModuleFactory<import1.AppModule> = new import0.NgModuleFactory<any>(AppModuleInjector,import1.AppModule);
+      `;
+
+      const contentToInject = `{
+  links: [
+    { loadChildren: '../pages/home-page/home-page.module#HomePageModule', name: 'HomePage', segment: 'idkMan', priority: 'low', defaultHistory: ['page-two', 'page-three', 'page-four'] },
+    { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo', segment: null, priority: 'low', defaultHistory: [] },
+    { loadChildren: '../pages/settings-page/setting-page.module#SettingsPageModule', name: 'SettingsPage', segment: null, priority: 'low', defaultHistory: [] }
+  ]
+}
+`;
+
+  const expectedDeepLinkString = `this._DeepLinkConfigToken_21 =${contentToInject}`;
+
+      const result = util.getUpdatedAppNgModuleFactoryContentWithDeepLinksConfig(knownContent, contentToInject);
+      expect(result.indexOf(knownDeepLinkString)).toEqual(-1);
+      expect(result.indexOf(expectedDeepLinkString)).toBeGreaterThanOrEqual(0);
     });
   });
 });

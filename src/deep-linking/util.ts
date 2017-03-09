@@ -18,11 +18,14 @@ import { Logger } from '../logger/logger';
 import * as Constants from '../util/constants';
 import { FileCache } from '../util/file-cache';
 import { changeExtension, getStringPropertyValue, replaceAll } from '../util/helpers';
-import { DeepLinkConfigEntry, DeepLinkDecoratorAndClass, DeepLinkPathInfo } from '../util/interfaces';
-import { getClassDeclarations, getTypescriptSourceFile, getNodeStringContent } from '../util/typescript-utils';
+import { BuildContext, DeepLinkConfigEntry, DeepLinkDecoratorAndClass, DeepLinkPathInfo } from '../util/interfaces';
+import { appendAfter, getClassDeclarations, getTypescriptSourceFile, getNodeStringContent, replaceNode } from '../util/typescript-utils';
+
+import { transpileTsString } from '../transpile';
 
 export function getDeepLinkData(appNgModuleFilePath: string, fileCache: FileCache, isAot: boolean): DeepLinkConfigEntry[] {
-  const typescriptFiles = fileCache.getAll().filter(file => extname(file.path) === '.ts');
+  // TODO, get `node_modules` out of here, use the property instead
+  const typescriptFiles = fileCache.getAll().filter(file => extname(file.path) === '.ts' && file.path.indexOf('node_modules') === -1);
   const deepLinkConfigEntries: DeepLinkConfigEntry[] = [];
   typescriptFiles.forEach(file => {
     const sourceFile = getTypescriptSourceFile(file.path, file.content);
@@ -101,33 +104,35 @@ export function getDeepLinkDecoratorContentForSourceFile(sourceFile: SourceFile)
   const list: DeepLinkDecoratorAndClass[] = [];
 
   classDeclarations.forEach(classDeclaration => {
-    const className = (classDeclaration.name as Identifier).text;
-    classDeclaration.decorators.forEach(decorator => {
-      if (decorator.expression && (decorator.expression as CallExpression).expression && ((decorator.expression as CallExpression).expression as Identifier).text === DEEPLINK_DECORATOR_TEXT) {
-        const deepLinkArgs = (decorator.expression as CallExpression).arguments;
-        let deepLinkObject: ObjectLiteralExpression = null;
-        if (deepLinkArgs && deepLinkArgs.length) {
-          deepLinkObject = deepLinkArgs[0] as ObjectLiteralExpression;
-        }
-        let propertyList: Node[] = [];
-        if (deepLinkObject && deepLinkObject.properties) {
-          propertyList = deepLinkObject.properties;
-        }
+    if (classDeclaration.decorators) {
+      classDeclaration.decorators.forEach(decorator => {
+        const className = (classDeclaration.name as Identifier).text;
+        if (decorator.expression && (decorator.expression as CallExpression).expression && ((decorator.expression as CallExpression).expression as Identifier).text === DEEPLINK_DECORATOR_TEXT) {
+          const deepLinkArgs = (decorator.expression as CallExpression).arguments;
+          let deepLinkObject: ObjectLiteralExpression = null;
+          if (deepLinkArgs && deepLinkArgs.length) {
+            deepLinkObject = deepLinkArgs[0] as ObjectLiteralExpression;
+          }
+          let propertyList: Node[] = [];
+          if (deepLinkObject && deepLinkObject.properties) {
+            propertyList = deepLinkObject.properties;
+          }
 
-        const deepLinkName = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, className, DEEPLINK_DECORATOR_NAME_ATTRIBUTE);
-        const deepLinkSegment = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, null, DEEPLINK_DECORATOR_SEGMENT_ATTRIBUTE);
-        const deepLinkPriority = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, 'low', DEEPLINK_DECORATOR_PRIORITY_ATTRIBUTE);
-        const deepLinkDefaultHistory = getArrayValueFromDeepLinkDecorator(sourceFile, propertyList, [], DEEPLINK_DECORATOR_DEFAULT_HISTORY_ATTRIBUTE);
-        const rawStringContent = getNodeStringContent(sourceFile, decorator.expression);
-        list.push({
-          name: deepLinkName,
-          segment: deepLinkSegment,
-          priority: deepLinkPriority,
-          defaultHistory: deepLinkDefaultHistory,
-          rawString: rawStringContent
-        });
-      }
-    });
+          const deepLinkName = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, className, DEEPLINK_DECORATOR_NAME_ATTRIBUTE);
+          const deepLinkSegment = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, null, DEEPLINK_DECORATOR_SEGMENT_ATTRIBUTE);
+          const deepLinkPriority = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, 'low', DEEPLINK_DECORATOR_PRIORITY_ATTRIBUTE);
+          const deepLinkDefaultHistory = getArrayValueFromDeepLinkDecorator(sourceFile, propertyList, [], DEEPLINK_DECORATOR_DEFAULT_HISTORY_ATTRIBUTE);
+          const rawStringContent = getNodeStringContent(sourceFile, decorator.expression);
+          list.push({
+            name: deepLinkName,
+            segment: deepLinkSegment,
+            priority: deepLinkPriority,
+            defaultHistory: deepLinkDefaultHistory,
+            rawString: rawStringContent
+          });
+        }
+      });
+    }
   });
 
   if (list.length > 1) {
@@ -293,6 +298,97 @@ export function convertDeepLinkEntryToJsObjectString(entry: DeepLinkConfigEntry)
   const segmentString = entry.segment && entry.segment.length ? `'${entry.segment}'` : null;
   return `{ loadChildren: '${entry.userlandModulePath}${LOAD_CHILDREN_SEPARATOR}${entry.className}', name: '${entry.name}', segment: ${segmentString}, priority: '${entry.priority}', defaultHistory: [${defaultHistoryWithQuotes.join(', ')}] }`;
 }
+
+export function updateAppNgModuleAndFactoryWithDeepLinkConfig(context: BuildContext, deepLinkString: string) {
+  const appNgModulePath = getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH);
+  const appNgModuleFactoryPath = changeExtension(appNgModulePath, '.ngfactory.ts');
+  const appNgModuleFile = context.fileCache.get(appNgModulePath);
+  const appNgModuleFactoryFile = context.fileCache.get(appNgModuleFactoryPath);
+  if (!appNgModuleFile) {
+    throw new Error(`App NgModule ${appNgModulePath} not found in cache`);
+  }
+  if (!appNgModuleFactoryFile) {
+    throw new Error(`App NgModule Factory ${appNgModuleFactoryPath} not found in cache`);
+  }
+
+  const updatedAppNgModuleContent = getUpdatedAppNgModuleContentWithDeepLinkConfig(appNgModulePath, appNgModuleFile.content, deepLinkString);
+  const updatedAppNgModuleFactoryContent = getUpdatedAppNgModuleFactoryContentWithDeepLinksConfig(appNgModuleFactoryFile.content, deepLinkString);
+
+  // update the typescript files in cache
+  context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: updatedAppNgModuleContent});
+  context.fileCache.set(appNgModuleFactoryPath, { path: appNgModuleFactoryPath, content: updatedAppNgModuleFactoryContent});
+
+  // transpile the ts to js, and then update the cache
+  const appNgModuleOutput = transpileTsString(context, appNgModulePath, updatedAppNgModuleContent);
+  const appNgModuleFactoryOutput = transpileTsString(context, appNgModuleFactoryPath, updatedAppNgModuleFactoryContent);
+
+  const appNgModuleSourceMapPath = changeExtension(appNgModulePath, '.js.map');
+  const appNgModulePathJsFile = changeExtension(appNgModulePath, '.js');
+  context.fileCache.set(appNgModuleSourceMapPath, { path: appNgModuleSourceMapPath, content: appNgModuleOutput.sourceMapText});
+  context.fileCache.set(appNgModulePathJsFile, { path: appNgModulePathJsFile, content: appNgModuleOutput.outputText});
+
+  const appNgModuleFactorySourceMapPath = changeExtension(appNgModuleFactoryPath, '.js.map');
+  const appNgModuleFactoryPathJsFile = changeExtension(appNgModuleFactoryPath, '.js');
+  context.fileCache.set(appNgModuleFactorySourceMapPath, { path: appNgModuleFactorySourceMapPath, content: appNgModuleFactoryOutput.sourceMapText});
+  context.fileCache.set(appNgModuleFactoryPathJsFile, { path: appNgModuleFactoryPathJsFile, content: appNgModuleFactoryOutput.outputText});
+
+  const appNgModuleFileDan = context.fileCache.get(appNgModulePath);
+  const appNgModuleFactoryFileDan = context.fileCache.get(appNgModuleFactoryPath);
+
+  console.log('appNgModuleFileDan: ', appNgModuleFileDan.content);
+
+  console.log('\n\n\n\n');
+
+  console.log('appNgModuleFactoryFileDan: ', appNgModuleFactoryFileDan.content);
+}
+
+export function getUpdatedAppNgModuleContentWithDeepLinkConfig(appNgModuleFilePath: string, appNgModuleFileContent: string, deepLinkStringContent: string) {
+  let sourceFile = getTypescriptSourceFile(appNgModuleFilePath, appNgModuleFileContent);
+  let decorator = getAppNgModuleDecorator(appNgModuleFilePath, sourceFile);
+  let functionCall = getIonicModuleForRootCall(decorator);
+
+  if (functionCall.arguments.length === 1) {
+    appNgModuleFileContent = addDefaultSecondArgumentToAppNgModule(appNgModuleFileContent, functionCall);
+    sourceFile = getTypescriptSourceFile(appNgModuleFilePath, appNgModuleFileContent);
+    decorator = getAppNgModuleDecorator(appNgModuleFilePath, sourceFile);
+    functionCall = getIonicModuleForRootCall(decorator);
+  }
+
+  if (functionCall.arguments.length === 2) {
+    // we need to add the node
+    return addDeepLinkArgumentToAppNgModule(appNgModuleFileContent, functionCall, deepLinkStringContent);
+  }
+  // we need to replace whatever node exists here with the deeplink config
+  return replaceNode(appNgModuleFilePath, appNgModuleFileContent, functionCall.arguments[2], deepLinkStringContent);
+}
+
+export function getUpdatedAppNgModuleFactoryContentWithDeepLinksConfig(appNgModuleFactoryFileContent: string, deepLinkStringContent: string) {
+  // tried to do this with typescript API, wasn't clear on how to do it
+  const regex = /this.*?DeepLinkConfigToken.*?=([\s\S]*?);/g;
+  const results = regex.exec(appNgModuleFactoryFileContent);
+  if (results.length === 2) {
+    const actualString = results[0];
+    const chunkToReplace = results[1];
+    const fullStringToReplace = actualString.replace(chunkToReplace, deepLinkStringContent);
+    return appNgModuleFactoryFileContent.replace(actualString, fullStringToReplace);
+  }
+
+  throw new Error('The RegExp to find the DeepLinkConfigToken did not return valid data');
+}
+
+export function addDefaultSecondArgumentToAppNgModule(appNgModuleFileContent: string, ionicModuleForRoot: CallExpression) {
+  const argOneNode = ionicModuleForRoot.arguments[0];
+  const updatedFileContent = appendAfter(appNgModuleFileContent, argOneNode, ', {}');
+  return updatedFileContent;
+}
+
+export function addDeepLinkArgumentToAppNgModule(appNgModuleFileContent: string, ionicModuleForRoot: CallExpression, deepLinkString: string) {
+  const argTwoNode = ionicModuleForRoot.arguments[1];
+  const updatedFileContent = appendAfter(appNgModuleFileContent, argTwoNode, `, ${deepLinkString}`);
+  return updatedFileContent;
+}
+
+
 
 const DEEPLINK_DECORATOR_TEXT = 'DeepLink';
 const NG_MODULE_DECORATOR_TEXT = 'NgModule';

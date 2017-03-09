@@ -4,12 +4,12 @@ import { createReadStream, createWriteStream, readdir, readFile, readFileSync, r
 import * as osName from 'os-name';
 
 import * as Constants from './constants';
-import { BuildContext, File, HydratedDeepLinkConfigEntry, WebpackStats } from './interfaces';
+import { BuildContext, DeepLinkConfigEntry, File, WebpackStats } from './interfaces';
 import { Logger } from '../logger/logger';
 
 
 let _context: BuildContext;
-let _parsedDeepLinkConfig: HydratedDeepLinkConfigEntry[];
+let _parsedDeepLinkConfig: DeepLinkConfigEntry[];
 
 let cachedAppScriptsPackageJson: any;
 export function getAppScriptsPackageJson() {
@@ -212,11 +212,11 @@ export function getContext() {
   return _context;
 }
 
-export function setParsedDeepLinkConfig(parsedDeepLinkConfig: HydratedDeepLinkConfigEntry[]) {
+export function setParsedDeepLinkConfig(parsedDeepLinkConfig: DeepLinkConfigEntry[]) {
   _parsedDeepLinkConfig = parsedDeepLinkConfig;
 }
 
-export function getParsedDeepLinkConfig(): HydratedDeepLinkConfigEntry[] {
+export function getParsedDeepLinkConfig(): DeepLinkConfigEntry[] {
   return _parsedDeepLinkConfig;
 }
 

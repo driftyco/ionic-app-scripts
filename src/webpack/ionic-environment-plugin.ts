@@ -1,5 +1,5 @@
 import { getParsedDeepLinkConfig } from '../util/helpers';
-import { BuildContext, HydratedDeepLinkConfigEntry } from '../util/interfaces';
+import { BuildContext , DeepLinkConfigEntry} from '../util/interfaces';
 import { Logger } from '../logger/logger';
 import { getInstance } from '../util/hybrid-file-system-factory';
 import { createResolveDependenciesFromContextMap } from './util';
@@ -81,14 +81,14 @@ export class IonicEnvironmentPlugin {
 }
 
 
-export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: HydratedDeepLinkConfigEntry[]) {
+export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: DeepLinkConfigEntry[]) {
   const dictionary: { [index: string]: string} = { };
   if (!parsedDeepLinkConfigs) {
     parsedDeepLinkConfigs = [];
   }
   parsedDeepLinkConfigs.forEach(parsedDeepLinkConfig => {
-    if (parsedDeepLinkConfig.modulePath && parsedDeepLinkConfig.absolutePath) {
-      dictionary[parsedDeepLinkConfig.modulePath] = parsedDeepLinkConfig.absolutePath;
+    if (parsedDeepLinkConfig.userlandModulePath && parsedDeepLinkConfig.absolutePath) {
+      dictionary[parsedDeepLinkConfig.userlandModulePath] = parsedDeepLinkConfig.absolutePath;
     }
   });
   return dictionary;

@@ -367,6 +367,28 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
   return config;
 }
 
+export function transpileTsString(context: BuildContext, filePath: string, stringToTranspile: string, ) {
+  if (!cachedTsConfig) {
+    cachedTsConfig = getTsConfig(context);
+  }
+
+  const transpileOptions: ts.TranspileOptions = {
+    compilerOptions: cachedTsConfig.options,
+    fileName: filePath,
+    reportDiagnostics: true,
+  };
+
+  transpileOptions.compilerOptions.sourceMap = true;
+
+  // let's manually transpile just this one ts file
+  // since it is an update, it's in memory already
+  const sourceText = context.fileCache.get(filePath).content;
+
+  // transpile this one module
+  const transpileOutput = ts.transpileModule(sourceText, transpileOptions);
+  return transpileOutput;
+}
+
 
 let cachedProgram: ts.Program = null;
 let cachedTsConfig: TsConfig = null;
