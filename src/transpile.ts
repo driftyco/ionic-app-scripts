@@ -8,7 +8,7 @@ import { EventEmitter } from 'events';
 import { fork, ChildProcess } from 'child_process';
 import { inlineTemplate } from './template';
 import { Logger } from './logger/logger';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, readdirSync } from 'fs';
 import { runTypeScriptDiagnostics } from './logger/logger-typescript';
 import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
 import * as path from 'path';
@@ -94,6 +94,7 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
 
     // collect up all the files we need to transpile, tsConfig itself does all this for us
     const tsFileNames = cleanFileNames(context, tsConfig.fileNames);
+    console.log(tsFileNames);
 
     // for dev builds let's not create d.ts files
     tsConfig.options.declaration = undefined;
@@ -310,18 +311,23 @@ export function transpileBundle(context: BuildContext, target: ts.ScriptTarget =
 function transpileBundleImpl(context: BuildContext, target: ts.ScriptTarget) {
   const logger = new Logger('transpile bundle');
   try {
-    const bundlePath = path.join(context.buildDir, process.env[Constants.ENV_OUTPUT_JS_FILE_NAME]);
-    const bundleContent = readFileSync(bundlePath).toString();
-    const tsConfig = getTsConfig(context);
-    const transpileOptions: ts.TranspileOptions = {
-      compilerOptions: tsConfig.options,
-      fileName: bundlePath,
-      reportDiagnostics: true
-    };
-    // override the target value
-    transpileOptions.compilerOptions.target = target;
-    const transpiledOutput = ts.transpileModule(bundleContent, transpileOptions);
-    writeFileSync(bundlePath, transpiledOutput.outputText);
+    const files = readdirSync(context.buildDir);
+    files.forEach((file) => {
+      if (file.indexOf('deptree') === -1 && file.indexOf('map') === -1 && file.indexOf('sw-toolbox') === -1 && file.indexOf('polyfills') === -1) {
+        const bundlePath = path.join(context.buildDir, process.env[Constants.ENV_OUTPUT_JS_FILE_NAME]);
+        const bundleContent = readFileSync(bundlePath).toString();
+        const tsConfig = getTsConfig(context);
+        const transpileOptions: ts.TranspileOptions = {
+          compilerOptions: tsConfig.options,
+          fileName: bundlePath,
+          reportDiagnostics: true
+        };
+        // override the target value
+        transpileOptions.compilerOptions.target = target;
+        const transpiledOutput = ts.transpileModule(bundleContent, transpileOptions);
+        writeFileSync(bundlePath, transpiledOutput.outputText);
+      }
+    });
     logger.finish();
   } catch (ex) {
     throw logger.fail(ex);
