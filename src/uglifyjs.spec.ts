@@ -17,4 +17,28 @@ describe('uglifyjs function', () => {
       expect(workerClient.runWorker).toHaveBeenCalledWith('uglifyjs', 'uglifyjsWorker', context, 'fileContents');
     });
   });
+
+  it('should fail because it does not have a valid build context', () => {
+    const context: null = null;
+    const configFile = 'configFileContents';
+
+    expect(uglifyjs.uglifyjs(context, configFile)).toThrow();
+  });
+
+  it('should fail because it does not have a valid config file', () => {
+    const context = {};
+    const configFile: null = null;
+
+    expect(uglifyjs.uglifyjs(context, configFile)).toThrow();
+  });
+
+  it('should not fail if a config is not passed', () => {
+    const context = {};
+    let configFile: any;
+
+    return uglifyjs.uglifyjs(context).then(() => {
+      expect(configUtil.getUserConfigFile).toHaveBeenCalledWith(context, uglifyjs.taskInfo, configFile);
+      expect(workerClient.runWorker).toHaveBeenCalledWith('uglifyjs', 'uglifyjsWorker', context, 'fileContents');
+    });
+  });
 });
