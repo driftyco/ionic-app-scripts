@@ -314,7 +314,7 @@ function transpileBundleImpl(context: BuildContext, target: ts.ScriptTarget) {
     const files = readdirSync(context.buildDir);
     files.forEach((file) => {
       if (file.indexOf('deptree') === -1 && file.indexOf('map') === -1 && file.indexOf('sw-toolbox') === -1 && file.indexOf('polyfills') === -1) {
-        const bundlePath = path.join(context.buildDir, process.env[Constants.ENV_OUTPUT_JS_FILE_NAME]);
+        const bundlePath = path.join(context.buildDir, file);
         const bundleContent = readFileSync(bundlePath).toString();
         const tsConfig = getTsConfig(context);
         const transpileOptions: ts.TranspileOptions = {
