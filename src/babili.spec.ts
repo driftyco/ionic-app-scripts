@@ -17,12 +17,11 @@ describe('babili function', () => {
     });
   });
 
-  it('should fail without a rootDir', () => {
+  it('should throw if context does not have a rootDir', () => {
     const context = {};
     const configFile = 'configFileContents';
 
-    return babili.babili(context, configFile).then(() => {
-      expect(configUtil.getUserConfigFile).toHaveBeenCalledWith(context, babili.taskInfo, configFile);
-    });
+    expect(babili.babili(context, configFile)).toThrow();
   });
+
 });
