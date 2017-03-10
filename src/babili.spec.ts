@@ -24,4 +24,18 @@ describe('babili function', () => {
     expect(babili.babili(context, configFile)).toThrow();
   });
 
+  it('should fail because it does not have a valid build context', () => {
+    const context: null = null;
+    const configFile = 'configFileContents';
+
+    expect(babili.babili(context, configFile)).toThrow();
+  });
+
+  it('should fail because it does not have a valid config file', () => {
+    const context = {};
+    const configFile: null = null;
+
+    expect(babili.babili(context, configFile)).toThrow();
+  });
+
 });
