@@ -35,9 +35,9 @@ export function uglifyjsWorker(context: BuildContext, configFile: string): Promi
       files.forEach((file) => {
         if (file.indexOf('deptree') === -1 && file.indexOf('map') === -1 && file.indexOf('sw-toolbox') === -1 && file.indexOf('polyfills') === -1) {
           const uglifyJsConfig: UglifyJsConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
-          uglifyJsConfig.sourceFile = join(context.buildDir, uglifyJsConfig.sourceFile);
+          uglifyJsConfig.sourceFile = join(context.buildDir, file);
           uglifyJsConfig.inSourceMap = join(context.buildDir, uglifyJsConfig.inSourceMap);
-          uglifyJsConfig.destFileName = join(context.buildDir, uglifyJsConfig.destFileName);
+          uglifyJsConfig.destFileName = join(context.buildDir, file);
 
           const minifiedOutputPath = join(context.buildDir, uglifyJsConfig.outSourceMap);
           const minifyOutput: uglify.MinifyOutput = runUglifyInternal(uglifyJsConfig);
