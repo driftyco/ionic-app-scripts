@@ -33,6 +33,9 @@ function runBabili(context: BuildContext, config: BabiliConfig) {
 function runBabiliImpl(context: BuildContext) {
   // TODO - is there a better way to run this?
   return new Promise((resolve, reject) => {
+    if (!context.rootDir) {
+      return reject(new Error('Babili failed because the context passed did not have a rootDir'));
+    }
     const babiliPath = join(context.rootDir, 'node_modules', '.bin', 'babili');
     const command = spawn(babiliPath, [context.buildDir, '--out-dir', context.buildDir]);
     command.on('close', (code: number) => {
