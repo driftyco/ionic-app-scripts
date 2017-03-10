@@ -4,7 +4,6 @@ import { spawn } from 'cross-spawn';
 import { fillConfigDefaults, getUserConfigFile } from './util/config';
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { Logger } from './logger/logger';
-import { writeFileAsync } from './util/helpers';
 
 export function babili(context: BuildContext, configFile?: string) {
 
