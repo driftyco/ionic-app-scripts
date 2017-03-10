@@ -8,13 +8,14 @@ import { Logger } from './logger/logger';
 export function babili(context: BuildContext, configFile?: string) {
 
   configFile = getUserConfigFile(context, taskInfo, configFile);
+  console.log(configFile);
   const logger = new Logger('babili - experimental');
 
   return babiliWorker(context, configFile).then(() => {
     logger.finish();
   })
   .catch(err => {
-    throw logger.fail(err);
+    return logger.fail(err);
   });
 }
 
@@ -26,14 +27,14 @@ export function babiliWorker(context: BuildContext, configFile: string) {
 }
 
 function runBabili(context: BuildContext, config: BabiliConfig) {
-  const babiliPath = join(context.rootDir, 'node_modules', '.bin', 'babili');
-  return runBabiliImpl(babiliPath, context);
+  return runBabiliImpl(context);
 }
 
-function runBabiliImpl(pathToBabili: string, context: BuildContext) {
+function runBabiliImpl(context: BuildContext) {
   // TODO - is there a better way to run this?
   return new Promise((resolve, reject) => {
-    const command = spawn(pathToBabili, [context.buildDir, '--out-dir', context.buildDir]);
+    const babiliPath = join(context.rootDir, 'node_modules', '.bin', 'babili');
+    const command = spawn(babiliPath, [context.buildDir, '--out-dir', context.buildDir]);
     command.on('close', (code: number) => {
       if (code !== 0) {
         return reject(new Error('Babili failed with a non-zero status code'));
@@ -46,8 +47,8 @@ function runBabiliImpl(pathToBabili: string, context: BuildContext) {
 export const taskInfo: TaskInfo = {
   fullArg: '--babili',
   shortArg: null,
-  envVar: 'IONIC_EXP_BABILI',
-  packageConfig: 'ionic_exp_babili',
+  envVar: 'IONIC_USE_EXPERIMENTAL_BABILI',
+  packageConfig: 'ionic_use_experimental_babili',
   defaultConfigFile: 'babili.config'
 };
 
