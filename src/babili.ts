@@ -23,39 +23,23 @@ export function babili(context: BuildContext, configFile?: string) {
 export function babiliWorker(context: BuildContext, configFile: string) {
   const babiliConfig: BabiliConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   // TODO - figure out source maps??
-  return runBabili(context, babiliConfig).then((minifiedCode: string) => {
-    // write the file back to disk
-    const fileToWrite = join(context.buildDir, babiliConfig.destFileName);
-    return writeFileAsync(fileToWrite, minifiedCode);
-  });
+  return runBabili(context, babiliConfig);
 }
 
 function runBabili(context: BuildContext, config: BabiliConfig) {
   const babiliPath = join(context.rootDir, 'node_modules', '.bin', 'babili');
-  const bundlePath = join(context.buildDir, config.sourceFile);
-  return runBabiliImpl(babiliPath, bundlePath);
+  return runBabiliImpl(babiliPath, context);
 }
 
-function runBabiliImpl(pathToBabili: string, pathToBundle: string) {
+function runBabiliImpl(pathToBabili: string, context: BuildContext) {
   // TODO - is there a better way to run this?
-  let chunks: string[] = [];
   return new Promise((resolve, reject) => {
-    const command = spawn(pathToBabili, [pathToBundle]);
-    command.stdout.on('data', (buffer: Buffer) => {
-      const stringRepresentation = buffer.toString();
-      Logger.debug(`[Babili] ${stringRepresentation}`);
-      chunks.push(stringRepresentation);
-    });
-
-    command.stderr.on('data', (buffer: Buffer) => {
-      Logger.warn(`[Babili] ${buffer.toString()}`);
-    });
-
+    const command = spawn(pathToBabili, [context.buildDir, '--out-dir', context.buildDir]);
     command.on('close', (code: number) => {
-      if ( code !== 0) {
+      if (code !== 0) {
         return reject(new Error('Babili failed with a non-zero status code'));
       }
-      return resolve(chunks.join(''));
+      return resolve();
     });
   });
 }
