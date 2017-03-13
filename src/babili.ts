@@ -8,7 +8,7 @@ import { Logger } from './logger/logger';
 export function babili(context: BuildContext, configFile?: string) {
 
   configFile = getUserConfigFile(context, taskInfo, configFile);
-  console.log(configFile);
+
   const logger = new Logger('babili - experimental');
 
   return babiliWorker(context, configFile).then(() => {

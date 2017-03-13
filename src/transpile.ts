@@ -94,7 +94,6 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
 
     // collect up all the files we need to transpile, tsConfig itself does all this for us
     const tsFileNames = cleanFileNames(context, tsConfig.fileNames);
-    console.log(tsFileNames);
 
     // for dev builds let's not create d.ts files
     tsConfig.options.declaration = undefined;
