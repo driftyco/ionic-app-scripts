@@ -197,4 +197,18 @@ describe('helpers', () => {
       expect(helpers.removeSuffix('dan dan the sunshine man', ' woman')).toEqual('dan dan the sunshine man');
     });
   });
+
+  describe('replaceAll', () => {
+    it('should replace a variable', () => {
+      expect(helpers.replaceAll('hello $VAR world', '$VAR', 'my')).toEqual('hello my world');
+    });
+
+    it('should replace a variable with newlines', () => {
+      expect(helpers.replaceAll('hello\n $VARMORETEXT\n world', '$VAR', 'NO')).toEqual('hello\n NOMORETEXT\n world');
+    });
+
+    it('should replace a variable and handle undefined', () => {
+      expect(helpers.replaceAll('hello $VAR world', '$VAR', undefined)).toEqual('hello  world');
+    });
+  });
 });

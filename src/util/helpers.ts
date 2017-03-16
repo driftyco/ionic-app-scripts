@@ -347,6 +347,10 @@ export function purgeWebpackPrefixFromPath(filePath: string) {
 }
 
 export function replaceAll(input: string, toReplace: string, replacement: string) {
+  if (!replacement) {
+    replacement = '';
+  }
+
   return input.split(toReplace).join(replacement);
 }
 
