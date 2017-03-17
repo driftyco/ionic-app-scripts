@@ -55,6 +55,7 @@ function run() {
     // read the files
     return readTsFiles(context, filePaths);
   }).then(() => {
+    generateAndWriteNgModules(context.fileCache);
   });
 }
 
