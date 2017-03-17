@@ -353,8 +353,8 @@ export function addDeepLinkArgumentToAppNgModule(appNgModuleFileContent: string,
   return updatedFileContent;
 }
 
-export function generateDefaultDeepLinkNgModuleContent(filePath: string, className: string) {
-  const importFrom = basename(filePath, '.ts');
+export function generateDefaultDeepLinkNgModuleContent(pageFilePath: string, className: string) {
+  const importFrom = basename(pageFilePath, '.ts');
 
   return `
 import { NgModule } from '@angular/core';
