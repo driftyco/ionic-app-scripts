@@ -76,7 +76,7 @@ describe('config', () => {
       expect(context.buildDir).toEqual(join(process.cwd(), Constants.WWW_DIR, Constants.BUILD_DIR));
       expect(context.pagesDir).toEqual(join(context.srcDir, 'pages'));
       expect(context.componentsDir).toEqual(join(context.srcDir, 'components'));
-      expect(context.directivesDir).toEqual(join(context.srcDir, 'components'));
+      expect(context.directivesDir).toEqual(join(context.srcDir, 'directives'));
       expect(context.pipesDir).toEqual(join(context.srcDir, 'pipes'));
       expect(context.providersDir).toEqual(join(context.srcDir, 'providers'));
       expect(context.nodeModulesDir).toEqual(join(process.cwd(), Constants.NODE_MODULES));
