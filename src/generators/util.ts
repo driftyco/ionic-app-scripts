@@ -2,7 +2,7 @@ import { basename, dirname, join, relative } from 'path';
 import { readdirSync } from 'fs';
 import { Logger} from '../logger/logger';
 
-import { paramCase, pascalCase, upperCaseFirst } from 'change-case';
+import { camelCase, paramCase, pascalCase, sentenceCase, upperCaseFirst } from 'change-case';
 
 import * as Constants from '../util/constants';
 import * as GeneratorConstants from './constants';
@@ -22,6 +22,23 @@ export function hydrateRequest(context: BuildContext, request: GeneratorRequest)
 
   const baseDir = getDirToWriteToByType(context, request.type);
   hydrated.dirToWrite = join(baseDir, hydrated.fileName);
+
+  return hydrated;
+}
+
+export function hydrateTabRequest(context: BuildContext, request: GeneratorTabRequest) {
+  const h = hydrateRequest(context, request);
+  const hydrated = Object.assign({
+    tabs: request.tabs,
+    tabContent: '',
+    tabVariables: ''
+  }, h) as HydratedTabsGeneratedRequest;
+
+  for (let tab of request.tabs) {
+    const tabVar = `${camelCase(tab.name)}Root`;
+    hydrated.tabContent += `    <ion-tab [root]="${tabVar}" tabTitle="${sentenceCase(tab.name)}" tabIcon="information-circle"></ion-tab>\n`;
+    hydrated.tabVariables += `  ${tabVar} = '${tab.className}'\n`;
+  }
 
   return hydrated;
 }
@@ -59,10 +76,15 @@ export function filterOutTemplates(request: HydratedGeneratorRequest, templates:
 export function applyTemplates(request: HydratedGeneratorRequest, templates: Map<string, string>) {
   const appliedTemplateMap = new Map<string, string>();
   templates.forEach((fileContent: string, filePath: string) => {
-    const classnameRemovedContent = replaceAll(fileContent, GeneratorConstants.CLASSNAME_VARIABLE, request.className);
-    const fileNameRemovedContent = replaceAll(classnameRemovedContent, GeneratorConstants.FILENAME_VARIABLE, request.fileName);
-    const suppliedNameRemovedContent = replaceAll(fileNameRemovedContent, GeneratorConstants.SUPPLIEDNAME_VARIABLE, request.name);
-    appliedTemplateMap.set(filePath, suppliedNameRemovedContent);
+    fileContent = replaceAll(fileContent, GeneratorConstants.CLASSNAME_VARIABLE, request.className);
+    fileContent = replaceAll(fileContent, GeneratorConstants.FILENAME_VARIABLE, request.fileName);
+    fileContent = replaceAll(fileContent, GeneratorConstants.SUPPLIEDNAME_VARIABLE, request.name);
+    if (request.type === 'tabs') {
+      const r: HydratedTabsGeneratedRequest = request;
+      fileContent = replaceAll(fileContent, GeneratorConstants.TAB_CONTENT_VARIABLE, r.tabContent);
+      fileContent = replaceAll(fileContent, GeneratorConstants.TAB_VARIABLES_VARIABLE, r.tabVariables);
+    }
+    appliedTemplateMap.set(filePath, fileContent);
   });
   return appliedTemplateMap;
 }
@@ -138,18 +160,16 @@ export function nonPageFileManipulation(context: BuildContext, name: string, ngM
   });
 }
 
-export function generateTemplates(context: BuildContext, request: GeneratorRequest): Promise<string[]> {
-  Logger.debug('[Generators] generateTemplates: Hydrating the request with project data ...');
-  const hydratedRequest = hydrateRequest(context, request);
+export function generateTemplates(context: BuildContext, request: HydratedGeneratorRequest): Promise<string[]> {
   Logger.debug('[Generators] generateTemplates: Reading templates ...');
-  return readTemplates(hydratedRequest.dirToRead).then((map: Map<string, string>) => {
+  return readTemplates(request.dirToRead).then((map: Map<string, string>) => {
     Logger.debug('[Generators] generateTemplates: Filtering out NgModule and Specs if needed ...');
-    return filterOutTemplates(hydratedRequest, map);
+    return filterOutTemplates(request, map);
   }).then((filteredMap: Map<string, string>) => {
     Logger.debug('[Generators] generateTemplates: Applying templates ...');
-    const appliedTemplateMap = applyTemplates(hydratedRequest, filteredMap);
+    const appliedTemplateMap = applyTemplates(request, filteredMap);
     Logger.debug('[Generators] generateTemplates: Writing generated files to disk ...');
-    return writeGeneratedFiles(hydratedRequest, appliedTemplateMap);
+    return writeGeneratedFiles(request, appliedTemplateMap);
   });
 }
 
@@ -165,9 +185,18 @@ export interface GeneratorRequest {
   includeNgModule?: boolean;
 };
 
+export interface GeneratorTabRequest extends GeneratorRequest {
+  tabs?: HydratedGeneratorRequest[];
+}
+
 export interface HydratedGeneratorRequest extends GeneratorRequest {
   fileName?: string;
   className?: string;
   dirToRead?: string;
   dirToWrite?: string;
 };
+
+export interface HydratedTabsGeneratedRequest extends HydratedGeneratorRequest {
+  tabContent?: string;
+  tabVariables?: string;
+}
