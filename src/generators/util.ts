@@ -32,7 +32,7 @@ export function hydrateTabRequest(context: BuildContext, request: GeneratorTabRe
     tabs: request.tabs,
     tabContent: '',
     tabVariables: ''
-  }, h) as HydratedTabsGeneratedRequest;
+  }, h) as HydratedGeneratorRequest;
 
   for (let tab of request.tabs) {
     const tabVar = `${camelCase(tab.name)}Root`;
@@ -79,11 +79,8 @@ export function applyTemplates(request: HydratedGeneratorRequest, templates: Map
     fileContent = replaceAll(fileContent, GeneratorConstants.CLASSNAME_VARIABLE, request.className);
     fileContent = replaceAll(fileContent, GeneratorConstants.FILENAME_VARIABLE, request.fileName);
     fileContent = replaceAll(fileContent, GeneratorConstants.SUPPLIEDNAME_VARIABLE, request.name);
-    if (request.type === 'tabs') {
-      const r: HydratedTabsGeneratedRequest = request;
-      fileContent = replaceAll(fileContent, GeneratorConstants.TAB_CONTENT_VARIABLE, r.tabContent);
-      fileContent = replaceAll(fileContent, GeneratorConstants.TAB_VARIABLES_VARIABLE, r.tabVariables);
-    }
+    fileContent = replaceAll(fileContent, GeneratorConstants.TAB_CONTENT_VARIABLE, request.tabContent);
+    fileContent = replaceAll(fileContent, GeneratorConstants.TAB_VARIABLES_VARIABLE, request.tabVariables);
     appliedTemplateMap.set(filePath, fileContent);
   });
   return appliedTemplateMap;
@@ -192,11 +189,8 @@ export interface GeneratorTabRequest extends GeneratorRequest {
 export interface HydratedGeneratorRequest extends GeneratorRequest {
   fileName?: string;
   className?: string;
+  tabContent?: string;
+  tabVariables?: string;
   dirToRead?: string;
   dirToWrite?: string;
 };
-
-export interface HydratedTabsGeneratedRequest extends HydratedGeneratorRequest {
-  tabContent?: string;
-  tabVariables?: string;
-}

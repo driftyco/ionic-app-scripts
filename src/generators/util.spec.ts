@@ -222,6 +222,13 @@ export class $CLASSNAMEModule {}
 </ion-content>
       `;
 
+      const fileSeven = '/Users/noone/fileSeven';
+      const fileSevenContent = `
+<ion-tabs>
+$TAB_CONTENT
+</ion-tabs>
+      `;
+
       const map = new Map<string, string>();
       map.set(fileOne, fileOneContent);
       map.set(fileTwo, fileTwoContent);
@@ -229,6 +236,7 @@ export class $CLASSNAMEModule {}
       map.set(fileFour, fileFourContent);
       map.set(fileFive, fileFiveContent);
       map.set(fileSix, fileSixContent);
+      map.set(fileSeven, fileSevenContent);
 
       const className = 'SettingsView';
       const fileName = 'settings-view';
@@ -241,24 +249,24 @@ export class $CLASSNAMEModule {}
       const modifiedContentFour = results.get(fileFour);
       const modifiedContentFive = results.get(fileFive);
       const modifiedContentSix = results.get(fileSix);
-      expect(modifiedContentOne.indexOf(GeneratorConstants.CLASSNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentOne.indexOf(GeneratorConstants.FILENAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentOne.indexOf(GeneratorConstants.SUPPLIEDNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentTwo.indexOf(GeneratorConstants.CLASSNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentTwo.indexOf(GeneratorConstants.FILENAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentTwo.indexOf(GeneratorConstants.SUPPLIEDNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentThree.indexOf(GeneratorConstants.CLASSNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentThree.indexOf(GeneratorConstants.FILENAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentThree.indexOf(GeneratorConstants.SUPPLIEDNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentFour.indexOf(GeneratorConstants.CLASSNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentFour.indexOf(GeneratorConstants.FILENAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentFour.indexOf(GeneratorConstants.SUPPLIEDNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentFive.indexOf(GeneratorConstants.CLASSNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentFive.indexOf(GeneratorConstants.FILENAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentFive.indexOf(GeneratorConstants.SUPPLIEDNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentSix.indexOf(GeneratorConstants.CLASSNAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentSix.indexOf(GeneratorConstants.FILENAME_VARIABLE)).toEqual(-1);
-      expect(modifiedContentSix.indexOf(GeneratorConstants.SUPPLIEDNAME_VARIABLE)).toEqual(-1);
+      const modifiedContentSeven = results.get(fileSeven);
+      const nonExistentVars = [
+        GeneratorConstants.CLASSNAME_VARIABLE,
+        GeneratorConstants.FILENAME_VARIABLE,
+        GeneratorConstants.SUPPLIEDNAME_VARIABLE,
+        GeneratorConstants.TAB_CONTENT_VARIABLE,
+        GeneratorConstants.TAB_VARIABLES_VARIABLE,
+      ];
+
+      for (let v of nonExistentVars) {
+        expect(modifiedContentOne.indexOf(v)).toEqual(-1);
+        expect(modifiedContentTwo.indexOf(v)).toEqual(-1);
+        expect(modifiedContentThree.indexOf(v)).toEqual(-1);
+        expect(modifiedContentFour.indexOf(v)).toEqual(-1);
+        expect(modifiedContentFive.indexOf(v)).toEqual(-1);
+        expect(modifiedContentSix.indexOf(v)).toEqual(-1);
+        expect(modifiedContentSeven.indexOf(v)).toEqual(-1);
+      }
     });
   });
 
