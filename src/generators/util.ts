@@ -164,6 +164,21 @@ export function nonPageFileManipulation(context: BuildContext, name: string, ngM
   });
 }
 
+export function tabsModuleManipulation(tabs: string[][], hydratedRequest: HydratedGeneratorRequest, tabHydratedRequests: HydratedGeneratorRequest[]) {
+  const ngModulePath = tabs[0].find((element: any): boolean => {
+    return element.indexOf('module') !== -1;
+  });
+  const tabsNgModulePath = `${hydratedRequest.dirToWrite}/${hydratedRequest.fileName}.module.ts`;
+
+  readFileAsync(tabsNgModulePath).then((content) => {
+    let fileContent = content;
+    fileContent = insertNamedImportIfNeeded(tabsNgModulePath, fileContent, tabHydratedRequests[0].className, relative(dirname(tabsNgModulePath), ngModulePath.replace('.module.ts', '')));
+    fileContent = appendNgModuleDeclaration(tabsNgModulePath, fileContent, tabHydratedRequests[0].className);
+
+    writeFileAsync(tabsNgModulePath, fileContent);
+  });
+}
+
 export function generateTemplates(context: BuildContext, request: HydratedGeneratorRequest): Promise<string[]> {
   Logger.debug('[Generators] generateTemplates: Reading templates ...');
   return readTemplates(request.dirToRead).then((map: Map<string, string>) => {

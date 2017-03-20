@@ -1,9 +1,6 @@
-import { relative, dirname } from 'path';
 import * as Constants from './util/constants';
 import { BuildContext } from './util/interfaces';
-import { readFileAsync, writeFileAsync } from './util/helpers';
-import { hydrateRequest, hydrateTabRequest, getNgModules, GeneratorOption, GeneratorRequest, nonPageFileManipulation, generateTemplates } from './generators/util';
-import { insertNamedImportIfNeeded, appendNgModuleDeclaration } from './util/typescript-utils';
+import { hydrateRequest, hydrateTabRequest, getNgModules, GeneratorOption, GeneratorRequest, nonPageFileManipulation, generateTemplates, tabsModuleManipulation } from './generators/util';
 
 export { getNgModules, GeneratorOption, GeneratorRequest };
 
@@ -39,18 +36,7 @@ export function processTabsRequest(context: BuildContext, name: string, tabs: st
 
     return Promise.all(promises);
   }).then((tabs) => {
-    const ngModulePath = tabs[0].find((element): boolean => {
-      return element.indexOf('module') !== -1;
-    });
-    const tabsNgModulePath = `${hydratedRequest.dirToWrite}/${hydratedRequest.fileName}.module.ts`;
-
-    readFileAsync(tabsNgModulePath).then((content) => {
-      let fileContent = content;
-      fileContent = insertNamedImportIfNeeded(tabsNgModulePath, fileContent, tabHydratedRequests[0].className, relative(dirname(tabsNgModulePath), ngModulePath.replace('.module.ts', '')));
-      fileContent = appendNgModuleDeclaration(tabsNgModulePath, fileContent, tabHydratedRequests[0].className);
-
-      writeFileAsync(tabsNgModulePath, fileContent);
-    });
+    tabsModuleManipulation(tabs, hydratedRequest, tabHydratedRequests);
   });
 }
 
