@@ -369,4 +369,26 @@ $TAB_CONTENT
       expect(globAllSpy).toHaveBeenCalledWith(['/path/to/pages/**/*.module.ts', '/path/to/components/**/*.module.ts']);
     });
   });
+
+  describe('tabsModuleManipulation' , () => {
+    const className = 'SettingsView';
+    const fileName = 'settings-view';
+    const suppliedName = 'settings view';
+
+    it('should return a succesfull promise', () => {
+      let rejected = false;
+
+      util.tabsModuleManipulation([['/src/pages/cool-tab-one/cool-tab-one.module.ts']], { name: suppliedName, className: className, fileName: fileName }, [{ name: suppliedName, className: className, fileName: fileName }]).catch(() => {
+        rejected = true;
+      });
+
+      expect(rejected).toBeFalsy();
+    });
+
+    it('should throw when files are not written succesfully', () => {
+      spyOn(helpers, helpers.writeFileAsync.name).and.throwError;
+
+      expect(util.tabsModuleManipulation([['/src/pages/cool-tab-one/cool-tab-one.module.ts']], { name: suppliedName, className: className, fileName: fileName }, [{ name: suppliedName, className: className, fileName: fileName }])).toThrow();
+    });
+  });
 });
