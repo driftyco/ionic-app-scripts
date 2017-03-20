@@ -15,6 +15,7 @@ import { appendNgModuleDeclaration, insertNamedImportIfNeeded } from '../util/ty
 export function hydrateRequest(context: BuildContext, request: GeneratorRequest) {
   const hydrated = Object.assign({ includeNgModule: true }, request) as HydratedGeneratorRequest;
   const suffix = getSuffixFromGeneratorType(context, request.type);
+
   hydrated.className = ensureSuffix(pascalCase(request.name), upperCaseFirst(suffix));
   hydrated.fileName = removeSuffix(paramCase(request.name), `-${paramCase(suffix)}`);
 
@@ -175,7 +176,7 @@ export function tabsModuleManipulation(tabs: string[][], hydratedRequest: Hydrat
     fileContent = insertNamedImportIfNeeded(tabsNgModulePath, fileContent, tabHydratedRequests[0].className, relative(dirname(tabsNgModulePath), ngModulePath.replace('.module.ts', '')));
     fileContent = appendNgModuleDeclaration(tabsNgModulePath, fileContent, tabHydratedRequests[0].className);
 
-    writeFileAsync(tabsNgModulePath, fileContent);
+    return writeFileAsync(tabsNgModulePath, fileContent);
   });
 }
 
