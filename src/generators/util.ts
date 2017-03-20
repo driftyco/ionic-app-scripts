@@ -34,10 +34,17 @@ export function hydrateTabRequest(context: BuildContext, request: GeneratorTabRe
     tabVariables: ''
   }, h) as HydratedGeneratorRequest;
 
-  for (let tab of request.tabs) {
-    const tabVar = `${camelCase(tab.name)}Root`;
-    hydrated.tabContent += `    <ion-tab [root]="${tabVar}" tabTitle="${sentenceCase(tab.name)}" tabIcon="information-circle"></ion-tab>\n`;
-    hydrated.tabVariables += `  ${tabVar} = '${tab.className}'\n`;
+  for (let i = 0; i < request.tabs.length; i++) {
+    const tabVar = `${camelCase(request.tabs[i].name)}Root`;
+    hydrated.tabVariables += `  ${tabVar} = '${request.tabs[i].className}'\n`;
+
+    // If this is the last ion-tab to insert
+    // then we do not want a new line
+    if (i === request.tabs.length - 1) {
+      hydrated.tabContent += `    <ion-tab [root]="${tabVar}" tabTitle="${sentenceCase(request.tabs[i].name)}" tabIcon="information-circle"></ion-tab>`;
+    } else {
+      hydrated.tabContent += `    <ion-tab [root]="${tabVar}" tabTitle="${sentenceCase(request.tabs[i].name)}" tabIcon="information-circle"></ion-tab>\n`;
+    }
   }
 
   return hydrated;
