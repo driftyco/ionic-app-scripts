@@ -375,7 +375,7 @@ $TAB_CONTENT
     const fileName = 'settings-view';
     const suppliedName = 'settings view';
 
-    it('should return a succesfull promise', () => {
+    it('should return a succesful promise', () => {
       let rejected = false;
 
       util.tabsModuleManipulation([['/src/pages/cool-tab-one/cool-tab-one.module.ts']], { name: suppliedName, className: className, fileName: fileName }, [{ name: suppliedName, className: className, fileName: fileName }]).catch(() => {
@@ -389,6 +389,37 @@ $TAB_CONTENT
       spyOn(helpers, helpers.writeFileAsync.name).and.throwError;
 
       expect(util.tabsModuleManipulation([['/src/pages/cool-tab-one/cool-tab-one.module.ts']], { name: suppliedName, className: className, fileName: fileName }, [{ name: suppliedName, className: className, fileName: fileName }])).toThrow();
+    });
+  });
+
+  describe('nonPageFileManipulation', () => {
+    const componentsDir = '/path/to/components';
+    const directivesDir = '/path/to/directives';
+    const pagesDir = '/path/to/pages';
+    const pipesDir = '/path/to/pipes';
+    const providersDir = '/path/to/providers';
+
+    const context = { componentsDir, directivesDir, pagesDir, pipesDir, providersDir };
+
+    beforeEach(() => {
+      const templateDir = '/Users/noone/project/node_modules/ionic-angular/templates';
+      spyOn(helpers, helpers.getPropertyValue.name).and.returnValue(templateDir);
+    });
+
+    it('should return a succesful promise', () => {
+      let rejected = false;
+
+      util.nonPageFileManipulation(context, 'coolStuff', '/src/pages/cool-tab-one/cool-tab-one.module.ts', 'pipe').catch(() => {
+        rejected = true;
+      });
+
+      expect(rejected).toBeFalsy();
+    });
+
+    it('should throw when files are not written succesfully', () => {
+      spyOn(helpers, helpers.writeFileAsync.name).and.throwError;
+
+      expect(util.nonPageFileManipulation(context, 'coolStuff', '/src/pages/cool-tab-one/cool-tab-one.module.ts', 'pipe')).toThrow();
     });
   });
 });
