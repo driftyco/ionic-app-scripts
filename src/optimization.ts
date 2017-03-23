@@ -3,7 +3,7 @@ import { Logger } from './logger/logger';
 import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
 import * as Constants from './util/constants';
 import { BuildError } from './util/errors';
-import { getBooleanPropertyValue, webpackStatsToDependencyMap, printDependencyMap, unlinkAsync } from './util/helpers';
+import { getBooleanPropertyValue, webpackStatsToDependencyMap, printDependencyMap } from './util/helpers';
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { runWebpackFullBuild, WebpackConfig } from './webpack';
 import { purgeDecorators } from './optimization/decorators';
@@ -32,17 +32,14 @@ function optimizationWorker(context: BuildContext, configFile: string): Promise<
         printDependencyMap(dependencyMap);
         Logger.debug('Original Dependency Map End');
       }
-      return deleteOptimizationJsFile(join(webpackConfig.output.path, webpackConfig.output.filename));
+
+      context.fileCache.remove(join(webpackConfig.output.path, webpackConfig.output.filename));
     }).then(() => {
       return doOptimizations(context, dependencyMap);
     });
   } else {
     return Promise.resolve();
   }
-}
-
-export function deleteOptimizationJsFile(fileToDelete: string) {
-  return unlinkAsync(fileToDelete);
 }
 
 export function doOptimizations(context: BuildContext, dependencyMap: Map<string, Set<string>>) {
