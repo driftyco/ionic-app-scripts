@@ -23,20 +23,16 @@ export function babili(context: BuildContext, configFile?: string) {
 export function babiliWorker(context: BuildContext, configFile: string) {
   const babiliConfig: BabiliConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
   // TODO - figure out source maps??
-  return runBabili(context, babiliConfig);
+  return runBabili(context);
 }
 
-function runBabili(context: BuildContext, config: BabiliConfig) {
-  return runBabiliImpl(context);
-}
-
-function runBabiliImpl(context: BuildContext) {
+export function runBabili(context: BuildContext) {
   // TODO - is there a better way to run this?
   return new Promise((resolve, reject) => {
-    if (!context.rootDir) {
+    if (!context.nodeModulesDir) {
       return reject(new Error('Babili failed because the context passed did not have a rootDir'));
     }
-    const babiliPath = join(context.rootDir, 'node_modules', '.bin', 'babili');
+    const babiliPath = join(context.nodeModulesDir, '.bin', 'babili');
     const command = spawn(babiliPath, [context.buildDir, '--out-dir', context.buildDir]);
     command.on('close', (code: number) => {
       if (code !== 0) {
