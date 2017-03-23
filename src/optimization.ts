@@ -33,13 +33,18 @@ function optimizationWorker(context: BuildContext, configFile: string): Promise<
         Logger.debug('Original Dependency Map End');
       }
 
-      context.fileCache.remove(join(webpackConfig.output.path, webpackConfig.output.filename));
+      purgeGeneratedFiles(context, webpackConfig.output.filename);
     }).then(() => {
       return doOptimizations(context, dependencyMap);
     });
   } else {
     return Promise.resolve();
   }
+}
+
+export function purgeGeneratedFiles(context: BuildContext, fileNameSuffix: string) {
+  const buildFiles = context.fileCache.getAll().filter(file => file.path.indexOf(context.buildDir) >= 0 && file.path.indexOf(fileNameSuffix) >= 0);
+  buildFiles.forEach(buildFile => context.fileCache.remove(buildFile.path));
 }
 
 export function doOptimizations(context: BuildContext, dependencyMap: Map<string, Set<string>>) {

@@ -1,11 +1,11 @@
-import { join } from 'path';
+import { readdirSync } from 'fs';
+import { extname, join } from 'path';
+
 import * as uglify from 'uglify-js';
 
 import { Logger } from './logger/logger';
-import { extname } from 'path';
-import { readdirSync, writeFileSync } from 'fs';
 import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
-import { BuildError } from './util/errors';
+import { writeFileAsync } from './util/helpers';
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { runWorker } from './worker-client';
 
@@ -27,33 +27,27 @@ export function uglifyjs(context: BuildContext, configFile?: string) {
 
 
 export function uglifyjsWorker(context: BuildContext, configFile: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    try {
-      // provide a full path for the config options
-      context = generateContext(context);
-      const files = readdirSync(context.buildDir);
+  return Promise.resolve().then(() => {
+    // provide a full path for the config options
+    context = generateContext(context);
+    const files = readdirSync(context.buildDir);
+    const promises: Promise<any>[] = [];
+    for (const file of files) {
+      if (extname(file) === '.js' && file.indexOf('polyfills') === -1 && file.indexOf('sw-toolbox') === -1 && file.indexOf('.map') === -1) {
+        const uglifyJsConfig: UglifyJsConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+        uglifyJsConfig.sourceFile = join(context.buildDir, file);
+        uglifyJsConfig.inSourceMap = join(context.buildDir, file + '.map');
+        uglifyJsConfig.destFileName = join(context.buildDir, file);
+        uglifyJsConfig.outSourceMap = join(context.buildDir, file + '.map');
 
-      files.forEach((file) => {
-        if (extname(file) === '.js' && file.indexOf('polyfills') === -1 && file.indexOf('sw-toolbox') === -1) {
-          const uglifyJsConfig: UglifyJsConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
-          uglifyJsConfig.sourceFile = join(context.buildDir, file);
-          uglifyJsConfig.inSourceMap = join(context.buildDir, uglifyJsConfig.inSourceMap);
-          uglifyJsConfig.destFileName = join(context.buildDir, file);
+        const minifyOutput: uglify.MinifyOutput = runUglifyInternal(uglifyJsConfig);
 
-          const minifiedOutputPath = join(context.buildDir, uglifyJsConfig.outSourceMap);
-          const minifyOutput: uglify.MinifyOutput = runUglifyInternal(uglifyJsConfig);
-
-
-          writeFileSync(uglifyJsConfig.destFileName, minifyOutput.code);
-          writeFileSync(minifiedOutputPath, minifyOutput.map);
-
-          resolve();
-        }
-      });
-
-    } catch (e) {
-      reject(new BuildError(e));
+        promises.push(writeFileAsync(uglifyJsConfig.destFileName, minifyOutput.code.toString()));
+        promises.push(writeFileAsync(uglifyJsConfig.outSourceMap, minifyOutput.map.toString()));
+      }
     }
+
+    return Promise.all(promises);
   });
 }
 
