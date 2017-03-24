@@ -1,44 +1,71 @@
-import * as uglifyjs from './uglifyjs';
-import * as configUtil from './util/config';
-import * as workerClient from './worker-client';
+import * as fs from 'fs';
+import { join } from 'path';
 
-describe('uglifyjs function', () => {
-  beforeEach(() => {
-    spyOn(configUtil, 'getUserConfigFile').and.returnValue('fileContents');
-    spyOn(workerClient, 'runWorker').and.returnValue(Promise.resolve());
-  });
+import * as uglifyLib from 'uglify-js';
 
-  it('should call workerClient function', () => {
-    const context = {};
-    const configFile = 'configFileContents';
+import * as helpers from './util/helpers';
+import * as uglifyTask from './uglifyjs';
 
-    return uglifyjs.uglifyjs(context, configFile).then(() => {
-      expect(configUtil.getUserConfigFile).toHaveBeenCalledWith(context, uglifyjs.taskInfo, configFile);
-      expect(workerClient.runWorker).toHaveBeenCalledWith('uglifyjs', 'uglifyjsWorker', context, 'fileContents');
-    });
-  });
 
-  it('should fail because it does not have a valid build context', () => {
-    const context: null = null;
-    const configFile = 'configFileContents';
+describe('uglifyjs', () => {
+  describe('uglifyjsWorkerImpl', () => {
+    it('should call uglify for the appropriate files', () => {
+      const buildDir = join('some', 'fake', 'dir', 'myApp', 'www', 'build');
+      const context = {
+        buildDir: buildDir
+      };
+      const fileNames = ['polyfills.js', 'sw-toolbox.js', '0.main.js', '0.main.js.map', '1.main.js', '1.main.js.map', 'main.js', 'main.js.map'];
+      const mockMinfiedResponse = {
+        code: 'code',
+        map: 'map'
+      };
+      const mockUglifyConfig = {
+        mangle: true,
+        compress: true
+      };
 
-    expect(uglifyjs.uglifyjs(context, configFile)).toThrow();
-  });
+      spyOn(fs, 'readdirSync').and.returnValue(fileNames);
+      const uglifySpy = spyOn(uglifyLib, 'minify').and.returnValue(mockMinfiedResponse);
+      const writeFileSpy = spyOn(helpers, helpers.writeFileAsync.name).and.returnValue(Promise.resolve());
 
-  it('should fail because it does not have a valid config file', () => {
-    const context = {};
-    const configFile: null = null;
+      const promise = uglifyTask.uglifyjsWorkerImpl(context, mockUglifyConfig);
 
-    expect(uglifyjs.uglifyjs(context, configFile)).toThrow();
-  });
+      return promise.then(() => {
+        expect(uglifyLib.minify).toHaveBeenCalledTimes(3);
+        expect(uglifySpy.calls.all()[0].args[0]).toEqual(join(buildDir, '0.main.js'));
+        expect(uglifySpy.calls.all()[0].args[1].compress).toEqual(true);
+        expect(uglifySpy.calls.all()[0].args[1].mangle).toEqual(true);
+        expect(uglifySpy.calls.all()[0].args[1].inSourceMap).toEqual(join(buildDir, '0.main.js.map'));
+        expect(uglifySpy.calls.all()[0].args[1].outSourceMap).toEqual(join(buildDir, '0.main.js.map'));
 
-  it('should not fail if a config is not passed', () => {
-    const context = {};
-    let configFile: any;
+        expect(uglifySpy.calls.all()[1].args[0]).toEqual(join(buildDir, '1.main.js'));
+        expect(uglifySpy.calls.all()[1].args[1].compress).toEqual(true);
+        expect(uglifySpy.calls.all()[1].args[1].mangle).toEqual(true);
+        expect(uglifySpy.calls.all()[1].args[1].inSourceMap).toEqual(join(buildDir, '1.main.js.map'));
+        expect(uglifySpy.calls.all()[1].args[1].outSourceMap).toEqual(join(buildDir, '1.main.js.map'));
 
-    return uglifyjs.uglifyjs(context).then(() => {
-      expect(configUtil.getUserConfigFile).toHaveBeenCalledWith(context, uglifyjs.taskInfo, configFile);
-      expect(workerClient.runWorker).toHaveBeenCalledWith('uglifyjs', 'uglifyjsWorker', context, 'fileContents');
+        expect(uglifySpy.calls.all()[2].args[0]).toEqual(join(buildDir, 'main.js'));
+        expect(uglifySpy.calls.all()[2].args[1].compress).toEqual(true);
+        expect(uglifySpy.calls.all()[2].args[1].mangle).toEqual(true);
+        expect(uglifySpy.calls.all()[2].args[1].inSourceMap).toEqual(join(buildDir, 'main.js.map'));
+        expect(uglifySpy.calls.all()[2].args[1].outSourceMap).toEqual(join(buildDir, 'main.js.map'));
+
+        expect(writeFileSpy).toHaveBeenCalledTimes(6);
+        expect(writeFileSpy.calls.all()[0].args[0]).toEqual(join(buildDir, '0.main.js'));
+        expect(writeFileSpy.calls.all()[0].args[1]).toEqual(mockMinfiedResponse.code);
+        expect(writeFileSpy.calls.all()[1].args[0]).toEqual(join(buildDir, '0.main.js.map'));
+        expect(writeFileSpy.calls.all()[1].args[1]).toEqual(mockMinfiedResponse.map);
+
+        expect(writeFileSpy.calls.all()[2].args[0]).toEqual(join(buildDir, '1.main.js'));
+        expect(writeFileSpy.calls.all()[2].args[1]).toEqual(mockMinfiedResponse.code);
+        expect(writeFileSpy.calls.all()[3].args[0]).toEqual(join(buildDir, '1.main.js.map'));
+        expect(writeFileSpy.calls.all()[3].args[1]).toEqual(mockMinfiedResponse.map);
+
+        expect(writeFileSpy.calls.all()[4].args[0]).toEqual(join(buildDir, 'main.js'));
+        expect(writeFileSpy.calls.all()[4].args[1]).toEqual(mockMinfiedResponse.code);
+        expect(writeFileSpy.calls.all()[5].args[0]).toEqual(join(buildDir, 'main.js.map'));
+        expect(writeFileSpy.calls.all()[5].args[1]).toEqual(mockMinfiedResponse.map);
+      });
     });
   });
 });

@@ -25,16 +25,21 @@ export function uglifyjs(context: BuildContext, configFile?: string) {
     });
 }
 
-
 export function uglifyjsWorker(context: BuildContext, configFile: string): Promise<any> {
+  const uglifyJsConfig: UglifyJsConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+  if (!context) {
+    context = generateContext(context);
+  }
+  return uglifyjsWorkerImpl(context, uglifyJsConfig);
+}
+
+export function uglifyjsWorkerImpl(context: BuildContext, uglifyJsConfig: UglifyJsConfig) {
   return Promise.resolve().then(() => {
     // provide a full path for the config options
-    context = generateContext(context);
     const files = readdirSync(context.buildDir);
     const promises: Promise<any>[] = [];
     for (const file of files) {
       if (extname(file) === '.js' && file.indexOf('polyfills') === -1 && file.indexOf('sw-toolbox') === -1 && file.indexOf('.map') === -1) {
-        const uglifyJsConfig: UglifyJsConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
         uglifyJsConfig.sourceFile = join(context.buildDir, file);
         uglifyJsConfig.inSourceMap = join(context.buildDir, file + '.map');
         uglifyJsConfig.destFileName = join(context.buildDir, file);
@@ -50,7 +55,6 @@ export function uglifyjsWorker(context: BuildContext, configFile: string): Promi
     return Promise.all(promises);
   });
 }
-
 
 function runUglifyInternal(uglifyJsConfig: UglifyJsConfig): uglify.MinifyOutput {
   return uglify.minify(uglifyJsConfig.sourceFile, {
@@ -73,11 +77,11 @@ export const taskInfo: TaskInfo = {
 
 export interface UglifyJsConfig {
   // https://www.npmjs.com/package/uglify-js
-  sourceFile: string;
-  destFileName: string;
-  inSourceMap: string;
-  outSourceMap: string;
-  mangle: boolean;
-  compress: boolean;
-  comments: boolean;
+  sourceFile?: string;
+  destFileName?: string;
+  inSourceMap?: string;
+  outSourceMap?: string;
+  mangle?: boolean;
+  compress?: boolean;
+  comments?: boolean;
 }
