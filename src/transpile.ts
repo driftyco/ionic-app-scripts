@@ -333,11 +333,13 @@ function transpileBundleImpl(context: BuildContext, target: ts.ScriptTarget) {
   }
 }
 
+export async function getTsConfigAsync(context: BuildContext, tsConfigPath?: string): Promise<TsConfig> {
+  return await getTsConfig(context, tsConfigPath);
+}
 
 export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsConfig {
   let config: TsConfig = null;
   tsConfigPath = tsConfigPath || getTsConfigPath(context);
-
   const tsConfigFile = ts.readConfigFile(tsConfigPath, path => readFileSync(path, 'utf8'));
 
   if (!tsConfigFile) {

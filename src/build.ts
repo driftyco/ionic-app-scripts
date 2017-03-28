@@ -10,6 +10,7 @@ import { lint, lintUpdate } from './lint';
 import { Logger } from './logger/logger';
 import { minifyCss, minifyJs } from './minify';
 import { ngc } from './ngc';
+import { getTsConfigAsync, TsConfig } from './transpile';
 import { postprocess } from './postprocess';
 import { preprocess, preprocessUpdate } from './preprocess';
 import { sass, sassUpdate } from './sass';
@@ -34,20 +35,20 @@ export function build(context: BuildContext) {
 function buildWorker(context: BuildContext) {
   return Promise.resolve().then(() => {
     // load any 100% required files to ensure they exist
-    return validateRequiredFilesExist();
+    return validateRequiredFilesExist(context);
   })
-  .then(([_, tsConfigContents]) => {
-    return validateTsConfigSettings(tsConfigContents);
-  })
-  .then(() => {
-    return buildProject(context);
-  });
+    .then(([_, tsConfigContents]) => {
+      return validateTsConfigSettings(tsConfigContents);
+    })
+    .then(() => {
+      return buildProject(context);
+    });
 }
 
-function validateRequiredFilesExist() {
+function validateRequiredFilesExist(context: BuildContext) {
   return Promise.all([
     readFileAsync(process.env[Constants.ENV_APP_ENTRY_POINT]),
-    readFileAsync(process.env[Constants.ENV_TS_CONFIG])
+    getTsConfigAsync(context, process.env[Constants.ENV_TS_CONFIG])
   ]).catch((error) => {
     if (error.code === 'ENOENT' && error.path === process.env[Constants.ENV_APP_ENTRY_POINT]) {
       error = new BuildError(`${error.path} was not found. The "main.dev.ts" and "main.prod.ts" files have been deprecated. Please create a new file "main.ts" containing the content of "main.dev.ts", and then delete the deprecated files.
@@ -68,15 +69,12 @@ function validateRequiredFilesExist() {
   });
 }
 
-function validateTsConfigSettings(tsConfigFileContents: string) {
+function validateTsConfigSettings(tsConfigFileContents: TsConfig) {
 
   return new Promise((resolve, reject) => {
     try {
-      const tsConfigJson = JSON.parse(tsConfigFileContents);
-      const isValid = tsConfigJson.hasOwnProperty('compilerOptions') &&
-        tsConfigJson.compilerOptions.hasOwnProperty('sourceMap') &&
-        tsConfigJson.compilerOptions.sourceMap === true;
-
+      const isValid = tsConfigFileContents.options &&
+        tsConfigFileContents.options.sourceMap === true;
       if (!isValid) {
         const error = new BuildError(['The "tsconfig.json" file must have compilerOptions.sourceMap set to true.',
           'For more information please see the default Ionic project tsconfig.json file here:',
@@ -285,7 +283,7 @@ function buildUpdateTasks(changedFiles: ChangedFile[], context: BuildContext) {
             filePath: outputCssFile
           };
 
-          context.fileCache.set(outputCssFile, { path: outputCssFile, content: outputCssFile});
+          context.fileCache.set(outputCssFile, { path: outputCssFile, content: outputCssFile });
 
           resolveValue.changedFiles.push(changedFile);
         });
@@ -299,7 +297,7 @@ function buildUpdateTasks(changedFiles: ChangedFile[], context: BuildContext) {
             filePath: outputCssFile
           };
 
-          context.fileCache.set(outputCssFile, { path: outputCssFile, content: outputCssFile});
+          context.fileCache.set(outputCssFile, { path: outputCssFile, content: outputCssFile });
 
           resolveValue.changedFiles.push(changedFile);
         });
@@ -324,7 +322,7 @@ function loadFiles(changedFiles: ChangedFile[], context: BuildContext) {
       const promise = readFileAsync(changedFile.filePath);
       promises.push(promise);
       promise.then((content: string) => {
-        context.fileCache.set(changedFile.filePath, { path: changedFile.filePath, content: content});
+        context.fileCache.set(changedFile.filePath, { path: changedFile.filePath, content: content });
       });
     }
   }
