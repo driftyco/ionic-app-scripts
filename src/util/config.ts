@@ -42,7 +42,7 @@ export function generateContext(context?: BuildContext): BuildContext {
 
   context.runMinifyJs = [
     context.runMinifyJs,
-    context.isProd || hasArg('--minifyJs')
+    (context.isProd && !hasArg('--noMinifyJs')) || hasArg('--minifyJs')
   ].find(val => typeof val === 'boolean');
 
   context.runMinifyCss = [
