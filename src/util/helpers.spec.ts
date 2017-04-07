@@ -358,4 +358,5 @@ describe('helpers', () => {
       expect(helpers.pascalCase('TestString')).toEqual('TestString');
     });
   });
+
 });

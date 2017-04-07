@@ -14,11 +14,11 @@ import {
 
 import { Logger } from '../logger/logger';
 import * as Constants from '../util/constants';
-import { getStringPropertyValue } from '../util/helpers';
+import { getStringPropertyValue, isIonicOrAngular, isSrcOrIonicOrIonicDeps } from '../util/helpers';
 import { MagicString } from '../util/interfaces';
-import { getNodeStringContent, findNodes, getTypescriptSourceFile } from '../util/typescript-utils';
+import { findNodes, getTypescriptSourceFile } from '../util/typescript-utils';
 
-export function addPureAnnotation(filePath: string, originalFileContent: string, ionicAngularDir: string, angularDir: string, srcDir: string, magicString: MagicString) {
+export function addPureAnnotation(filePath: string, originalFileContent: string, magicString: MagicString) {
   Logger.debug(`[decorators] addPureAnnotation: processing ${filePath} ...`);
   const typescriptFile = getTypescriptSourceFile(filePath, originalFileContent);
   const parenthesizedExpressions = findNodes(typescriptFile, typescriptFile, SyntaxKind.ParenthesizedExpression, false) as ParenthesizedExpression[];
@@ -48,8 +48,8 @@ export function addPureAnnotation(filePath: string, originalFileContent: string,
   return magicString;
 }
 
-export function purgeTranspiledDecorators(filePath: string, originalFileContent: string, ionicAngularDir: string, angularDir: string, srcDir: string, magicString: MagicString) {
-  if (filePath.indexOf(angularDir) >= 0 || filePath.indexOf(ionicAngularDir) >= 0 || filePath.indexOf(srcDir) >= 0) {
+export function purgeTranspiledDecorators(filePath: string, originalFileContent: string, magicString: MagicString) {
+  if (isSrcOrIonicOrIonicDeps(filePath)) {
     Logger.debug(`[decorators] purgeTranspiledDecorators: processing ${filePath} ...`);
     const typescriptFile = getTypescriptSourceFile(filePath, originalFileContent);
     const expressionsToRemove = getTranspiledDecoratorExpressionStatements(typescriptFile);
@@ -114,8 +114,8 @@ function getTranspiledDecoratorExpressionStatements(sourceFile: SourceFile) {
   return toReturn;
 }
 
-export function purgeStaticFieldDecorators(filePath: string, originalFileContent: string, ionicAngularDir: string, angularDir: string, srcDir: string, magicString: MagicString) {
-  if (filePath.indexOf(angularDir) >= 0 || filePath.indexOf(ionicAngularDir) >= 0 || filePath.indexOf(srcDir) >= 0) {
+export function purgeStaticFieldDecorators(filePath: string, originalFileContent: string, magicString: MagicString) {
+  if (isSrcOrIonicOrIonicDeps(filePath)) {
     Logger.debug(`[decorators] purgeStaticFieldDecorators: processing ${filePath} ...`);
     const typescriptFile = getTypescriptSourceFile(filePath, originalFileContent);
 
@@ -130,10 +130,10 @@ export function purgeStaticFieldDecorators(filePath: string, originalFileContent
   return magicString;
 }
 
-export function purgeStaticCtorFields(filePath: string, originalFileContent: string, ionicAngularDir: string, angularDir: string, srcDir: string, magicString: MagicString) {
+export function purgeStaticCtorFields(filePath: string, originalFileContent: string, magicString: MagicString) {
   // TODO - we could extend this to other libs and stuff too such as material 2, but that doesn't seem
   // particularly maintainable
-  if ((filePath.indexOf(angularDir) >= 0 || filePath.indexOf(ionicAngularDir) >= 0) && !isIonicEntryComponent(filePath)) {
+  if (isIonicOrAngular(filePath) && !isIonicEntryComponent(filePath)) {
     Logger.debug(`[decorators] purgeStaticCtorFields: processing ${filePath} ...`);
     const typescriptFile = getTypescriptSourceFile(filePath, originalFileContent);
     const expressionStatements = findNodes(typescriptFile, typescriptFile, SyntaxKind.ExpressionStatement, false) as ExpressionStatement[];

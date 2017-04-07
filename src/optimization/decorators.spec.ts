@@ -1,12 +1,12 @@
 import { join } from 'path';
-import * as decorators from './decorators';
 
 import * as MagicString from 'magic-string';
 
+import * as decorators from './decorators';
+import * as helpers from '../util/helpers';
+
 const baseDir = join(process.cwd(), 'myApp');
 const ionicAngular = join(baseDir, 'node_modules', 'ionic-angular');
-const angularDir = join(baseDir, 'node_modules', '@angular');
-const srcDir = join(baseDir, 'src');
 
 
 describe('optimization', () => {
@@ -243,7 +243,8 @@ some more content
       // act
       let magicString = new MagicString(knownContent);
       const entryPoint = join(ionicAngular, 'index.js');
-      magicString = decorators.purgeStaticFieldDecorators(entryPoint, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      spyOn(helpers, helpers.isSrcOrIonicOrIonicDeps.name).and.returnValue(true);
+      magicString = decorators.purgeStaticFieldDecorators(entryPoint, knownContent, magicString);
       const result = magicString.toString();
 
       // assert
@@ -288,7 +289,8 @@ ActionSheetController.ctorParameters = function () { return [
 
       let magicString = new MagicString(knownContent);
       const entryPoint = join(ionicAngular, 'index.js');
-      magicString = decorators.purgeStaticFieldDecorators(entryPoint, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      spyOn(helpers, helpers.isSrcOrIonicOrIonicDeps.name).and.returnValue(true);
+      magicString = decorators.purgeStaticFieldDecorators(entryPoint, knownContent, magicString);
       const result = magicString.toString();
       expect(result).toEqual(knownContent);
     });
@@ -777,7 +779,8 @@ export function provideLocationStrategy(platformLocationStrategy, baseHref, conf
 `;
       let magicString = new MagicString(knownContent);
       const entryPoint = join(ionicAngular, 'index.js');
-      magicString = decorators.purgeStaticFieldDecorators(entryPoint, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      spyOn(helpers, helpers.isSrcOrIonicOrIonicDeps.name).and.returnValue(true);
+      magicString = decorators.purgeStaticFieldDecorators(entryPoint, knownContent, magicString);
       const result = magicString.toString();
       expect(result.indexOf(ionicModuleDecorator)).toEqual(-1);
     });
@@ -993,7 +996,8 @@ let actionSheetIds = -1;
 
       let magicString = new MagicString(knownContent);
       const filePath = join(ionicAngular, 'components', 'action-sheet', 'action-sheet-component.js');
-      magicString = decorators.purgeStaticFieldDecorators(filePath, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      spyOn(helpers, helpers.isSrcOrIonicOrIonicDeps.name).and.returnValue(true);
+      magicString = decorators.purgeStaticFieldDecorators(filePath, knownContent, magicString);
       const result = magicString.toString();
       expect(result.indexOf(decoratorContent)).toEqual(-1);
       expect(result.indexOf(propDecorators)).toEqual(-1);
@@ -1100,7 +1104,8 @@ var _a, _b, _c;
 
       let magicString = new MagicString(knownContent);
       const filePath = join(ionicAngular, 'components', 'action-sheet', 'action-sheet-component.js');
-      magicString = decorators.purgeTranspiledDecorators(filePath, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      spyOn(helpers, helpers.isSrcOrIonicOrIonicDeps.name).and.returnValue(true);
+      magicString = decorators.purgeTranspiledDecorators(filePath, knownContent, magicString);
       const result: string = magicString.toString();
       expect(result.indexOf(inputDecorator)).toEqual(-1);
       expect(result.indexOf(outputDecorator)).toEqual(-1);
@@ -1275,7 +1280,8 @@ var _a, _b;
 
       let magicString = new MagicString(knownContent);
       const filePath = join(ionicAngular, 'components', 'action-sheet', 'action-sheet-component.js');
-      magicString = decorators.purgeTranspiledDecorators(filePath, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      spyOn(helpers, helpers.isSrcOrIonicOrIonicDeps.name).and.returnValue(true);
+      magicString = decorators.purgeTranspiledDecorators(filePath, knownContent, magicString);
       const result: string = magicString.toString();
       expect(result.indexOf(injectableDecorator)).toBeGreaterThan(1);
     });
@@ -1326,7 +1332,8 @@ export { DashPage };
 
       let magicString = new MagicString(knownContent);
       const filePath = join(ionicAngular, 'components', 'action-sheet', 'action-sheet-component.js');
-      magicString = decorators.purgeTranspiledDecorators(filePath, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      spyOn(helpers, helpers.isSrcOrIonicOrIonicDeps.name).and.returnValue(true);
+      magicString = decorators.purgeTranspiledDecorators(filePath, knownContent, magicString);
       const result: string = magicString.toString();
       expect(result.indexOf(selectDecorator)).toBeGreaterThan(1);
     });
@@ -1402,7 +1409,7 @@ var _a, _b, _c;
 
       let magicString = new MagicString(knownContent);
       const filePath = join(ionicAngular, 'components', 'action-sheet', 'action-sheet-component.js');
-      magicString = decorators.addPureAnnotation(filePath, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      magicString = decorators.addPureAnnotation(filePath, knownContent, magicString);
       const result: string = magicString.toString();
       expect(result).toEqual(expectedContent);
     });
@@ -1510,7 +1517,7 @@ function CardContent_tsickle_Closure_declarations() {
 
       let magicString = new MagicString(knownContent);
       const filePath = join(ionicAngular, 'components', 'action-sheet', 'action-sheet-component.js');
-      magicString = decorators.addPureAnnotation(filePath, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      magicString = decorators.addPureAnnotation(filePath, knownContent, magicString);
       const result: string = magicString.toString();
       expect(result).toEqual(expectedContent);
     });
@@ -1570,7 +1577,8 @@ function Badge_tsickle_Closure_declarations() {
 
       let magicString = new MagicString(knownContent);
       const filePath = join(ionicAngular, 'components', 'badge', 'badge.js');
-      magicString = decorators.purgeStaticCtorFields(filePath, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      spyOn(helpers, helpers.isIonicOrAngular.name).and.returnValue(true);
+      magicString = decorators.purgeStaticCtorFields(filePath, knownContent, magicString);
       const result: string = magicString.toString();
       expect(result.indexOf(ctorParams)).toEqual(-1);
     });
@@ -1604,7 +1612,8 @@ function Avatar_tsickle_Closure_declarations() {
 
       let magicString = new MagicString(knownContent);
       const filePath = join(ionicAngular, 'components', 'badge', 'badge.js');
-      magicString = decorators.purgeStaticCtorFields(filePath, knownContent, ionicAngular, angularDir, srcDir, magicString);
+      spyOn(helpers, helpers.isIonicOrAngular.name).and.returnValue(true);
+      magicString = decorators.purgeStaticCtorFields(filePath, knownContent, magicString);
       const result: string = magicString.toString();
       expect(result.indexOf(ctorParams)).toEqual(-1);
     });

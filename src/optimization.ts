@@ -82,10 +82,10 @@ function removeDecorators(context: BuildContext) {
   const jsFiles = context.fileCache.getAll().filter(file => extname(file.path) === '.js');
   jsFiles.forEach(jsFile => {
     let magicString = new MagicString(jsFile.content);
-    magicString = purgeStaticFieldDecorators(jsFile.path, jsFile.content, getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR), getStringPropertyValue(Constants.ENV_VAR_AT_ANGULAR_DIR), context.srcDir, magicString);
-    magicString = purgeStaticCtorFields(jsFile.path, jsFile.content, getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR), getStringPropertyValue(Constants.ENV_VAR_AT_ANGULAR_DIR), context.srcDir, magicString);
-    magicString = purgeTranspiledDecorators(jsFile.path, jsFile.content, getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR), getStringPropertyValue(Constants.ENV_VAR_AT_ANGULAR_DIR), context.srcDir, magicString);
-    magicString = addPureAnnotation(jsFile.path, jsFile.content, getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR), getStringPropertyValue(Constants.ENV_VAR_AT_ANGULAR_DIR), context.srcDir, magicString);
+    magicString = purgeStaticFieldDecorators(jsFile.path, jsFile.content, magicString);
+    magicString = purgeStaticCtorFields(jsFile.path, jsFile.content, magicString);
+    magicString = purgeTranspiledDecorators(jsFile.path, jsFile.content, magicString);
+    magicString = addPureAnnotation(jsFile.path, jsFile.content, magicString);
     jsFile.content = magicString.toString();
     const sourceMap = magicString.generateMap({
       source: basename(jsFile.path),

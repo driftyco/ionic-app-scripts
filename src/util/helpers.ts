@@ -447,3 +447,15 @@ export function removeCaseFromString(input: string, inReplacement?: string) {
 
   return modified.toLowerCase();
 }
+
+export function isSrcOrIonicOrIonicDeps(filePath: string) {
+  return (filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_AT_ANGULAR_DIR))
+    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR))
+    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_RXJS_DIR))
+    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_SRC_DIR)));
+}
+
+export function isIonicOrAngular(filePath: string) {
+  return (filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_AT_ANGULAR_DIR))
+    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR)));
+}

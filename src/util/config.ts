@@ -119,6 +119,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_VAR_AT_ANGULAR_DIR, angularDir);
   Logger.debug(`angularDir set to ${angularDir}`);
 
+  const rxjsDir = resolve(getConfigValue(context, '--rxjsDir', null, Constants.ENV_VAR_RXJS_DIR, Constants.ENV_VAR_RXJS_DIR.toLowerCase(), join(context.nodeModulesDir, Constants.RXJS)));
+  setProcessEnvVar(Constants.ENV_VAR_RXJS_DIR, rxjsDir);
+  Logger.debug(`rxjsDir set to ${rxjsDir}`);
+
   const ionicAngularTemplatesDir = join(context.ionicAngularDir, 'templates');
   setProcessEnvVar(Constants.ENV_VAR_IONIC_ANGULAR_TEMPLATE_DIR, ionicAngularTemplatesDir);
   Logger.debug(`ionicAngularTemplatesDir set to ${ionicAngularTemplatesDir}`);
@@ -194,6 +198,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   const webpackLoaderPath = join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'loader.js');
   setProcessEnvVar(Constants.ENV_WEBPACK_LOADER, webpackLoaderPath);
   Logger.debug(`webpackLoaderPath set to ${webpackLoaderPath}`);
+
+  const webpackTranspileLoaderPath = join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'transpile-loader.js');
+  setProcessEnvVar(Constants.ENV_WEBPACK_TRANSPILE_LOADER, webpackTranspileLoaderPath);
+  Logger.debug(`webpackTranspileLoaderPath set to ${webpackTranspileLoaderPath}`);
 
   const optimizationLoaderPath = join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'optimization-loader.js');
   setProcessEnvVar(Constants.ENV_OPTIMIZATION_LOADER, optimizationLoaderPath);
@@ -304,6 +312,7 @@ export function generateContext(context?: BuildContext): BuildContext {
 
   // default stand-alone builds to default to es5
   // if closure is being used, don't worry about this as it already automatically converts to ES5
+
   const buildToEs5 = getConfigValue(context, '--buildToEs5', null, Constants.ENV_BUILD_TO_ES5, Constants.ENV_BUILD_TO_ES5.toLowerCase(), useExperimentalClosure ? null : 'true');
   setProcessEnvVar(Constants.ENV_BUILD_TO_ES5, buildToEs5);
   Logger.debug(`buildToEs5 set to ${buildToEs5}`);
