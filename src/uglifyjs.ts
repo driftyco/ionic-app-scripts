@@ -63,11 +63,7 @@ export function uglifyjsWorkerImpl(context: BuildContext, uglifyJsConfig: Uglify
 
 function runUglifyInternal(uglifyJsConfig: UglifyJsConfig): uglify.MinifyOutput {
   return uglify.minify(uglifyJsConfig.sourceFile, {
-    compress: {
-      unused: true,
-      dead_code: true,
-      toplevel: true
-    },
+    compress: uglifyJsConfig.compress,
     mangle: uglifyJsConfig.mangle,
     inSourceMap : uglifyJsConfig.inSourceMap,
     outSourceMap: uglifyJsConfig.outSourceMap
