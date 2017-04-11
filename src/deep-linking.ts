@@ -33,14 +33,14 @@ export function deepLinking(context: BuildContext) {
 
 
 function deepLinkingWorker(context: BuildContext) {
-  return deepLinkingWorkerImpl(context, null);
+  return deepLinkingWorkerImpl(context, []);
 }
 
 export function deepLinkingWorkerImpl(context: BuildContext, changedFiles: ChangedFile[]) {
   return Promise.resolve().then(() => {
     const appNgModulePath = getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH);
     const appNgModuleFile = context.fileCache.get(appNgModulePath);
-    if (!cachedUnmodifiedAppNgModuleFileContent) {
+    if (!cachedUnmodifiedAppNgModuleFileContent || hasAppModuleChanged(changedFiles, appNgModulePath)) {
       cachedUnmodifiedAppNgModuleFileContent = appNgModuleFile.content;
     }
 
@@ -53,19 +53,29 @@ export function deepLinkingWorkerImpl(context: BuildContext, changedFiles: Chang
     const deepLinkConfigEntries = getDeepLinkData(appNgModulePath, context.fileCache, context.runAot) || [];
     if (deepLinkConfigEntries.length) {
       const newDeepLinkString = convertDeepLinkConfigEntriesToString(deepLinkConfigEntries);
-      if (!cachedDeepLinkString) {
-        // this is the first time running this, so update the build either way
-        cachedDeepLinkString = newDeepLinkString;
-        updateAppNgModuleAndFactoryWithDeepLinkConfig(context, newDeepLinkString, changedFiles, context.runAot);
-      } else if (newDeepLinkString !== cachedDeepLinkString) {
-        // we have an existing deep link string, and we have a new one, and they're different
-        // so go ahead and update the config
+
+      // 1. this is the first time running this, so update the build either way
+      // 2. we have an existing deep link string, and we have a new one, and they're different - so go ahead and update the config
+      // 3. the app's main ngmodule has changed, so we need to rewrite the config
+      if (!cachedDeepLinkString || newDeepLinkString !== cachedDeepLinkString || hasAppModuleChanged(changedFiles, appNgModulePath)) {
         cachedDeepLinkString = newDeepLinkString;
         updateAppNgModuleAndFactoryWithDeepLinkConfig(context, newDeepLinkString, changedFiles, context.runAot);
       }
     }
     return deepLinkConfigEntries;
   });
+}
+
+export function hasAppModuleChanged(changedFiles: ChangedFile[], appNgModulePath: string) {
+  if (!changedFiles) {
+    changedFiles = [];
+  }
+  for (const changedFile of changedFiles) {
+    if (changedFile.filePath === appNgModulePath) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function deepLinkingUpdate(changedFiles: ChangedFile[], context: BuildContext) {
