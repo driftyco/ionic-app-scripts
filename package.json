@@ -62,16 +62,16 @@
     "xml2js": "^0.4.17"
   },
   "devDependencies": {
-    "@angular/common": "4.0.0",
-    "@angular/compiler": "4.0.0",
-    "@angular/compiler-cli": "4.0.0",
-    "@angular/core": "4.0.0",
-    "@angular/forms": "4.0.0",
-    "@angular/http": "4.0.0",
-    "@angular/platform-browser": "4.0.0",
-    "@angular/platform-browser-dynamic": "4.0.0",
-    "@angular/platform-server": "4.0.0",
-    "@angular/tsc-wrapped": "4.0.0",
+    "@angular/common": "4.0.2",
+    "@angular/compiler": "4.0.2",
+    "@angular/compiler-cli": "4.0.2",
+    "@angular/core": "4.0.2",
+    "@angular/forms": "4.0.2",
+    "@angular/http": "4.0.2",
+    "@angular/platform-browser": "4.0.2",
+    "@angular/platform-browser-dynamic": "4.0.2",
+    "@angular/platform-server": "4.0.2",
+    "@angular/tsc-wrapped": "4.0.2",
     "@types/chalk": "^0.4.30",
     "@types/chokidar": "1.4.29",
     "@types/clean-css": "^3.4.29",
@@ -97,7 +97,7 @@
     "sw-toolbox": "3.4.0",
     "tslint-ionic-rules": "0.0.8",
     "typescript": "~2.2.1",
-    "zone.js": "^0.7.2"
+    "zone.js": "^0.8.5"
   },
   "peerDependencies": {
     "@angular/core": "*",
