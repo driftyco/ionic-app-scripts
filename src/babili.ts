@@ -45,7 +45,7 @@ export function runBabili(context: BuildContext) {
 
 export const taskInfo: TaskInfo = {
   fullArg: '--babili',
-  shortArg: null,
+  shortArg: '-b',
   envVar: 'IONIC_BABILI',
   packageConfig: 'ionic_babili',
   defaultConfigFile: 'babili.config'
