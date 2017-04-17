@@ -307,6 +307,7 @@ export async function getTsConfigAsync(context: BuildContext, tsConfigPath?: str
 export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsConfig {
   let config: TsConfig = null;
   tsConfigPath = tsConfigPath || getTsConfigPath(context);
+
   const tsConfigFile = ts.readConfigFile(tsConfigPath, path => readFileSync(path, 'utf8'));
 
   if (!tsConfigFile) {
