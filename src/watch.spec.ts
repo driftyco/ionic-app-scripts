@@ -1,4 +1,4 @@
-import * as path from 'path';
+import { join, resolve } from 'path';
 
 import * as build from './build';
 import { BuildContext, BuildState, ChangedFile } from './util/interfaces';
@@ -127,7 +127,7 @@ describe('watch', () => {
         ext: '.ts'
       }];
       context.bundleState = BuildState.SuccessfulBuild;
-      const resolvedFilePath = path.resolve('file1.ts');
+      const resolvedFilePath = resolve('file1.ts');
       context.fileCache.set(resolvedFilePath, { path: 'file1.ts', content: 'content' });
       watch.runBuildUpdate(context, files);
       expect(context.transpileState).toEqual(BuildState.RequiresUpdate);
@@ -141,7 +141,7 @@ describe('watch', () => {
         filePath: 'file1.ts',
         ext: '.ts'
       }];
-      const resolvedFilePath = path.resolve('file1.ts');
+      const resolvedFilePath = resolve('file1.ts');
       context.fileCache.set(resolvedFilePath, { path: 'file1.ts', content: 'content' });
       watch.runBuildUpdate(context, files);
       expect(context.transpileState).toEqual(BuildState.RequiresUpdate);
@@ -201,37 +201,37 @@ describe('watch', () => {
     });
 
     it('should set replacePathVars when options.ignored is a string', () => {
-      const watcher: watch.Watcher = { options: { ignored: '{{SRC}}/**/*.spec.ts' } };
-      const context: BuildContext = { srcDir: '/some/src/' };
+      const watcher: watch.Watcher = { options: { ignored: join('{{SRC}}', '**', '*.spec.ts') } };
+      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src')};
       watch.prepareWatcher(context, watcher);
-      expect(watcher.options.ignored).toEqual('/some/src/**/*.spec.ts');
+      expect(watcher.options.ignored).toEqual(join(process.cwd(), 'some', 'src', '**', '*.spec.ts'));
     });
 
     it('should set replacePathVars when options.ignored is an array of strings', () => {
-      const watcher: watch.Watcher = { options: { ignored: ['{{SRC}}/**/*.spec.ts', '{{SRC}}/index.html'] } };
-      const context: BuildContext = { srcDir: '/some/src/' };
+      const watcher: watch.Watcher = { options: { ignored: [join('{{SRC}}', '**', '*.spec.ts'), join('{{SRC}}', 'index.html')] } };
+      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src')};
       watch.prepareWatcher(context, watcher);
-      expect((watcher.options.ignored as string[])[0]).toEqual('/some/src/**/*.spec.ts');
-      expect((watcher.options.ignored as string[])[1]).toEqual('/some/src/index.html');
+      expect((watcher.options.ignored as string[])[0]).toEqual(join(process.cwd(), 'some', 'src', '**', '*.spec.ts'));
+      expect((watcher.options.ignored as string[])[1]).toEqual(join(process.cwd(), 'some', 'src', 'index.html'));
     });
 
     it('should set replacePathVars when paths is an array', () => {
       const watcher: watch.Watcher = { paths: [
-        '{{SRC}}/some/path1',
-        '{{SRC}}/some/path2'
+        join('{{SRC}}', 'some', 'path1'),
+        join('{{SRC}}', 'some', 'path2')
       ] };
-      const context: BuildContext = { srcDir: '/some/src/' };
+      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src')};
       watch.prepareWatcher(context, watcher);
       expect(watcher.paths.length).toEqual(2);
-      expect(watcher.paths[0]).toEqual('/some/src/some/path1');
-      expect(watcher.paths[1]).toEqual('/some/src/some/path2');
+      expect(watcher.paths[0]).toEqual(join(process.cwd(), 'some', 'src', 'some', 'path1'));
+      expect(watcher.paths[1]).toEqual(join(process.cwd(), 'some', 'src', 'some', 'path2'));
     });
 
     it('should set replacePathVars when paths is a string', () => {
-      const watcher: watch.Watcher = { paths: '{{SRC}}/some/path' };
-      const context: BuildContext = { srcDir: '/some/src/' };
+      const watcher: watch.Watcher = { paths: join('{{SRC}}', 'some', 'path')};
+      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src')};
       watch.prepareWatcher(context, watcher);
-      expect(watcher.paths).toEqual('/some/src/some/path');
+      expect(watcher.paths).toEqual(join(process.cwd(), 'some', 'src', 'some', 'path'));
     });
 
     it('should not set options.ignoreInitial if it was provided', () => {

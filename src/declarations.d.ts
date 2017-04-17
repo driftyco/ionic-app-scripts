@@ -1,5 +1,6 @@
 declare module 'autoprefixer';
 declare module 'cross-spawn';
+declare module 'magic-string';
 declare module 'mime-types';
 declare module 'proxyquire';
 declare module 'os-name';

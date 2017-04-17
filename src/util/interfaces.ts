@@ -17,8 +17,11 @@ export interface BuildContext {
   wwwDir?: string;
   wwwIndex?: string;
   buildDir?: string;
+  outputJsFileName?: string;
+  outputCssFileName?: string;
   nodeModulesDir?: string;
   ionicAngularDir?: string;
+  bundledFilePaths?: string[];
   moduleFiles?: string[];
   appNgModulePath?: string;
   isProd?: boolean;
@@ -199,3 +202,9 @@ export interface WebpackModule {
 export interface WebpackDependency {
   moduleIdentifier: string;
 };
+
+export interface MagicString {
+  overwrite(startIndex: number, endIndex: number, newContent: string): void;
+  toString(): string;
+  prependLeft(index: number, contentToPrepend: string): string;
+}

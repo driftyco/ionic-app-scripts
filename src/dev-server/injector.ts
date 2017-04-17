@@ -1,4 +1,4 @@
-import { getAppScriptsVersion, getSystemInfo } from '../util/helpers';
+import { getAppScriptsVersion, getSystemText } from '../util/helpers';
 import { LOGGER_DIR } from './serve-config';
 
 
@@ -32,7 +32,7 @@ function getDevLoggerScript(rootDir: string, notifyOnConsoleLog: boolean, notifi
     sendConsoleLogs: notifyOnConsoleLog,
     wsPort: notificationPort,
     appScriptsVersion: appScriptsVersion,
-    systemInfo: getSystemInfo(rootDir)
+    systemInfo: getSystemText(rootDir)
   });
 
   return `

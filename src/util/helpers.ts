@@ -24,7 +24,7 @@ export function getAppScriptsPackageJson() {
   return cachedAppScriptsPackageJson;
 }
 
-export function getAppScriptsVersion() {
+export function getAppScriptsVersion(): string {
   const appScriptsPackageJson = getAppScriptsPackageJson();
   return (appScriptsPackageJson && appScriptsPackageJson.version) ? appScriptsPackageJson.version : '';
 }
@@ -36,37 +36,47 @@ function getUserPackageJson(userRootDir: string) {
   return null;
 }
 
-export function getSystemInfo(userRootDir: string) {
+export function getSystemText(userRootDir: string) {
+  const systemData = getSystemData(userRootDir);
   const d: string[] = [];
 
-  let ionicAppScripts = getAppScriptsVersion();
-  let ionicFramework: string = null;
-  let ionicNative: string = null;
-  let angularCore: string = null;
-  let angularCompilerCli: string = null;
+  d.push(`Ionic Framework: ${systemData.ionicFramework}`);
+  if (systemData.ionicNative) {
+    d.push(`Ionic Native: ${systemData.ionicNative}`);
+  }
+  d.push(`Ionic App Scripts: ${systemData.ionicAppScripts}`);
+  d.push(`Angular Core: ${systemData.angularCore}`);
+  d.push(`Angular Compiler CLI: ${systemData.angularCompilerCli}`);
+  d.push(`Node: ${systemData.node}`);
+  d.push(`OS Platform: ${systemData.osName}`);
+
+  return d;
+}
+
+
+export function getSystemData(userRootDir: string) {
+  const d = {
+    ionicAppScripts: getAppScriptsVersion(),
+    ionicFramework: '',
+    ionicNative: '',
+    angularCore: '',
+    angularCompilerCli: '',
+    node: process.version.replace('v', ''),
+    osName: osName()
+  };
 
   try {
     const userPackageJson = getUserPackageJson(userRootDir);
     if (userPackageJson) {
       const userDependencies = userPackageJson.dependencies;
       if (userDependencies) {
-        ionicFramework = userDependencies['ionic-angular'];
-        ionicNative = userDependencies['ionic-native'];
-        angularCore = userDependencies['@angular/core'];
-        angularCompilerCli = userDependencies['@angular/compiler-cli'];
+        d.ionicFramework = userDependencies['ionic-angular'];
+        d.ionicNative = userDependencies['ionic-native'];
+        d.angularCore = userDependencies['@angular/core'];
+        d.angularCompilerCli = userDependencies['@angular/compiler-cli'];
       }
     }
   } catch (e) {}
-
-  d.push(`Ionic Framework: ${ionicFramework}`);
-  if (ionicNative) {
-    d.push(`Ionic Native: ${ionicNative}`);
-  }
-  d.push(`Ionic App Scripts: ${ionicAppScripts}`);
-  d.push(`Angular Core: ${angularCore}`);
-  d.push(`Angular Compiler CLI: ${angularCompilerCli}`);
-  d.push(`Node: ${process.version.replace('v', '')}`);
-  d.push(`OS Platform: ${osName()}`);
 
   return d;
 }
@@ -135,7 +145,7 @@ export function readAndCacheFile(filePath: string, purge: boolean = false): Prom
   });
 }
 
-export function unlinkAsync(filePath: string|string[]) {
+export function unlinkAsync(filePath: string|string[]): Promise<any> {
   let filePaths: string[];
 
   if (typeof filePath === 'string') {
@@ -379,6 +389,15 @@ export function buildErrorToJson(buildError: BuildError) {
   };
 }
 
+export function jsonToBuildError(nonTypedBuildError: any) {
+  const error = new BuildError(new Error(nonTypedBuildError.message));
+  error.name = nonTypedBuildError.name;
+  error.stack = nonTypedBuildError.stack;
+  error.hasBeenLogged = nonTypedBuildError.hasBeenLogged;
+  error.isFatal = nonTypedBuildError.isFatal;
+  return error;
+}
+
 export function upperCaseFirst(input: string) {
   if (input.length > 1) {
     return input.charAt(0).toUpperCase() + input.substr(1);
@@ -427,4 +446,20 @@ export function removeCaseFromString(input: string, inReplacement?: string) {
     .replace(NON_WORD_REGEXP, replace);
 
   return modified.toLowerCase();
+}
+
+export function isSrcOrIonicOrIonicDeps(filePath: string) {
+  return (filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_AT_ANGULAR_DIR))
+    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR))
+    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_RXJS_DIR))
+    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_SRC_DIR)));
+}
+
+export function isIonicOrAngular(filePath: string) {
+  return (filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_AT_ANGULAR_DIR))
+    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR)));
+}
+
+export function isIonic(filePath: string) {
+  return filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR));
 }

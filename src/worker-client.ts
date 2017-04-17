@@ -1,5 +1,6 @@
 import { BuildContext, WorkerProcess, WorkerMessage } from './util/interfaces';
 import { BuildError } from './util/errors';
+import { jsonToBuildError } from './util/helpers';
 import { Logger } from './logger/logger';
 import { fork, ChildProcess } from 'child_process';
 import { join } from 'path';
@@ -20,6 +21,7 @@ export function runWorker(taskModule: string, taskWorker: string, context: Build
         wwwDir: context.wwwDir,
         wwwIndex: context.wwwIndex,
         buildDir: context.buildDir,
+        bundledFilePaths: context.bundledFilePaths,
         isProd: context.isProd,
         isWatch: context.isWatch,
         runAot: context.runAot,
@@ -37,7 +39,8 @@ export function runWorker(taskModule: string, taskWorker: string, context: Build
         reject(new BuildError(msg.error));
 
       } else if (msg.reject) {
-        reject(new BuildError(msg.reject));
+        const buildError = jsonToBuildError(msg.reject);
+        reject(buildError);
 
       } else {
         resolve(msg.resolve);

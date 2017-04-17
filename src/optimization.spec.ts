@@ -18,7 +18,9 @@ describe('optimization task', () => {
       };
 
       spyOn(helpers, helpers.getBooleanPropertyValue.name).and.returnValue(false);
-      spyOn(decorators, decorators.purgeDecorators.name);
+      spyOn(decorators, decorators.purgeStaticFieldDecorators.name);
+      spyOn(decorators, decorators.purgeStaticCtorFields.name);
+      spyOn(decorators, decorators.purgeTranspiledDecorators.name);
       spyOn(treeshake, treeshake.calculateUnusedComponents.name);
 
       // act
@@ -26,14 +28,16 @@ describe('optimization task', () => {
 
       // assert
       expect(result).toBeTruthy();
-      expect(decorators.purgeDecorators).not.toHaveBeenCalled();
+      expect(decorators.purgeStaticFieldDecorators).not.toHaveBeenCalled();
+      expect(decorators.purgeStaticCtorFields).not.toHaveBeenCalled();
+      expect(decorators.purgeTranspiledDecorators).not.toHaveBeenCalled();
       expect(treeshake.calculateUnusedComponents).not.toHaveBeenCalled();
     });
   });
 
   describe('purgeGeneratedFiles', () => {
     it('should remove files in buildDir with suffix from the cache', () => {
-      const buildDir = '/some/fake/dir/myApp/www/build';
+      const buildDir = join(process.cwd(), 'some', 'fake', 'dir', 'myApp', 'www', 'build');
       const context = {
         fileCache: new FileCache(),
         buildDir: buildDir
@@ -43,9 +47,9 @@ describe('optimization task', () => {
       const filePathTwo = join(buildDir, `1.${suffix}`);
       const filePathThree = join(buildDir, `main.js`);
       const filePathFour = join(buildDir, `main.css`);
-      const filePathFive = join('some', 'fake', 'dir', 'myApp', 'src', `app.ts`);
-      const filePathSix = join('some', 'fake', 'dir', 'myApp', 'src', `app.js`);
-      const filePathSeven = join('some', 'fake', 'dir', 'myApp', 'src', 'pages', `1.${suffix}`);
+      const filePathFive = join(process.cwd(), 'some', 'fake', 'dir', 'myApp', 'src', `app.ts`);
+      const filePathSix = join(process.cwd(), 'some', 'fake', 'dir', 'myApp', 'src', `app.js`);
+      const filePathSeven = join(process.cwd(), 'some', 'fake', 'dir', 'myApp', 'src', 'pages', `1.${suffix}`);
       context.fileCache.set(filePathOne, { path: filePathOne, content: filePathOne});
       context.fileCache.set(filePathTwo, { path: filePathTwo, content: filePathTwo});
       context.fileCache.set(filePathThree, { path: filePathThree, content: filePathThree});

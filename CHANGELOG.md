@@ -1,3 +1,78 @@
+<a name="1.3.3"></a>
+## [1.3.3](https://github.com/driftyco/ionic-app-scripts/compare/v1.3.2...v1.3.3) (2017-04-14)
+
+
+### Bug Fixes
+
+* **optimizations:** temporarily do not purge ctor params from any of angular ([212146c](https://github.com/driftyco/ionic-app-scripts/commit/212146c))
+
+
+
+<a name="1.3.2"></a>
+## [1.3.2](https://github.com/driftyco/ionic-app-scripts/compare/v1.3.1...v1.3.2) (2017-04-12)
+
+
+### Bug Fixes
+
+* **deep-linking:** fix bug with null deep link config when modifying the main NgModule file (app.module.ts) ([759bb4f](https://github.com/driftyco/ionic-app-scripts/commit/759bb4f))
+* **optimization:** don't purge ctorParams for angular core or angular platform browser ([9562181](https://github.com/driftyco/ionic-app-scripts/commit/9562181))
+* **uglifyjs:** only minify files processed by webpack or rollup ([30ecdd8](https://github.com/driftyco/ionic-app-scripts/commit/30ecdd8))
+
+
+
+<a name="1.3.1"></a>
+## [1.3.1](https://github.com/driftyco/ionic-app-scripts/compare/v1.3.0...v1.3.1) (2017-04-06)
+
+
+### Bug Fixes
+
+* **config:** revert change and once again transpile bundle by default. ([b558584](https://github.com/driftyco/ionic-app-scripts/commit/b558584))
+* **decorators:** don't remove third party transpiled (not static) decorators ([3a3259a](https://github.com/driftyco/ionic-app-scripts/commit/3a3259a))
+* **deep-linking:** don't force the main bundle to be re-built unless the deep link config changed ([02b8e97](https://github.com/driftyco/ionic-app-scripts/commit/02b8e97))
+* **errors:** better error msg reporting from worker threads ([d9d000a](https://github.com/driftyco/ionic-app-scripts/commit/d9d000a))
+* **uglifyjs:** better error msg reporting ([49c0afb](https://github.com/driftyco/ionic-app-scripts/commit/49c0afb))
+
+
+
+<a name="1.3.0"></a>
+# [1.3.0](https://github.com/driftyco/ionic-app-scripts/compare/v1.2.5...v1.3.0) (2017-04-05)
+
+
+### Features
+
+* **optimization:** purge decorators enabled by default ([b626e00](https://github.com/driftyco/ionic-app-scripts/commit/b626e00))
+* **optimizations:** purge transpiled decorators ([ba5e0cd](https://github.com/driftyco/ionic-app-scripts/commit/ba5e0cd))
+
+
+
+<a name="1.2.5"></a>
+## [1.2.5](https://github.com/driftyco/ionic-app-scripts/compare/v1.2.4...v1.2.5) (2017-03-31)
+
+
+### Bug Fixes
+
+* **webpack:** fixes bugs where some third party libs didn't load correctly ([e7559e5](https://github.com/driftyco/ionic-app-scripts/commit/e7559e5))
+
+
+
+<a name="1.2.4"></a>
+## [1.2.4](https://github.com/driftyco/ionic-app-scripts/compare/v1.2.3...v1.2.4) (2017-03-30)
+
+### Refactor
+* **deep-linking:** set default segment value to filename without extension([5a97ba5](https://github.com/driftyco/ionic-app-scripts/commit/5a97ba5))
+
+<a name="1.2.3"></a>
+## [1.2.3](https://github.com/driftyco/ionic-app-scripts/compare/v1.2.2...v1.2.3) (2017-03-29)
+
+
+### Bug Fixes
+
+* **deep-linking:** Deep linking fixes for Windows and non-unix paths
+
+* **script:** linux only accepts one argument after shebang, so revert giving app-scripts more memory by default ([0999f23](https://github.com/driftyco/ionic-app-scripts/commit/0999f23)), closes [#838](https://github.com/driftyco/ionic-app-scripts/issues/838)
+
+
+
 <a name="1.2.2"></a>
 ## [1.2.2](https://github.com/driftyco/ionic-app-scripts/compare/v1.2.1...v1.2.2) (2017-03-27)
 

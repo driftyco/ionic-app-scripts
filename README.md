@@ -1,3 +1,5 @@
+[![npm version](https://img.shields.io/npm/v/@ionic/app-scripts.svg)](https://www.npmjs.com/package/@ionic/app-scripts)
+[![Circle CI](https://circleci.com/gh/driftyco/ionic-app-scripts.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/driftyco/ionic-app-scripts)
 # Ionic App Scripts
 
 Helper scripts to get [Ionic apps](http://ionicframework.com/) up and running quickly (minus the config overload).
@@ -260,4 +262,4 @@ Execute the following steps to publish a release:
 7. Run `npm version patch` to tick the version and generate a git tag
 8. Run `npm run github-release` to create the github release entry
 9. Run `npm publish` to publish the package to npm
-10. git push origin master - push changes to master
+10. `git push origin master` - push changes to master

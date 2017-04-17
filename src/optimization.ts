@@ -1,12 +1,15 @@
-import { extname, join } from 'path';
+import { basename, extname } from 'path';
+
+import * as MagicString from 'magic-string';
+
 import { Logger } from './logger/logger';
 import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
 import * as Constants from './util/constants';
 import { BuildError } from './util/errors';
-import { getBooleanPropertyValue, webpackStatsToDependencyMap, printDependencyMap } from './util/helpers';
+import { getBooleanPropertyValue, getStringPropertyValue, webpackStatsToDependencyMap, printDependencyMap } from './util/helpers';
 import { BuildContext, TaskInfo } from './util/interfaces';
 import { runWebpackFullBuild, WebpackConfig } from './webpack';
-import { purgeDecorators } from './optimization/decorators';
+import { addPureAnnotation, purgeStaticCtorFields, purgeStaticFieldDecorators, purgeTranspiledDecorators } from './optimization/decorators';
 import { getAppModuleNgFactoryPath, calculateUnusedComponents, purgeUnusedImportsAndExportsFromIndex, purgeComponentNgFactoryImportAndUsage, purgeProviderControllerImportAndUsage, purgeProviderClassNameFromIonicModuleForRoot } from './optimization/treeshake';
 
 export function optimization(context: BuildContext, configFile: string) {
@@ -50,7 +53,7 @@ export function purgeGeneratedFiles(context: BuildContext, fileNameSuffix: strin
 export function doOptimizations(context: BuildContext, dependencyMap: Map<string, Set<string>>) {
   // remove decorators
   const modifiedMap = new Map(dependencyMap);
-  if (getBooleanPropertyValue(Constants.ENV_EXPERIMENTAL_PURGE_DECORATORS)) {
+  if (getBooleanPropertyValue(Constants.ENV_PURGE_DECORATORS)) {
     removeDecorators(context);
   }
 
@@ -70,7 +73,7 @@ export function doOptimizations(context: BuildContext, dependencyMap: Map<string
 }
 
 function optimizationEnabled() {
-  const purgeDecorators = getBooleanPropertyValue(Constants.ENV_EXPERIMENTAL_PURGE_DECORATORS);
+  const purgeDecorators = getBooleanPropertyValue(Constants.ENV_PURGE_DECORATORS);
   const manualTreeshaking = getBooleanPropertyValue(Constants.ENV_EXPERIMENTAL_MANUAL_TREESHAKING);
   return purgeDecorators || manualTreeshaking;
 }
@@ -78,7 +81,19 @@ function optimizationEnabled() {
 function removeDecorators(context: BuildContext) {
   const jsFiles = context.fileCache.getAll().filter(file => extname(file.path) === '.js');
   jsFiles.forEach(jsFile => {
-    jsFile.content = purgeDecorators(jsFile.path, jsFile.content);
+    let magicString = new MagicString(jsFile.content);
+    magicString = purgeStaticFieldDecorators(jsFile.path, jsFile.content, magicString);
+    magicString = purgeStaticCtorFields(jsFile.path, jsFile.content, magicString);
+    magicString = purgeTranspiledDecorators(jsFile.path, jsFile.content, magicString);
+    magicString = addPureAnnotation(jsFile.path, jsFile.content, magicString);
+    jsFile.content = magicString.toString();
+    const sourceMap = magicString.generateMap({
+      source: basename(jsFile.path),
+      file: basename(jsFile.path),
+      includeContent: true
+    });
+    const sourceMapPath = jsFile.path + '.map';
+    context.fileCache.set(sourceMapPath, { path: sourceMapPath, content: sourceMap.toString()});
   });
 }
 
