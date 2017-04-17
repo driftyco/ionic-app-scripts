@@ -1,3 +1,4 @@
+import { join } from 'path';
 import * as loader from './loader-impl';
 import *  as helpers from '../util/helpers';
 
@@ -28,7 +29,7 @@ describe('webpack loader', () => {
     const mockContext = getMockContext();
     const mockSourceMap = { };
     const sourceString = 'sourceString';
-    const fakePath = '/some/path/content.js';
+    const fakePath = join(process.cwd(), 'some', 'path', 'content.js');
     const fakeContent = 'SomeFileContent';
     const mockWebpackObject = getMockWebpackObject(fakePath);
     const spy = jasmine.createSpy('mock webpack callback');
@@ -61,7 +62,7 @@ describe('webpack loader', () => {
 
     const mockSourceMap = { };
     const sourceString = 'sourceString';
-    const fakePath = '/some/path/content.js';
+    const fakePath = join(process.cwd(), 'some', 'path', 'content.js');
     const fakeContent = `{"test": "test"}`;
     const mockWebpackObject = getMockWebpackObject(fakePath);
     const spy = jasmine.createSpy('mock webpack callback');
@@ -99,7 +100,7 @@ describe('webpack loader', () => {
     const mockContext = getMockContext();
     const mockSourceMap = { };
     const sourceString = 'sourceString';
-    const fakePath = '/some/path/content.js';
+    const fakePath = join(process.cwd(), 'some', 'path', 'content.js');
     const mockWebpackObject = getMockWebpackObject(fakePath);
     const spy = jasmine.createSpy('mock webpack callback');
     spy.and.callFake(() => {
@@ -128,7 +129,7 @@ describe('webpack loader', () => {
     const mockContext = getMockContext();
     const mockSourceMap = { };
     const sourceString = 'sourceString';
-    const fakePath = '/some/path/content.js';
+    const fakePath = join(process.cwd(), 'some', 'path', 'content.js');
     const fakeContent = `{"test": "test"}`;
     const mockWebpackObject = getMockWebpackObject(fakePath);
     const callbackSpy = jasmine.createSpy('mock webpack callback');

@@ -17,7 +17,7 @@ import {
 import { Logger } from '../logger/logger';
 import * as Constants from '../util/constants';
 import { FileCache } from '../util/file-cache';
-import { changeExtension, getStringPropertyValue, replaceAll } from '../util/helpers';
+import { changeExtension, getStringPropertyValue, replaceAll, toUnixPath } from '../util/helpers';
 import { BuildContext, ChangedFile, DeepLinkConfigEntry, DeepLinkDecoratorAndClass, DeepLinkPathInfo, File } from '../util/interfaces';
 import {
   appendAfter,
@@ -81,14 +81,14 @@ export function getNgModuleDataFromPage(appNgModuleFilePath: string, filePath: s
 
   return {
     absolutePath: absolutePath,
-    userlandModulePath: userlandModulePath,
+    userlandModulePath: toUnixPath(userlandModulePath),
     className: namedExport
   };
 }
 
 export function getDeepLinkDecoratorContentForSourceFile(sourceFile: SourceFile): DeepLinkDecoratorAndClass {
   const classDeclarations = getClassDeclarations(sourceFile);
-
+  const defaultSegment = basename(changeExtension(sourceFile.fileName, ''));
   const list: DeepLinkDecoratorAndClass[] = [];
 
   classDeclarations.forEach(classDeclaration => {
@@ -107,7 +107,7 @@ export function getDeepLinkDecoratorContentForSourceFile(sourceFile: SourceFile)
           }
 
           const deepLinkName = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, className, DEEPLINK_DECORATOR_NAME_ATTRIBUTE);
-          const deepLinkSegment = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, null, DEEPLINK_DECORATOR_SEGMENT_ATTRIBUTE);
+          const deepLinkSegment = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, defaultSegment, DEEPLINK_DECORATOR_SEGMENT_ATTRIBUTE);
           const deepLinkPriority = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, 'low', DEEPLINK_DECORATOR_PRIORITY_ATTRIBUTE);
           const deepLinkDefaultHistory = getArrayValueFromDeepLinkDecorator(sourceFile, propertyList, [], DEEPLINK_DECORATOR_DEFAULT_HISTORY_ATTRIBUTE);
           const rawStringContent = getNodeStringContent(sourceFile, decorator.expression);

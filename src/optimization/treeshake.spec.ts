@@ -6,66 +6,71 @@ import * as helpers from '../util/helpers';
 
 let originalEnv: any = null;
 
-const main = '/Users/noone/myApp/app/main.js';
-const appModule = '/Users/noone/myApp/app/app.module.js';
+const baseDir = join(process.cwd(), 'some', 'dir', 'myApp');
+const srcDir = join(baseDir, 'src');
+const main = join(srcDir, 'app', 'main.js');
+const appModule = join(srcDir, 'app', 'app.module.js');
+const nodeModulesDir = join(baseDir, 'node_modules');
+const ionicAngularDir = join(nodeModulesDir, 'ionic-angular');
+const ionicAngularEntryPoint = join(ionicAngularDir, 'index.js');
+const componentDir = join(ionicAngularDir, 'components');
 
 describe('treeshake', () => {
+
+  beforeEach(() => {
+    originalEnv = process.env;
+    let env: any = { };
+    env[Constants.ENV_VAR_IONIC_ANGULAR_DIR] = ionicAngularDir;
+    env[Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT] = ionicAngularEntryPoint;
+    env[Constants.ENV_VAR_SRC_DIR] = srcDir;
+    env[Constants.ENV_APP_ENTRY_POINT] = main;
+    env[Constants.ENV_APP_NG_MODULE_PATH] = appModule;
+    env[Constants.ENV_ACTION_SHEET_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'action-sheet', 'action-sheet-component.ngfactory.js');
+    env[Constants.ENV_ACTION_SHEET_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'action-sheet', 'action-sheet-controller.js');
+    env[Constants.ENV_ALERT_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'alert', 'alert-component.ngfactory.js');
+    env[Constants.ENV_ALERT_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'alert', 'alert-controller.js');
+    env[Constants.ENV_LOADING_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'loading', 'loading-component.ngfactory.js');
+    env[Constants.ENV_LOADING_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'loading', 'loading-controller.js');
+    env[Constants.ENV_MODAL_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'modal', 'modal-component.ngfactory.js');
+    env[Constants.ENV_MODAL_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'modal', 'modal-controller.js');
+    env[Constants.ENV_PICKER_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'picker', 'picker-component.ngfactory.js');
+    env[Constants.ENV_PICKER_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'picker', 'picker-controller.js');
+    env[Constants.ENV_POPOVER_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'popover', 'popover-component.ngfactory.js');
+    env[Constants.ENV_POPOVER_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'popover', 'popover-controller.js');
+    env[Constants.ENV_TOAST_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'toast', 'toast-component.ngfactory.js');
+    env[Constants.ENV_TOAST_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'toast', 'toast-controller.js');
+
+    process.env = env;
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
   describe('calculateTreeShakeResults', () => {
-
-    beforeEach(() => {
-      originalEnv = process.env;
-      let env: any = { };
-      env[Constants.ENV_VAR_IONIC_ANGULAR_DIR] = '/Users/noone/ionic-angular';
-      env[Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT] = '/Users/noone/ionic-angular/index.js';
-      env[Constants.ENV_VAR_SRC_DIR] = '/Users/noone/myApp/';
-      env[Constants.ENV_APP_ENTRY_POINT] = main;
-      env[Constants.ENV_APP_NG_MODULE_PATH] = appModule;
-      env[Constants.ENV_ACTION_SHEET_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'action-sheet', 'action-sheet-component.ngfactory.js');
-      env[Constants.ENV_ACTION_SHEET_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'action-sheet', 'action-sheet-controller.js');
-      env[Constants.ENV_ALERT_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'alert', 'alert-component.ngfactory.js');
-      env[Constants.ENV_ALERT_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'alert', 'alert-controller.js');
-      env[Constants.ENV_LOADING_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'loading', 'loading-component.ngfactory.js');
-      env[Constants.ENV_LOADING_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'loading', 'loading-controller.js');
-      env[Constants.ENV_MODAL_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'modal', 'modal-component.ngfactory.js');
-      env[Constants.ENV_MODAL_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'modal', 'modal-controller.js');
-      env[Constants.ENV_PICKER_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'picker', 'picker-component.ngfactory.js');
-      env[Constants.ENV_PICKER_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'picker', 'picker-controller.js');
-      env[Constants.ENV_POPOVER_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'popover', 'popover-component.ngfactory.js');
-      env[Constants.ENV_POPOVER_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'popover', 'popover-controller.js');
-      env[Constants.ENV_TOAST_COMPONENT_FACTORY_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'toast', 'toast-component.ngfactory.js');
-      env[Constants.ENV_TOAST_CONTROLLER_PATH] = join(env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components', 'toast', 'toast-controller.js');
-
-      process.env = env;
-    });
-
-    afterEach(() => {
-      process.env = originalEnv;
-    });
 
     it('should remove modules that are only imported by index', () => {
       // arrange
 
-      const dependencyOne = '/Users/noone/ionic-angular/components/range.js';
-      const dependencyTwo = '/Users/noone/ionic-angular/components/radio-button.js';
-      const dependencyThree = '/Users/noone/ionic-angular/components/check-box.js';
-
-      const index = '/Users/noone/ionic-angular/index.js';
+      const dependencyOne = join(componentDir, 'range.js');
+      const dependencyTwo = join(componentDir, 'radio-button.js');
+      const dependencyThree = join(componentDir, 'check-box.js');
 
       const dependencyOneSet = new Set<string>();
-      dependencyOneSet.add(index);
+      dependencyOneSet.add(ionicAngularEntryPoint);
 
       const dependencyTwoSet = new Set<string>();
-      dependencyTwoSet.add(index);
+      dependencyTwoSet.add(ionicAngularEntryPoint);
 
       const dependencyThreeSet = new Set<string>();
-      dependencyThreeSet.add(index);
+      dependencyThreeSet.add(ionicAngularEntryPoint);
 
 
       const dependencyMap = new Map<string, Set<string>>();
       dependencyMap.set(dependencyOne, dependencyOneSet);
       dependencyMap.set(dependencyTwo, dependencyTwoSet);
       dependencyMap.set(dependencyThree, dependencyThreeSet);
-      dependencyMap.set(index, new Set<string>());
+      dependencyMap.set(ionicAngularEntryPoint, new Set<string>());
 
       // act
       const results = treeshake.calculateUnusedComponents(dependencyMap);
@@ -82,34 +87,32 @@ describe('treeshake', () => {
     it('should remove other components that are imported only by index or other modules that can be removed (only imported by index)', () => {
       // arrange
 
-      const dependencyOne = '/Users/noone/ionic-angular/components/range.js';
-      const dependencyOneNgFactory = '/Users/noone/ionic-angular/components/range.ngfactory.js';
+      const dependencyOne = join(componentDir, 'range.js');
+      const dependencyOneNgFactory = join(componentDir, 'range.ngfactory.js');
 
-      const dependencyOneHelperOne = '/Users/noone/ionic-angular/components/range/helperOne.js';
-      const dependencyOneHelperTwo = '/Users/noone/ionic-angular/components/range/helperTwo.js';
+      const dependencyOneHelperOne = join(componentDir, 'range', 'helperOne.js');
+      const dependencyOneHelperTwo = join(componentDir, 'range', 'helperTwo.js');
 
-      const dependencyTwo = '/Users/noone/ionic-angular/components/radio-button.js';
-      const dependencyThree = '/Users/noone/ionic-angular/components/check-box.js';
+      const dependencyTwo = join(componentDir, 'radio-button.js');
+      const dependencyThree = join(componentDir, 'check-box.js');
 
-      const dependencyFour = '/Users/noone/ionic-angular/components/badge.js';
-      const dependencyFourNgFactory = '/Users/noone/ionic-angular/components/badge.ngfactory.js';
+      const dependencyFour = join(componentDir, 'badge.js');
+      const dependencyFourNgFactory = join(componentDir, 'badge.ngfactory.js');
 
-      const appModuleNgFactory = '/Users/noone/myApp/app/app.module.ngfactory.js';
+      const appModuleNgFactory = join(srcDir, 'app', 'app.module.ngfactory.js');
 
-      const alert = '/Users/noone/ionic-angular/components/alert/alert.js';
-      const alertController = '/Users/noone/ionic-angular/components/alert/alert-controller.js';
-      const alertComponent = '/Users/noone/ionic-angular/components/alert/alert-component.js';
-      const alertComponentNgFactory = '/Users/noone/ionic-angular/components/alert/alert-component.ngfactory.js';
+      const alert = join(componentDir, 'alert', 'alert.js');
+      const alertController = join(componentDir, 'alert', 'alert-controller.js');
+      const alertComponent = join(componentDir, 'alert', 'alert-component.js');
+      const alertComponentNgFactory = join(componentDir, 'alert', 'alert-component.ngfactory.js');
 
-      const actionSheet = '/Users/noone/ionic-angular/components/action-sheet/action-sheet.js';
-      const actionSheetController = '/Users/noone/ionic-angular/components/action-sheet/action-sheet-controller.js';
-      const actionSheetComponent = '/Users/noone/ionic-angular/components/action-sheet/action-sheet-component.js';
-      const actionSheetComponentNgFactory = '/Users/noone/ionic-angular/components/action-sheet/action-sheet-component.ngfactory.js';
+      const actionSheet = join(componentDir, 'action-sheet', 'action-sheet.js');
+      const actionSheetController = join(componentDir, 'action-sheet', 'action-sheet-controller.js');
+      const actionSheetComponent = join(componentDir, 'action-sheet', 'action-sheet-component.js');
+      const actionSheetComponentNgFactory = join(componentDir, 'action-sheet', 'action-sheet-component.ngfactory.js');
 
-      const home = '/Users/noone/myApp/pages/home.js';
-      const homeNgFactory = '/Users/noone/myApp/pages/home.ngfactory.js';
-
-      const index = '/Users/noone/ionic-angular/index.js';
+      const home = join(srcDir, 'pages', 'home.js');
+      const homeNgFactory = join(srcDir, 'pages', 'home.ngfactory.js');
 
       const appModuleSet = new Set<string>();
       appModuleSet.add(appModuleNgFactory);
@@ -124,7 +127,7 @@ describe('treeshake', () => {
       homeNgFactorySet.add(appModuleNgFactory);
 
       const dependencyOneSet = new Set<string>();
-      dependencyOneSet.add(index);
+      dependencyOneSet.add(ionicAngularEntryPoint);
       dependencyOneSet.add(dependencyOneNgFactory);
       dependencyOneSet.add(home);
 
@@ -132,13 +135,13 @@ describe('treeshake', () => {
       dependencyOneNgFactorySet.add(homeNgFactory);
 
       const dependencyTwoSet = new Set<string>();
-      dependencyTwoSet.add(index);
+      dependencyTwoSet.add(ionicAngularEntryPoint);
 
       const dependencyThreeSet = new Set<string>();
-      dependencyThreeSet.add(index);
+      dependencyThreeSet.add(ionicAngularEntryPoint);
 
       const dependencyFourSet = new Set<string>();
-      dependencyFourSet.add(index);
+      dependencyFourSet.add(ionicAngularEntryPoint);
       dependencyFourSet.add(dependencyFourNgFactory);
       dependencyFourSet.add(home);
 
@@ -152,20 +155,20 @@ describe('treeshake', () => {
 
       const dependencyOneHelperOneSet = new Set<string>();
       dependencyOneHelperOneSet.add(dependencyOne);
-      dependencyOneHelperOneSet.add(index);
+      dependencyOneHelperOneSet.add(ionicAngularEntryPoint);
       const dependencyOneHelperTwoSet = new Set<string>();
       dependencyOneHelperTwoSet.add(dependencyOne);
-      dependencyOneHelperTwoSet.add(index);
+      dependencyOneHelperTwoSet.add(ionicAngularEntryPoint);
 
       const alertSet  = new Set<string>();
       alertSet.add(alertController);
 
       const alertControllerSet = new Set<string>();
-      alertControllerSet.add(index);
+      alertControllerSet.add(ionicAngularEntryPoint);
       alertControllerSet.add(appModuleNgFactory);
 
       const alertComponentSet = new Set<string>();
-      alertComponentSet.add(index);
+      alertComponentSet.add(ionicAngularEntryPoint);
       alertComponentSet.add(alertComponentNgFactory);
 
       const alertComponentNgFactorySet = new Set<string>();
@@ -175,12 +178,12 @@ describe('treeshake', () => {
       actionSheetSet.add(actionSheetController);
 
       const actionSheetControllerSet = new Set<string>();
-      actionSheetControllerSet.add(index);
+      actionSheetControllerSet.add(ionicAngularEntryPoint);
       actionSheetControllerSet.add(appModuleNgFactory);
       actionSheetControllerSet.add(homeNgFactory);
 
       const actionSheetComponentSet = new Set<string>();
-      actionSheetComponentSet.add(index);
+      actionSheetComponentSet.add(ionicAngularEntryPoint);
       actionSheetComponentSet.add(actionSheetComponentNgFactory);
 
       const actionSheetComponentNgFactorySet = new Set<string>();
@@ -199,7 +202,7 @@ describe('treeshake', () => {
       dependencyMap.set(dependencyThree, dependencyThreeSet);
       dependencyMap.set(dependencyFour, dependencyFourSet);
       dependencyMap.set(dependencyFourNgFactory, dependencyFourNgFactorySet);
-      dependencyMap.set(index, indexSet);
+      dependencyMap.set(ionicAngularEntryPoint, indexSet);
       dependencyMap.set(alert, alertSet);
       dependencyMap.set(alertController, alertControllerSet);
       dependencyMap.set(alertComponent, alertComponentSet);
@@ -517,10 +520,10 @@ export { Transition } from './transitions/transition';
 
       // act
 
-      const modulesToPurge = ['/Users/noone/myApp/node_modules/ionic-angular/components/range/range-knob',
-                              '/Users/noone/myApp/node_modules/ionic-angular/components/refresher/refresher',
-                              '/Users/noone/myApp/node_modules/ionic-angular/components/refresher/refresher-content'];
-      const newContent = treeshake.purgeUnusedImportsAndExportsFromIndex('/Users/noone/myApp/node_modules/ionic-angular/index.js', indexFileContent, modulesToPurge);
+      const modulesToPurge = [join(componentDir, 'range', 'range-knob'),
+                              join(componentDir, 'refresher', 'refresher'),
+                              join(componentDir, 'refresher', 'refresher-content')];
+      const newContent = treeshake.purgeUnusedImportsAndExportsFromIndex(ionicAngularEntryPoint, indexFileContent, modulesToPurge);
 
       // assert
       expect(newContent).not.toEqual(indexFileContent);
@@ -1203,9 +1206,9 @@ export const AppModuleNgFactory = new import0.NgModuleFactory(AppModuleInjector,
 //# sourceMappingURL=app.module.ngfactory.js.map
       `;
 
-      const appModuleNgFactoryPath = `/Users/noone/Dev/myApp3/src/app/app.module.ngfactory.js`;
-      const componentFactoryPath = `/Users/noone/Dev/myApp3/node_modules/ionic-angular/components/action-sheet/action-sheet-component.ngfactory.js`;
-      const componentFactoryPath2 = `/Users/noone/Dev/myApp3/node_modules/ionic-angular/components/alert/alert-component.ngfactory.js`;
+      const appModuleNgFactoryPath = join(srcDir, 'app', 'app.module.ngfactory.js');
+      const componentFactoryPath = join(componentDir, 'action-sheet', 'action-sheet-component.ngfactory.js');
+      const componentFactoryPath2 = join(componentDir, 'alert', 'alert-component.ngfactory.js');
 
       // act
       const updatedContent = treeshake.purgeComponentNgFactoryImportAndUsage(appModuleNgFactoryPath, knownContent, componentFactoryPath);
@@ -1232,16 +1235,6 @@ export const AppModuleNgFactory = new import0.NgModuleFactory(AppModuleInjector,
   });
 
   describe('purgeProviderControllerImportAndUsage', () => {
-    beforeEach(() => {
-      originalEnv = process.env;
-      let env: any = { };
-      env[Constants.ENV_VAR_IONIC_ANGULAR_DIR] = '/Users/noone/Dev/myApp3/node_modules/ionic-angular';
-      process.env = env;
-    });
-
-    afterEach(() => {
-      process.env = originalEnv;
-    });
 
     it('should purge the controller provider content', () => {
       // arrange
@@ -1928,11 +1921,9 @@ export const AppModuleNgFactory = new import0.NgModuleFactory(AppModuleInjector,
 //# sourceMappingURL=app.module.ngfactory.js.map
       `;
 
-      const nodeModulesPath = '/Users/noone/Dev/myApp3/node_modules';
-
-      const appModuleNgFactoryPath = `/Users/noone/Dev/myApp3/src/app/app.module.ngfactory.js`;
-      const controllerPath = join(nodeModulesPath, 'ionic-angular', 'components', 'action-sheet', 'action-sheet-controller.js');
-      const controllerPath2 = join(nodeModulesPath, 'ionic-angular', 'components', 'alert', 'alert-controller.js');
+      const appModuleNgFactoryPath = join(srcDir, 'app', 'app.module.ngfactory.js');
+      const controllerPath = join(componentDir, 'action-sheet', 'action-sheet-controller.js');
+      const controllerPath2 = join(componentDir, 'alert', 'alert-controller.js');
 
       // act
 
@@ -1941,8 +1932,8 @@ export const AppModuleNgFactory = new import0.NgModuleFactory(AppModuleInjector,
 
       // assert
       expect(updatedContent).not.toEqual(knownContent);
-      const relativeImportPathOne = helpers.changeExtension(relative(nodeModulesPath, controllerPath), '');
-      const relativeImportPathTwo = helpers.changeExtension(relative(nodeModulesPath, controllerPath2), '');
+      const relativeImportPathOne = helpers.toUnixPath(helpers.changeExtension(relative(nodeModulesDir, controllerPath), ''));
+      const relativeImportPathTwo = helpers.toUnixPath(helpers.changeExtension(relative(nodeModulesDir, controllerPath2), ''));
 
       const importRegexOne = treeshake.generateWildCardImportRegex(relativeImportPathOne);
       const importRegexTwo = treeshake.generateWildCardImportRegex(relativeImportPathTwo);
