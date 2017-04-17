@@ -300,39 +300,6 @@ function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, 
   }
 }
 
-export function transpileBundle(context: BuildContext, target: ts.ScriptTarget = ts.ScriptTarget.ES5) {
-  return Promise.resolve()
-    .then(() => {
-      return transpileBundleImpl(context, target);
-    });
-}
-
-function transpileBundleImpl(context: BuildContext, target: ts.ScriptTarget) {
-  const logger = new Logger('transpile bundle');
-  try {
-    const files = readdirSync(context.buildDir);
-    files.forEach((file) => {
-      if (path.extname(file) === '.js' && file.indexOf('polyfills') === -1 && file.indexOf('sw-toolbox') === -1) {
-        const bundlePath = path.join(context.buildDir, file);
-        const bundleContent = readFileSync(bundlePath).toString();
-        const tsConfig = getTsConfig(context);
-        const transpileOptions: ts.TranspileOptions = {
-          compilerOptions: tsConfig.options,
-          fileName: bundlePath,
-          reportDiagnostics: true
-        };
-        // override the target value
-        transpileOptions.compilerOptions.target = target;
-        const transpiledOutput = ts.transpileModule(bundleContent, transpileOptions);
-        writeFileSync(bundlePath, transpiledOutput.outputText);
-      }
-    });
-    logger.finish();
-  } catch (ex) {
-    throw logger.fail(ex);
-  }
-}
-
 export async function getTsConfigAsync(context: BuildContext, tsConfigPath?: string): Promise<TsConfig> {
   return await getTsConfig(context, tsConfigPath);
 }
