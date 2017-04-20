@@ -43,8 +43,8 @@ export default function (target: string, appName: string | Function, callback?: 
     if (typeof appName === 'string') {
       opener = escape(appName);
     } else {
-      // use Portlands xdg-open everywhere else
-      opener = path.join(__dirname, '../vendor/xdg-open');
+      //use system installed Portlands xdg-open everywhere else
+      opener = 'xdg-open';
     }
     break;
   }
