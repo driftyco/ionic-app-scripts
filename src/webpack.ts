@@ -132,7 +132,7 @@ export function runWebpackFullBuild(config: WebpackConfig) {
           reject(new BuildError(info.errors));
         }
         else if (stats.hasWarnings()) {
-          Logger.warn(info.warnings)
+          Logger.debug(info.warnings)
           resolve(stats);
         }
         else {
