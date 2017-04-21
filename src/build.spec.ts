@@ -1,11 +1,11 @@
 import * as Constants from './util/constants';
 import { BuildContext } from './util/interfaces';
 import * as helpers from './util/helpers';
-import * as build  from './build';
+import * as build from './build';
 
 import * as bundle from './bundle';
 import * as copy from './copy';
-import * as clean  from './clean';
+import * as clean from './clean';
 import * as lint from './lint';
 import * as minify from './minify';
 import * as ngc from './ngc';
@@ -17,15 +17,14 @@ import * as transpile from './transpile';
 describe('build', () => {
   beforeEach(() => {
     spyOn(clean, 'clean');
-    spyOn(helpers, 'readFileAsync').and.callFake(() => {
-      return Promise.resolve(`{
-        "compilerOptions": {
+    spyOn(helpers, helpers.readFileAsync.name).and.returnValue(Promise.resolve());
+    spyOn(transpile, transpile.getTsConfigAsync.name).and.callFake(() => {
+      return Promise.resolve({
+        "options": {
           "sourceMap": true
         }
-      }
-      `);
+      });
     });
-
 
     spyOn(bundle, bundle.bundle.name).and.returnValue(Promise.resolve());
     spyOn(copy, copy.copy.name).and.returnValue(Promise.resolve());
@@ -135,7 +134,7 @@ describe('test project requirements before building', () => {
     spyOn(helpers, 'readFileAsync').and.returnValue(Promise.reject(error));
 
     return build.build({}).catch((e) => {
-      expect(helpers.readFileAsync).toHaveBeenCalledTimes(2);
+      expect(helpers.readFileAsync).toHaveBeenCalledTimes(1);
       expect(e).toEqual(error);
     });
   });
@@ -143,17 +142,14 @@ describe('test project requirements before building', () => {
   it('should fail if IONIC_TS_CONFIG file does not exist', () => {
     process.env[Constants.ENV_APP_ENTRY_POINT] = 'src/app/main.ts';
     process.env[Constants.ENV_TS_CONFIG] = 'tsConfig.js';
-    const error = new Error('App entry point was not found');
+    const error = new Error('Config was not found');
 
-    spyOn(helpers, 'readFileAsync').and.callFake((filePath: string) => {
-      if (filePath === 'src/app/main.ts') {
-        return Promise.resolve('allgood');
-      }
-      return Promise.reject(error);
-    });
+    spyOn(helpers, helpers.readFileAsync.name).and.returnValues(Promise.resolve());
+    spyOn(transpile, transpile.getTsConfigAsync.name).and.returnValues(Promise.reject(error));
 
     return build.build({}).catch((e) => {
-      expect(helpers.readFileAsync).toHaveBeenCalledTimes(2);
+      expect(transpile.getTsConfigAsync).toHaveBeenCalledTimes(1);
+      expect(helpers.readFileAsync).toHaveBeenCalledTimes(1);
       expect(e).toEqual(error);
     });
   });
@@ -161,9 +157,9 @@ describe('test project requirements before building', () => {
   it('should fail fataly if IONIC_TS_CONFIG file does not contain valid JSON', () => {
     process.env[Constants.ENV_APP_ENTRY_POINT] = 'src/app/main.ts';
     process.env[Constants.ENV_TS_CONFIG] = 'tsConfig.js';
-    spyOn(helpers, 'readFileAsync').and.callFake(() => {
+    spyOn(transpile, transpile.getTsConfigAsync.name).and.callFake(() => {
       return Promise.resolve(`{
-        "compilerOptions" {
+        "options" {
           "sourceMap": false
         }
       }
@@ -171,7 +167,7 @@ describe('test project requirements before building', () => {
     });
 
     return build.build({}).catch((e) => {
-      expect(helpers.readFileAsync).toHaveBeenCalledTimes(2);
+      expect(transpile.getTsConfigAsync).toHaveBeenCalledTimes(1);
       expect(e.isFatal).toBeTruthy();
     });
   });
@@ -179,9 +175,9 @@ describe('test project requirements before building', () => {
   it('should fail fataly if IONIC_TS_CONFIG file does not contain compilerOptions.sourceMap === true', () => {
     process.env[Constants.ENV_APP_ENTRY_POINT] = 'src/app/main.ts';
     process.env[Constants.ENV_TS_CONFIG] = 'tsConfig.js';
-    spyOn(helpers, 'readFileAsync').and.callFake(() => {
+    spyOn(transpile, transpile.getTsConfigAsync.name).and.callFake(() => {
       return Promise.resolve(`{
-        "compilerOptions": {
+        "options": {
           "sourceMap": false
         }
       }
@@ -189,7 +185,7 @@ describe('test project requirements before building', () => {
     });
 
     return build.build({}).catch((e) => {
-      expect(helpers.readFileAsync).toHaveBeenCalledTimes(2);
+      expect(transpile.getTsConfigAsync).toHaveBeenCalledTimes(1);
       expect(e.isFatal).toBeTruthy();
     });
   });
@@ -208,18 +204,17 @@ describe('test project requirements before building', () => {
     spyOn(postprocess, postprocess.postprocess.name).and.returnValue(Promise.resolve());
     spyOn(preprocess, preprocess.preprocess.name).and.returnValue(Promise.resolve());
     spyOn(sass, sass.sass.name).and.returnValue(Promise.resolve());
+    spyOn(helpers, helpers.readFileAsync.name).and.returnValue(Promise.resolve());
     spyOn(transpile, transpile.transpile.name).and.returnValue(Promise.resolve());
-    spyOn(helpers, helpers.readFileAsync.name).and.callFake(() => {
-      return Promise.resolve(`{
-        "compilerOptions": {
-          "sourceMap": true
-        }
+    spyOn(transpile, transpile.getTsConfigAsync.name).and.returnValue(Promise.resolve({
+      "options": {
+        "sourceMap": true
       }
-      `);
-    });
+    }));
 
     return build.build({}).then(() => {
-      expect(helpers.readFileAsync).toHaveBeenCalledTimes(2);
+      expect(transpile.getTsConfigAsync).toHaveBeenCalledTimes(1);
+      expect(helpers.readFileAsync).toHaveBeenCalledTimes(1);
     });
   });
 });
