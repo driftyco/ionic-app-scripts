@@ -46,7 +46,7 @@ export function createHttpServer(config: ServeConfig): express.Application {
   app.get('/plugins/*', servePlatformResource);
 
   // Fallback route - send to index.html to allow deeplinker to handle path.
-  app.get('*', serveIndex);
+  app.use(serveIndex);
 
   if (config.useProxy) {
     setupProxies(app);
