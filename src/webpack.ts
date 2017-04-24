@@ -1,9 +1,10 @@
-import { prependIonicGlobal } from './core/ionic-global';
 import { EventEmitter } from 'events';
 import { dirname, join } from 'path';
 
 import * as webpackApi from 'webpack';
 
+import { prependIonicGlobal } from './core/ionic-global';
+import { doesCompilerExist } from './core/bundle-components';
 import { Logger } from './logger/logger';
 import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
 import * as Constants from './util/constants';
@@ -118,7 +119,7 @@ export function writeBundleFilesToDisk(context: BuildContext) {
 
   const mainJsFile = context.fileCache.get(mainJsPath);
   const mainJsMapFile = context.fileCache.get(mainJsMapPath);
-  if (mainJsFile) {
+  if (mainJsFile && doesCompilerExist(context)) {
     const ionicBundle = prependIonicGlobal(context, context.outputJsFileName, mainJsFile.content);
 
     mainJsFile.content = ionicBundle.code;
@@ -140,18 +141,15 @@ export function runWebpackFullBuild(config: WebpackConfig) {
     const callback = (err: Error, stats: any) => {
       if (err) {
         reject(new BuildError(err));
-      }
-      else {
+      } else {
         const info = stats.toJson();
 
         if (stats.hasErrors()) {
           reject(new BuildError(info.errors));
-        }
-        else if (stats.hasWarnings()) {
+        } else if (stats.hasWarnings()) {
           Logger.debug(info.warnings)
           resolve(stats);
-        }
-        else {
+        } else {
           resolve(stats);
         }
       }

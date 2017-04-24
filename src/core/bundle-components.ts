@@ -49,3 +49,22 @@ function getCoreCompiler(context: BuildContext): CoreCompiler {
   }
   return null;
 }
+
+// In serve mode, we only want to do the look-up for the compiler once
+let cachedCompilerModuleResult: CompilerModuleResult = null;
+export function doesCompilerExist(context: BuildContext): boolean {
+  if (!cachedCompilerModuleResult) {
+    const result = getCoreCompiler(context);
+    cachedCompilerModuleResult = {
+      found: result ? true : false,
+      module: result ? result : null
+    };
+  }
+
+  return cachedCompilerModuleResult.found;
+}
+
+interface CompilerModuleResult {
+  found: boolean;
+  module: any;
+};
