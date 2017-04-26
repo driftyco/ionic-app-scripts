@@ -3,6 +3,7 @@ import { join } from 'path';
 import * as optimization from './optimization';
 import * as decorators from './optimization/decorators';
 import * as treeshake from './optimization/treeshake';
+import * as Constants from './util/constants';
 import * as helpers from './util/helpers';
 
 import { FileCache } from './util/file-cache';
@@ -63,6 +64,70 @@ describe('optimization task', () => {
       expect(context.fileCache.getAll().length).toEqual(5);
       expect(context.fileCache.get(filePathOne)).toBeFalsy();
       expect(context.fileCache.get(filePathTwo)).toBeFalsy();
+    });
+  });
+
+  describe('doOptimizations', () => {
+    it('should not manual tree shaking unless the module.js file is in the cache', () => {
+      const context = {
+        fileCache: new FileCache(),
+      };
+
+      const mockIndexPath = join('some', 'path', 'myApp', 'node_modules', 'ionic-angular', 'index.js');
+
+      spyOn(treeshake, treeshake.calculateUnusedComponents.name);
+      spyOn(treeshake, treeshake.purgeUnusedImportsAndExportsFromIndex.name);
+      spyOn(treeshake, treeshake.purgeComponentNgFactoryImportAndUsage.name);
+      spyOn(treeshake, treeshake.purgeProviderControllerImportAndUsage.name);
+      spyOn(treeshake, treeshake.purgeProviderClassNameFromIonicModuleForRoot.name);
+      spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(mockIndexPath);
+
+      spyOn(helpers, helpers.getBooleanPropertyValue.name).and.callFake((propertyName: string) => {
+        if (propertyName === Constants.ENV_MANUAL_TREESHAKING) {
+          return true;
+        }
+        return false;
+      });
+
+      optimization.doOptimizations(context, new Map());
+
+      expect(treeshake.calculateUnusedComponents).not.toHaveBeenCalled();
+      expect(treeshake.purgeUnusedImportsAndExportsFromIndex).not.toHaveBeenCalled();
+      expect(treeshake.purgeComponentNgFactoryImportAndUsage).not.toHaveBeenCalled();
+      expect(treeshake.purgeProviderControllerImportAndUsage).not.toHaveBeenCalled();
+      expect(treeshake.purgeProviderClassNameFromIonicModuleForRoot).not.toHaveBeenCalled();
+
+    });
+
+    it('should run manual tree shaking when there is a module.js file in the cache', () => {
+      const context = {
+        fileCache: new FileCache(),
+      };
+
+      const mockIndexPath = join('some', 'path', 'myApp', 'node_modules', 'ionic-angular', 'index.js');
+
+      spyOn(treeshake, treeshake.getAppModuleNgFactoryPath.name);
+      spyOn(treeshake, treeshake.calculateUnusedComponents.name).and.returnValue({ purgedModules: new Map()});
+      spyOn(treeshake, treeshake.purgeUnusedImportsAndExportsFromIndex.name);
+
+      spyOn(helpers, helpers.getStringPropertyValue.name).and.callFake((propertyName: string) => {
+        return mockIndexPath;
+      });
+
+      spyOn(helpers, helpers.getBooleanPropertyValue.name).and.callFake((propertyName: string) => {
+        if (propertyName === Constants.ENV_MANUAL_TREESHAKING) {
+          return true;
+        }
+        return false;
+      });
+
+      context.fileCache.set(mockIndexPath, { path: mockIndexPath, content: 'indexContent'});
+      context.fileCache.set(treeshake.getIonicModuleFilePath(), { path: treeshake.getIonicModuleFilePath(), content: 'moduleContent'});
+
+      optimization.doOptimizations(context, new Map());
+
+      expect(treeshake.calculateUnusedComponents).toHaveBeenCalled();
+      expect(treeshake.purgeUnusedImportsAndExportsFromIndex).toHaveBeenCalled();
     });
   });
 });

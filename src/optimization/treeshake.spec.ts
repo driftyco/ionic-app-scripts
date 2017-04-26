@@ -13,6 +13,7 @@ const appModule = join(srcDir, 'app', 'app.module.js');
 const nodeModulesDir = join(baseDir, 'node_modules');
 const ionicAngularDir = join(nodeModulesDir, 'ionic-angular');
 const ionicAngularEntryPoint = join(ionicAngularDir, 'index.js');
+const ionicAngularModuleFile = join(ionicAngularDir, 'module.js');
 const componentDir = join(ionicAngularDir, 'components');
 
 describe('treeshake', () => {
@@ -49,7 +50,7 @@ describe('treeshake', () => {
 
   describe('calculateTreeShakeResults', () => {
 
-    it('should remove modules that are only imported by index', () => {
+    it('should remove modules that are only imported by the module file', () => {
       // arrange
 
       const dependencyOne = join(componentDir, 'range.js');
@@ -57,19 +58,23 @@ describe('treeshake', () => {
       const dependencyThree = join(componentDir, 'check-box.js');
 
       const dependencyOneSet = new Set<string>();
-      dependencyOneSet.add(ionicAngularEntryPoint);
+      dependencyOneSet.add(ionicAngularModuleFile);
 
       const dependencyTwoSet = new Set<string>();
-      dependencyTwoSet.add(ionicAngularEntryPoint);
+      dependencyTwoSet.add(ionicAngularModuleFile);
 
       const dependencyThreeSet = new Set<string>();
-      dependencyThreeSet.add(ionicAngularEntryPoint);
+      dependencyThreeSet.add(ionicAngularModuleFile);
+
+      const dependencySetModule = new Set<string>();
+      dependencySetModule.add(ionicAngularEntryPoint);
 
 
       const dependencyMap = new Map<string, Set<string>>();
       dependencyMap.set(dependencyOne, dependencyOneSet);
       dependencyMap.set(dependencyTwo, dependencyTwoSet);
       dependencyMap.set(dependencyThree, dependencyThreeSet);
+      dependencyMap.set(ionicAngularModuleFile, dependencySetModule);
       dependencyMap.set(ionicAngularEntryPoint, new Set<string>());
 
       // act
@@ -79,12 +84,13 @@ describe('treeshake', () => {
       expect(results.updatedDependencyMap.get(dependencyOne)).not.toBeTruthy();
       expect(results.updatedDependencyMap.get(dependencyTwo)).not.toBeTruthy();
       expect(results.updatedDependencyMap.get(dependencyThree)).not.toBeTruthy();
+      expect(results.updatedDependencyMap.get(ionicAngularModuleFile)).toBeTruthy();
       expect(results.purgedModules.get(dependencyOne)).toBeTruthy();
       expect(results.purgedModules.get(dependencyTwo)).toBeTruthy();
       expect(results.purgedModules.get(dependencyThree)).toBeTruthy();
     });
 
-    it('should remove other components that are imported only by index or other modules that can be removed (only imported by index)', () => {
+    it('should remove other components that are imported only by module file or other modules that can be removed (only imported by module file)', () => {
       // arrange
 
       const dependencyOne = join(componentDir, 'range.js');
@@ -127,7 +133,7 @@ describe('treeshake', () => {
       homeNgFactorySet.add(appModuleNgFactory);
 
       const dependencyOneSet = new Set<string>();
-      dependencyOneSet.add(ionicAngularEntryPoint);
+      dependencyOneSet.add(ionicAngularModuleFile);
       dependencyOneSet.add(dependencyOneNgFactory);
       dependencyOneSet.add(home);
 
@@ -135,13 +141,13 @@ describe('treeshake', () => {
       dependencyOneNgFactorySet.add(homeNgFactory);
 
       const dependencyTwoSet = new Set<string>();
-      dependencyTwoSet.add(ionicAngularEntryPoint);
+      dependencyTwoSet.add(ionicAngularModuleFile);
 
       const dependencyThreeSet = new Set<string>();
-      dependencyThreeSet.add(ionicAngularEntryPoint);
+      dependencyThreeSet.add(ionicAngularModuleFile);
 
       const dependencyFourSet = new Set<string>();
-      dependencyFourSet.add(ionicAngularEntryPoint);
+      dependencyFourSet.add(ionicAngularModuleFile);
       dependencyFourSet.add(dependencyFourNgFactory);
       dependencyFourSet.add(home);
 
@@ -155,20 +161,20 @@ describe('treeshake', () => {
 
       const dependencyOneHelperOneSet = new Set<string>();
       dependencyOneHelperOneSet.add(dependencyOne);
-      dependencyOneHelperOneSet.add(ionicAngularEntryPoint);
+      dependencyOneHelperOneSet.add(ionicAngularModuleFile);
       const dependencyOneHelperTwoSet = new Set<string>();
       dependencyOneHelperTwoSet.add(dependencyOne);
-      dependencyOneHelperTwoSet.add(ionicAngularEntryPoint);
+      dependencyOneHelperTwoSet.add(ionicAngularModuleFile);
 
       const alertSet  = new Set<string>();
       alertSet.add(alertController);
 
       const alertControllerSet = new Set<string>();
-      alertControllerSet.add(ionicAngularEntryPoint);
+      alertControllerSet.add(ionicAngularModuleFile);
       alertControllerSet.add(appModuleNgFactory);
 
       const alertComponentSet = new Set<string>();
-      alertComponentSet.add(ionicAngularEntryPoint);
+      alertComponentSet.add(ionicAngularModuleFile);
       alertComponentSet.add(alertComponentNgFactory);
 
       const alertComponentNgFactorySet = new Set<string>();
@@ -178,16 +184,19 @@ describe('treeshake', () => {
       actionSheetSet.add(actionSheetController);
 
       const actionSheetControllerSet = new Set<string>();
-      actionSheetControllerSet.add(ionicAngularEntryPoint);
+      actionSheetControllerSet.add(ionicAngularModuleFile);
       actionSheetControllerSet.add(appModuleNgFactory);
       actionSheetControllerSet.add(homeNgFactory);
 
       const actionSheetComponentSet = new Set<string>();
-      actionSheetComponentSet.add(ionicAngularEntryPoint);
+      actionSheetComponentSet.add(ionicAngularModuleFile);
       actionSheetComponentSet.add(actionSheetComponentNgFactory);
 
       const actionSheetComponentNgFactorySet = new Set<string>();
       actionSheetComponentNgFactorySet.add(appModuleNgFactory);
+
+      const dependencySetModule = new Set<string>();
+      dependencySetModule.add(ionicAngularEntryPoint);
 
       const dependencyMap = new Map<string, Set<string>>();
       dependencyMap.set(appModule, appModuleSet);
@@ -203,6 +212,7 @@ describe('treeshake', () => {
       dependencyMap.set(dependencyFour, dependencyFourSet);
       dependencyMap.set(dependencyFourNgFactory, dependencyFourNgFactorySet);
       dependencyMap.set(ionicAngularEntryPoint, indexSet);
+      dependencyMap.set(ionicAngularModuleFile, dependencySetModule);
       dependencyMap.set(alert, alertSet);
       dependencyMap.set(alertController, alertControllerSet);
       dependencyMap.set(alertComponent, alertComponentSet);
@@ -230,6 +240,7 @@ describe('treeshake', () => {
       expect(results.updatedDependencyMap.get(actionSheetController)).toBeTruthy();
       expect(results.updatedDependencyMap.get(actionSheetComponent)).toBeTruthy();
       expect(results.updatedDependencyMap.get(actionSheetComponentNgFactory)).toBeTruthy();
+      expect(results.updatedDependencyMap.get(ionicAngularModuleFile)).toBeTruthy();
 
 
       expect(results.purgedModules.get(dependencyTwo)).toBeTruthy();
@@ -245,20 +256,13 @@ describe('treeshake', () => {
   describe('purgeUnusedImportsAndExportsFromIndex', () => {
     it('should remove the import and export statement', () => {
       // arrange
-      const importsToPurge = `
-import { RangeKnob } from './components/range/range-knob';
+      const importsToPurge =
+`import { RangeKnob } from './components/range/range-knob';
 import { Refresher } from './components/refresher/refresher';
-import { RefresherContent } from './components/refresher/refresher-content';
-      `;
+import { RefresherContent } from './components/refresher/refresher-content';`;
 
-      const exportsToPurge = `
-export { RangeKnob } from './components/range/range-knob';
-export { Refresher } from './components/refresher/refresher';
-export { RefresherContent } from './components/refresher/refresher-content';
-      `;
-
-      const indexFileContent = `
-      import { ANALYZE_FOR_ENTRY_COMPONENTS, APP_INITIALIZER, ComponentFactoryResolver, Inject, Injector, NgModule, NgZone, Optional } from '@angular/core/index';
+      const moduleFileContent = `
+import { ANALYZE_FOR_ENTRY_COMPONENTS, APP_INITIALIZER, ComponentFactoryResolver, Inject, Injector, NgModule, NgZone, Optional } from '@angular/core/index';
 import { APP_BASE_HREF, Location, LocationStrategy, HashLocationStrategy, PathLocationStrategy, PlatformLocation } from '@angular/common/index';
 import { DOCUMENT } from '@angular/platform-browser/index';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms/index';
@@ -354,7 +358,6 @@ import { RadioButton } from './components/radio/radio-button';
 import { RadioGroup } from './components/radio/radio-group';
 import { Range } from './components/range/range';
 ${importsToPurge}
-${importsToPurge}
 import { Scroll } from './components/scroll/scroll';
 import { Searchbar } from './components/searchbar/searchbar';
 import { Segment } from './components/segment/segment';
@@ -382,140 +385,6 @@ import { VirtualScroll } from './components/virtual-scroll/virtual-scroll';
 import { VirtualItem } from './components/virtual-scroll/virtual-item';
 import { VirtualHeader } from './components/virtual-scroll/virtual-header';
 import { VirtualFooter } from './components/virtual-scroll/virtual-footer';
-/**
- * Export Components/Directives
- */
-export { ActionSheet, ActionSheetController } from './components/action-sheet/action-sheet';
-export { Alert, AlertController } from './components/alert/alert';
-export { App } from './components/app/app';
-export { Avatar } from './components/avatar/avatar';
-export { Backdrop } from './components/backdrop/backdrop';
-export { Badge } from './components/badge/badge';
-export { One } from './components/badge/badge/one';
-export { Two } from './components/badge/badge/two';
-export { Button } from './components/button/button';
-export { Card } from './components/card/card';
-export { CardContent } from './components/card/card-content';
-export { CardHeader } from './components/card/card-header';
-export { CardTitle } from './components/card/card-title';
-export { Checkbox } from './components/checkbox/checkbox';
-export { Chip } from './components/chip/chip';
-export { ClickBlock } from './util/click-block';
-export { Content } from './components/content/content';
-export { DateTime } from './components/datetime/datetime';
-export { FabButton } from './components/fab/fab';
-export { FabContainer } from './components/fab/fab-container';
-export { FabList } from './components/fab/fab-list';
-export { Col } from './components/grid/column';
-export { Grid } from './components/grid/grid';
-export { Row } from './components/grid/row';
-export { Ion } from './components/ion';
-export { Icon } from './components/icon/icon';
-export { Img } from './components/img/img';
-export { InfiniteScroll } from './components/infinite-scroll/infinite-scroll';
-export { InfiniteScrollContent } from './components/infinite-scroll/infinite-scroll-content';
-export { TextInput } from './components/input/input';
-export { IonicApp } from './components/app/app-root';
-export { Item } from './components/item/item';
-export { ItemContent } from './components/item/item-content';
-export { ItemDivider } from './components/item/item-divider';
-export { ItemGroup } from './components/item/item-group';
-export { ItemReorder } from './components/item/item-reorder';
-export { Reorder } from './components/item/reorder';
-export { ItemSliding } from './components/item/item-sliding';
-export { ItemOptions } from './components/item/item-options';
-export { Label } from './components/label/label';
-export { List } from './components/list/list';
-export { ListHeader } from './components/list/list-header';
-export { Loading, LoadingController } from './components/loading/loading';
-export { Menu } from './components/menu/menu';
-export { MenuClose } from './components/menu/menu-close';
-export { MenuController } from './components/menu/menu-controller';
-export { MenuToggle } from './components/menu/menu-toggle';
-export { MenuType } from './components/menu/menu-types';
-export { Modal, ModalController } from './components/modal/modal';
-export { Nav } from './components/nav/nav';
-export { NavPop } from './components/nav/nav-pop';
-export { NavPopAnchor } from './components/nav/nav-pop-anchor';
-export { NavPush } from './components/nav/nav-push';
-export { NavPushAnchor } from './components/nav/nav-push-anchor';
-export { Navbar } from './components/navbar/navbar';
-export { NativeInput } from './components/input/native-input';
-export { NextInput } from './components/input/next-input';
-export { Note } from './components/note/note';
-export { Option } from './components/option/option';
-export { OverlayPortal } from './components/nav/overlay-portal';
-export { Picker, PickerController } from './components/picker/picker';
-export { Popover, PopoverController } from './components/popover/popover';
-export { RadioButton } from './components/radio/radio-button';
-export { RadioGroup } from './components/radio/radio-group';
-export { Range } from './components/range/range';
-${exportsToPurge}
-${exportsToPurge}
-export { Scroll } from './components/scroll/scroll';
-export { Searchbar } from './components/searchbar/searchbar';
-export { Segment } from './components/segment/segment';
-export { SegmentButton } from './components/segment/segment-button';
-export { Select } from './components/select/select';
-export { ShowWhen } from './components/show-hide-when/show-hide-when';
-export { DisplayWhen } from './components/show-hide-when/show-hide-when';
-export { HideWhen } from './components/show-hide-when/hide-when';
-export { Slide } from './components/slides/slide';
-export { Slides } from './components/slides/slides';
-export { Spinner } from './components/spinner/spinner';
-export { Tab } from './components/tabs/tab';
-export { TabButton } from './components/tabs/tab-button';
-export { TabHighlight } from './components/tabs/tab-highlight';
-export { Tabs } from './components/tabs/tabs';
-export { TapClick, setupTapClick, isActivatable } from './tap-click/tap-click';
-export { Toast, ToastController } from './components/toast/toast';
-export { Toggle } from './components/toggle/toggle';
-export { ToolbarBase } from './components/toolbar/toolbar';
-export { Toolbar } from './components/toolbar/toolbar';
-export { Header } from './components/toolbar/toolbar-header';
-export { Footer } from './components/toolbar/toolbar-footer';
-export { ToolbarItem } from './components/toolbar/toolbar-item';
-export { ToolbarTitle } from './components/toolbar/toolbar-title';
-export { Thumbnail } from './components/thumbnail/thumbnail';
-export { Typography } from './components/typography/typography';
-export { VirtualScroll } from './components/virtual-scroll/virtual-scroll';
-/**
- * Export Providers
- */
-export { Config, setupConfig, ConfigToken } from './config/config';
-export { DomController } from './platform/dom-controller';
-export { Platform, setupPlatform } from './platform/platform';
-export { Haptic } from './tap-click/haptic';
-export { DeepLinker } from './navigation/deep-linker';
-export { NavController } from './navigation/nav-controller';
-export { NavControllerBase } from './navigation/nav-controller-base';
-export { NavParams } from './navigation/nav-params';
-export { DeepLink, DeepLinkMetadata } from './navigation/nav-util';
-export { UrlSerializer, DeepLinkConfigToken } from './navigation/url-serializer';
-export { ViewController } from './navigation/view-controller';
-export { ActionSheetCmp } from './components/action-sheet/action-sheet-component';
-export { AlertCmp } from './components/alert/alert-component';
-export { LoadingCmp } from './components/loading/loading-component';
-export { ModalCmp } from './components/modal/modal-component';
-export { PickerCmp, PickerColumnCmp } from './components/picker/picker-component';
-export { PopoverCmp } from './components/popover/popover-component';
-export { ToastCmp } from './components/toast/toast-component';
-/**
- * Export Utils
- */
-export { PanGesture } from './gestures/drag-gesture';
-export { Gesture } from './gestures/gesture';
-export { SlideEdgeGesture } from './gestures/slide-edge-gesture';
-export { SlideGesture } from './gestures/slide-gesture';
-export { BLOCK_ALL, GESTURE_GO_BACK_SWIPE, GESTURE_MENU_SWIPE, GESTURE_ITEM_SWIPE, GESTURE_REFRESHER, GESTURE_TOGGLE, GestureController, GestureDelegate, BlockerDelegate } from './gestures/gesture-controller';
-export { Events, setupEvents, setupProvideEvents } from './util/events';
-export { IonicErrorHandler } from './util/ionic-error-handler';
-export { Keyboard } from './platform/keyboard';
-export { Form, IonicFormInput, IonicTapInput } from './util/form';
-export { reorderArray } from './util/util';
-export { Animation } from './animations/animation';
-export { PageTransition } from './transitions/page-transition';
-export { Transition } from './transitions/transition';
       `;
 
       // act
@@ -523,12 +392,10 @@ export { Transition } from './transitions/transition';
       const modulesToPurge = [join(componentDir, 'range', 'range-knob'),
                               join(componentDir, 'refresher', 'refresher'),
                               join(componentDir, 'refresher', 'refresher-content')];
-      const newContent = treeshake.purgeUnusedImportsAndExportsFromIndex(ionicAngularEntryPoint, indexFileContent, modulesToPurge);
-
+      const newContent = treeshake.purgeUnusedImportsAndExportsFromIndex(ionicAngularEntryPoint, moduleFileContent, modulesToPurge);
       // assert
-      expect(newContent).not.toEqual(indexFileContent);
+      expect(newContent).not.toEqual(moduleFileContent);
       expect(newContent.indexOf(importsToPurge)).toEqual(-1);
-      expect(newContent.indexOf(exportsToPurge)).toEqual(-1);
     });
   });
 

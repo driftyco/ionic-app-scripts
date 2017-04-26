@@ -1,11 +1,11 @@
 import { dirname, join, relative } from 'path';
 import { Logger } from '../logger/logger';
 import * as Constants from '../util/constants';
-import { changeExtension, convertFilePathToNgFactoryPath, escapeStringForRegex, toUnixPath } from '../util/helpers';
+import { changeExtension, convertFilePathToNgFactoryPath, escapeStringForRegex, getStringPropertyValue, toUnixPath } from '../util/helpers';
 import { TreeShakeCalcResults } from '../util/interfaces';
 
 export function calculateUnusedComponents(dependencyMap: Map<string, Set<string>>): TreeShakeCalcResults {
-  return calculateUnusedComponentsImpl(dependencyMap, process.env[Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT]);
+  return calculateUnusedComponentsImpl(dependencyMap, getIonicModuleFilePath());
 }
 
 export function calculateUnusedComponentsImpl(dependencyMap: Map<string, Set<string>>, importee: string): any {
@@ -34,19 +34,21 @@ function generateResults(dependencyMap: Map<string, Set<string>>) {
 }
 
 function requiredModule(modulePath: string) {
-  const mainJsFile = changeExtension(process.env[Constants.ENV_APP_ENTRY_POINT], '.js');
-  const mainTsFile = changeExtension(process.env[Constants.ENV_APP_ENTRY_POINT], '.ts');
-  const appModule = changeExtension(process.env[Constants.ENV_APP_NG_MODULE_PATH], '.js');
+  const mainJsFile = changeExtension(getStringPropertyValue(Constants.ENV_APP_ENTRY_POINT), '.js');
+  const mainTsFile = changeExtension(getStringPropertyValue(Constants.ENV_APP_ENTRY_POINT), '.ts');
+  const appModule = changeExtension(getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH), '.js');
   const appModuleNgFactory = getAppModuleNgFactoryPath();
-  return modulePath === mainJsFile || modulePath === mainTsFile || modulePath === appModule || modulePath === appModuleNgFactory;
+  const moduleFile = getIonicModuleFilePath();
+  return modulePath === mainJsFile || modulePath === mainTsFile || modulePath === appModule || modulePath === appModuleNgFactory || modulePath === moduleFile;
 }
 
 function filterMap(dependencyMap: Map<string, Set<string>>) {
   const filteredMap = new Map<string, Set<string>>();
   dependencyMap.forEach((importeeSet: Set<string>, modulePath: string) => {
-     if (isIonicComponentOrAppSource(modulePath)) {
-       filteredMap.set(modulePath, importeeSet);
-     }
+    if (isIonicComponentOrAppSource(modulePath) || modulePath === getIonicModuleFilePath()) {
+      importeeSet.delete(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT));
+      filteredMap.set(modulePath, importeeSet);
+    }
   });
   return filteredMap;
 }
@@ -77,36 +79,38 @@ function calculateUnusedIonicProviders(dependencyMap: Map<string, Set<string>>) 
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: beginning to purge providers`);
 
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to purge action sheet controller`);
-  processIonicProviders(dependencyMap, process.env[Constants.ENV_ACTION_SHEET_CONTROLLER_PATH]);
+  processIonicProviders(dependencyMap, getStringPropertyValue(Constants.ENV_ACTION_SHEET_CONTROLLER_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to purge alert controller`);
-  processIonicProviders(dependencyMap, process.env[Constants.ENV_ALERT_CONTROLLER_PATH]);
+  processIonicProviders(dependencyMap, getStringPropertyValue(Constants.ENV_ALERT_CONTROLLER_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to loading controller`);
-  processIonicProviders(dependencyMap, process.env[Constants.ENV_LOADING_CONTROLLER_PATH]);
+  processIonicProviders(dependencyMap, getStringPropertyValue(Constants.ENV_LOADING_CONTROLLER_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to modal controller`);
-  processIonicProviders(dependencyMap, process.env[Constants.ENV_MODAL_CONTROLLER_PATH]);
+  processIonicProviders(dependencyMap, getStringPropertyValue(Constants.ENV_MODAL_CONTROLLER_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to picker controller`);
-  processIonicProviders(dependencyMap, process.env[Constants.ENV_PICKER_CONTROLLER_PATH]);
+  processIonicProviders(dependencyMap, getStringPropertyValue(Constants.ENV_PICKER_CONTROLLER_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to popover controller`);
-  processIonicProviders(dependencyMap, process.env[Constants.ENV_POPOVER_CONTROLLER_PATH]);
+  processIonicProviders(dependencyMap, getStringPropertyValue(Constants.ENV_POPOVER_CONTROLLER_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to toast controller`);
-  processIonicProviders(dependencyMap, process.env[Constants.ENV_TOAST_CONTROLLER_PATH]);
+  processIonicProviders(dependencyMap, getStringPropertyValue(Constants.ENV_TOAST_CONTROLLER_PATH));
 
   // check if the controllers were deleted, if so, purge the component too
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to action sheet component`);
-  processIonicProviderComponents(dependencyMap, process.env[Constants.ENV_ACTION_SHEET_CONTROLLER_PATH], process.env[Constants.ENV_ACTION_SHEET_COMPONENT_FACTORY_PATH]);
+  processIonicProviderComponents(dependencyMap, getStringPropertyValue(Constants.ENV_ACTION_SHEET_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_ACTION_SHEET_COMPONENT_FACTORY_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to alert component`);
-  processIonicProviderComponents(dependencyMap, process.env[Constants.ENV_ALERT_CONTROLLER_PATH], process.env[Constants.ENV_ALERT_COMPONENT_FACTORY_PATH]);
+  processIonicProviderComponents(dependencyMap, getStringPropertyValue(Constants.ENV_ALERT_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_ALERT_COMPONENT_FACTORY_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to loading component`);
-  processIonicProviderComponents(dependencyMap, process.env[Constants.ENV_LOADING_CONTROLLER_PATH], process.env[Constants.ENV_LOADING_COMPONENT_FACTORY_PATH]);
+  processIonicProviderComponents(dependencyMap, getStringPropertyValue(Constants.ENV_LOADING_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_LOADING_COMPONENT_FACTORY_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to modal component`);
-  processIonicProviderComponents(dependencyMap, process.env[Constants.ENV_MODAL_CONTROLLER_PATH], process.env[Constants.ENV_MODAL_COMPONENT_FACTORY_PATH]);
+  processIonicProviderComponents(dependencyMap, getStringPropertyValue(Constants.ENV_MODAL_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_MODAL_COMPONENT_FACTORY_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to picker component`);
-  processIonicProviderComponents(dependencyMap, process.env[Constants.ENV_PICKER_CONTROLLER_PATH], process.env[Constants.ENV_PICKER_COMPONENT_FACTORY_PATH]);
+  processIonicProviderComponents(dependencyMap, getStringPropertyValue(Constants.ENV_PICKER_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_PICKER_COMPONENT_FACTORY_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to popover component`);
-  processIonicProviderComponents(dependencyMap, process.env[Constants.ENV_POPOVER_CONTROLLER_PATH], process.env[Constants.ENV_POPOVER_COMPONENT_FACTORY_PATH]);
+  processIonicProviderComponents(dependencyMap, getStringPropertyValue(Constants.ENV_POPOVER_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_POPOVER_COMPONENT_FACTORY_PATH));
   Logger.debug(`[treeshake] calculateUnusedIonicProviders: attempting to toast component`);
-  processIonicProviderComponents(dependencyMap, process.env[Constants.ENV_TOAST_CONTROLLER_PATH], process.env[Constants.ENV_TOAST_COMPONENT_FACTORY_PATH]);
+  processIonicProviderComponents(dependencyMap, getStringPropertyValue(Constants.ENV_TOAST_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_TOAST_COMPONENT_FACTORY_PATH));
 
+  // in this case, it's actually an entry component, not a provider
+  processIonicProviders(dependencyMap, getStringPropertyValue(Constants.ENV_SELECT_POPOVER_COMPONENT_FACTORY_PATH));
 }
 
 function processIonicProviderComponents(dependencyMap: Map<string, Set<string>>, providerPath: string, componentPath: string) {
@@ -117,7 +121,7 @@ function processIonicProviderComponents(dependencyMap: Map<string, Set<string>>,
 }
 
 export function getAppModuleNgFactoryPath() {
-  const appNgModulePath = process.env[Constants.ENV_APP_NG_MODULE_PATH];
+  const appNgModulePath = getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH);
   const jsVersion = changeExtension(appNgModulePath, '.js');
   return convertFilePathToNgFactoryPath(jsVersion);
 }
@@ -148,8 +152,8 @@ function processImportTreeForProviders(dependencyMap: Map<string, Set<string>>, 
 
 export function isIonicComponentOrAppSource(modulePath: string) {
   // for now, just use a simple filter of if a file is in ionic-angular/components
-  const ionicAngularComponentDir = join(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR], 'components');
-  const srcDir = process.env[Constants.ENV_VAR_SRC_DIR];
+  const ionicAngularComponentDir = join(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR), 'components');
+  const srcDir = getStringPropertyValue(Constants.ENV_VAR_SRC_DIR);
   return modulePath.indexOf(ionicAngularComponentDir) >= 0 || modulePath.indexOf(srcDir) >= 0;
 }
 
@@ -221,7 +225,7 @@ export function purgeComponentNgFactoryImportAndUsage(appModuleNgFactoryPath: st
 export function purgeProviderControllerImportAndUsage(appModuleNgFactoryPath: string, appModuleNgFactoryContent: string, providerPath: string) {
   Logger.debug(`[treeshake] purgeProviderControllerImportAndUsage: Starting to purge provider controller and usage ...`);
   const extensionlessComponentFactoryPath = changeExtension(providerPath, '');
-  const relativeImportPath = relative(dirname(process.env[Constants.ENV_VAR_IONIC_ANGULAR_DIR]), extensionlessComponentFactoryPath);
+  const relativeImportPath = relative(dirname(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR)), extensionlessComponentFactoryPath);
   const importPath = toUnixPath(relativeImportPath);
   Logger.debug(`[treeshake] purgeProviderControllerImportAndUsage: Looking for imports from ${importPath}`);
   const importRegex = generateWildCardImportRegex(importPath);
@@ -288,4 +292,9 @@ export function generateRemoveIfStatementRegex(namedImport: string) {
 
 export function generateIonicModulePurgeProviderRegex(className: string) {
   return new RegExp(`${className},`, `gm`);
+}
+
+export function getIonicModuleFilePath() {
+  const entryPoint = getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT);
+  return join(dirname(entryPoint), 'module.js');
 }

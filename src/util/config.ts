@@ -292,6 +292,8 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_POPOVER_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'popover', 'popover-component.js'));
   setProcessEnvVar(Constants.ENV_POPOVER_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'popover', 'popover-component.ngfactory.js'));
 
+  setProcessEnvVar(Constants.ENV_SELECT_POPOVER_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'select', 'select-popover-component.ngfactory.js'));
+
   setProcessEnvVar(Constants.ENV_TOAST_CONTROLLER_CLASSNAME, 'ToastController');
   setProcessEnvVar(Constants.ENV_TOAST_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'toast', 'toast-controller.js'));
   setProcessEnvVar(Constants.ENV_TOAST_VIEW_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'toast', 'toast.js'));
@@ -306,12 +308,11 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_PURGE_DECORATORS, purgeDecorators);
   Logger.debug(`purgeDecorators set to ${purgeDecorators}`);
 
+  const manualTreeshaking = getConfigValue(context, '--manualTreeshaking', null, Constants.ENV_MANUAL_TREESHAKING, Constants.ENV_MANUAL_TREESHAKING.toLowerCase(), 'true');
+  setProcessEnvVar(Constants.ENV_MANUAL_TREESHAKING, manualTreeshaking);
+  Logger.debug(`manualTreeshaking set to ${manualTreeshaking}`);
+
   /* Experimental Flags */
-
-  const experimentalManualTreeshaking = getConfigValue(context, '--experimentalManualTreeshaking', null, Constants.ENV_EXPERIMENTAL_MANUAL_TREESHAKING, Constants.ENV_EXPERIMENTAL_MANUAL_TREESHAKING.toLowerCase(), null);
-  setProcessEnvVar(Constants.ENV_EXPERIMENTAL_MANUAL_TREESHAKING, experimentalManualTreeshaking);
-  Logger.debug(`experimentalManualTreeshaking set to ${experimentalManualTreeshaking}`);
-
   const useExperimentalClosure = getConfigValue(context, '--useExperimentalClosure', null, Constants.ENV_USE_EXPERIMENTAL_CLOSURE, Constants.ENV_USE_EXPERIMENTAL_CLOSURE.toLowerCase(), null);
   setProcessEnvVar(Constants.ENV_USE_EXPERIMENTAL_CLOSURE, useExperimentalClosure);
   Logger.debug(`useExperimentalClosure set to ${useExperimentalClosure}`);

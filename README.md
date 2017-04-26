@@ -134,8 +134,8 @@ npm run build --rollup ./config/rollup.config.js
 | print modified dependency tree | `ionic_print_modified_dependency_tree` | `--printModifiedDependencyTree` | `null` | Set to `true` to print out the modified dependency tree after purging unused modules |
 | print webpack dependency tree | `ionic_print_webpack_dependency_tree` | `--printWebpackDependencyTree` | `null` | Set to `true` to print out a dependency tree after running Webpack |
 | parse deeplink config | `ionic_parse_deeplinks` | `--parseDeepLinks` | `true` | Parses and extracts data from the `@IonicPage` decorator |
-| experimental manual tree shaking | `ionic_experimental_manual_treeshaking` | `--experimentalManualTreeshaking` | `null` | Set to `true` to purge unused Ionic components/code (Experimental) |
-| experimental purge decorators | `ionic_experimental_purge_decorators` | `--experimentalPurgeDecorators` | `null` | Set to `true` to purge unneeded decorators to improve tree shakeability of code (Experimental) |
+| manual tree shaking | `ionic_manual_treeshaking` | `--manualTreeshaking` | `true` | Set to `true` to purge unused Ionic components/code |
+| purge decorators | `ionic_purge_decorators` | `--purgeDecorators` | `true` | Set to `true` to purge unneeded decorators to improve tree shakeability of code |
 | experimental closure compiler | `ionic_use_experimental_closure` | `--useExperimentalClosure` | `null` | Set to `true` to use closure compiler to minify the final bundle |
 | experimental babili | `ionic_use_experimental_babili` | `--useExperimentalBabili` | `null` | Set to `true` to use babili to minify es2015 code |
 | convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for for production deployments |
@@ -179,8 +179,8 @@ These environment variables are automatically set to [Node's `process.env`](http
 | `IONIC_PRINT_MODIFIED_DEPENDENCY_TREE` | boolean to print out the modified dependency tree after purging unused modules |
 | `IONIC_PRINT_WEBPACK_DEPENDENCY_TREE` | boolean to print out a dependency tree after running Webpack |
 | `IONIC_PARSE_DEEPLINKS` | boolean to enable parsing the Ionic 3.x deep links API for lazy loading |
-| `IONIC_EXPERIMENTAL_MANUAL_TREESHAKING` | boolean to enable purging unused Ionic components/code (Experimental) |
-| `IONIC_EXPERIMENTAL_PURGE_DECORATORS` | boolean to enable purging unneeded decorators from source code (Experimental) |
+| `IONIC_MANUAL_TREESHAKING` | boolean to enable purging unused Ionic components/code |
+| `IONIC_PURGE_DECORATORS` | boolean to enable purging unneeded decorators from source code |
 | `IONIC_USE_EXPERIMENTAL_CLOSURE` | boolean to enable use of closure compiler to minify the final bundle |
 | `IONIC_USE_EXPERIMENTAL_BABILI` | boolean to enable use of babili to minify es2015 code |
 | `IONIC_BUILD_TO_ES5` | boolean to enable converting bundle to ES5 for for production deployments |
@@ -230,7 +230,6 @@ Example NPM Script:
 ```
 npm run lint --bailOnLintError true
 ```
-3. Set `ionic_experimental_manual_treeshaking` and `ionic_experimental_purge_decorators` to true in the `package.json` to potentially dramatically shrink an app's bundle size.
 
 ## The Stack
 

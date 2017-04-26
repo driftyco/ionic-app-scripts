@@ -161,8 +161,8 @@ describe('config', () => {
 
       expect(fakeConfig[Constants.ENV_PARSE_DEEPLINKS]).toBeTruthy();
       expect(fakeConfig[Constants.ENV_PURGE_DECORATORS]).toBeTruthy();
+      expect(fakeConfig[Constants.ENV_MANUAL_TREESHAKING]).toBeTruthy();
 
-      expect(fakeConfig[Constants.ENV_EXPERIMENTAL_MANUAL_TREESHAKING]).toBeFalsy();
       expect(fakeConfig[Constants.ENV_USE_EXPERIMENTAL_CLOSURE]).toBeFalsy();
       expect(fakeConfig[Constants.ENV_USE_EXPERIMENTAL_BABILI]).toBeFalsy();
       expect(fakeConfig[Constants.ENV_BUILD_TO_ES5]).toEqual('true');
