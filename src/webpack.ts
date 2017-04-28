@@ -113,7 +113,7 @@ function webpackBuildComplete(stats: any, context: BuildContext, webpackConfig: 
 
 export function writeBundleFilesToDisk(context: BuildContext) {
   const bundledFilesToWrite = context.fileCache.getAll().filter(file => {
-    return dirname(file.path) === context.buildDir && (file.path.endsWith('.js') || file.path.endsWith('.js.map'));
+    return dirname(file.path).indexOf(context.buildDir) > -1 && (file.path.endsWith('.js') || file.path.endsWith('.js.map'));
   });
   context.bundledFilePaths = bundledFilesToWrite.map(bundledFile => bundledFile.path);
   const promises = bundledFilesToWrite.map(bundledFileToWrite => writeFileAsync(bundledFileToWrite.path, bundledFileToWrite.content));
