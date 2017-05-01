@@ -1,3 +1,13 @@
+<a name="1.3.7"></a>
+## [1.3.7](https://github.com/driftyco/ionic-app-scripts/compare/v1.3.6...v1.3.7) (2017-05-01)
+
+
+### Bug Fixes
+
+* **webpack:** fix issue where bundles output to build dir sub directory are not emitted ([6befd88](https://github.com/driftyco/ionic-app-scripts/commit/6befd88))
+
+
+
 <a name="1.3.6"></a>
 ## [1.3.6](https://github.com/driftyco/ionic-app-scripts/compare/v1.3.5...v1.3.6) (2017-04-27)
 
