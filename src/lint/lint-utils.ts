@@ -45,17 +45,17 @@ export function lintFile(context: BuildContext, program: Program, filePath: stri
 
 export function processLintResults(context: BuildContext, lintResults: LintResult[]) {
   const filesThatDidntPass: string[] = [];
-    for (const lintResult of lintResults) {
-      if (lintResult && lintResult.failures && lintResult.failures.length) {
-        const diagnostics = runTsLintDiagnostics(context, <any>lintResult.failures);
-        printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
-        filesThatDidntPass.push(lintResult.filePath);
-      }
+  for (const lintResult of lintResults) {
+    if (lintResult && lintResult.failures && lintResult.failures.length) {
+      const diagnostics = runTsLintDiagnostics(context, <any>lintResult.failures);
+      printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
+      filesThatDidntPass.push(lintResult.filePath);
     }
-    if (filesThatDidntPass.length) {
-      const errorMsg = generateFormattedErrorMsg(filesThatDidntPass);
-      throw new BuildError(errorMsg);
-    }
+  }
+  if (filesThatDidntPass.length) {
+    const errorMsg = generateFormattedErrorMsg(filesThatDidntPass);
+    throw new BuildError(errorMsg);
+  }
 }
 
 export function generateFormattedErrorMsg(failingFiles: string[]) {

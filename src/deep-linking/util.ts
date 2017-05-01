@@ -165,7 +165,7 @@ function getArrayValueFromDeepLinkDecorator(sourceFile: SourceFile, propertyNode
       if (propertyNode && (propertyNode as PropertyAssignment).name && ((propertyNode as PropertyAssignment).name as Identifier).text === identifierToLookFor) {
         const initializer = ((propertyNode as PropertyAssignment).initializer as ArrayLiteralExpression);
         if (initializer && initializer.elements) {
-          const stringArray = initializer.elements.map((element: Identifier)  => {
+          const stringArray = initializer.elements.map((element: Identifier) => {
             let elementText = element.text;
             elementText = replaceAll(elementText, '\'', '');
             elementText = replaceAll(elementText, '`', '');
@@ -241,7 +241,7 @@ function getIonicModuleForRootCall(decorator: Decorator) {
 export function convertDeepLinkConfigEntriesToString(entries: DeepLinkConfigEntry[]) {
   const individualLinks = entries.map(entry => convertDeepLinkEntryToJsObjectString(entry));
   const deepLinkConfigString =
-`
+    `
 {
   links: [
     ${individualLinks.join(',\n    ')}
@@ -265,13 +265,13 @@ export function updateAppNgModuleAndFactoryWithDeepLinkConfig(context: BuildCont
   }
 
   const updatedAppNgModuleContent = getUpdatedAppNgModuleContentWithDeepLinkConfig(appNgModulePath, appNgModuleFile.content, deepLinkString);
-  context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: updatedAppNgModuleContent});
+  context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: updatedAppNgModuleContent });
 
   const appNgModuleOutput = transpileTsString(context, appNgModulePath, updatedAppNgModuleContent);
   const appNgModuleSourceMapPath = changeExtension(appNgModulePath, '.js.map');
   const appNgModulePathJsFile = changeExtension(appNgModulePath, '.js');
-  context.fileCache.set(appNgModuleSourceMapPath, { path: appNgModuleSourceMapPath, content: appNgModuleOutput.sourceMapText});
-  context.fileCache.set(appNgModulePathJsFile, { path: appNgModulePathJsFile, content: appNgModuleOutput.outputText});
+  context.fileCache.set(appNgModuleSourceMapPath, { path: appNgModuleSourceMapPath, content: appNgModuleOutput.sourceMapText });
+  context.fileCache.set(appNgModulePathJsFile, { path: appNgModulePathJsFile, content: appNgModuleOutput.outputText });
 
   if (changedFiles) {
     changedFiles.push({
@@ -288,13 +288,13 @@ export function updateAppNgModuleAndFactoryWithDeepLinkConfig(context: BuildCont
       throw new Error(`App NgModule Factory ${appNgModuleFactoryPath} not found in cache`);
     }
     const updatedAppNgModuleFactoryContent = getUpdatedAppNgModuleFactoryContentWithDeepLinksConfig(appNgModuleFactoryFile.content, deepLinkString);
-    context.fileCache.set(appNgModuleFactoryPath, { path: appNgModuleFactoryPath, content: updatedAppNgModuleFactoryContent});
+    context.fileCache.set(appNgModuleFactoryPath, { path: appNgModuleFactoryPath, content: updatedAppNgModuleFactoryContent });
     const appNgModuleFactoryOutput = transpileTsString(context, appNgModuleFactoryPath, updatedAppNgModuleFactoryContent);
 
     const appNgModuleFactorySourceMapPath = changeExtension(appNgModuleFactoryPath, '.js.map');
     const appNgModuleFactoryPathJsFile = changeExtension(appNgModuleFactoryPath, '.js');
-    context.fileCache.set(appNgModuleFactorySourceMapPath, { path: appNgModuleFactorySourceMapPath, content: appNgModuleFactoryOutput.sourceMapText});
-    context.fileCache.set(appNgModuleFactoryPathJsFile, { path: appNgModuleFactoryPathJsFile, content: appNgModuleFactoryOutput.outputText});
+    context.fileCache.set(appNgModuleFactorySourceMapPath, { path: appNgModuleFactorySourceMapPath, content: appNgModuleFactoryOutput.sourceMapText });
+    context.fileCache.set(appNgModuleFactoryPathJsFile, { path: appNgModuleFactoryPathJsFile, content: appNgModuleFactoryOutput.outputText });
 
     if (changedFiles) {
       changedFiles.push({

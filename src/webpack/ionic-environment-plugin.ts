@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { getParsedDeepLinkConfig } from '../util/helpers';
-import { BuildContext , DeepLinkConfigEntry} from '../util/interfaces';
+import { BuildContext, DeepLinkConfigEntry} from '../util/interfaces';
 import { Logger } from '../logger/logger';
 import { getInstance } from '../util/hybrid-file-system-factory';
 import { WatchMemorySystem } from './watch-memory-system';
@@ -29,15 +29,15 @@ export class IonicEnvironmentPlugin {
         result.resource = this.context.srcDir;
         result.recursive = true;
         result.dependencies.forEach((dependency: any) => dependency.critical = false);
-        result.resolveDependencies = (p1: any, p2: any, p3: any, p4: RegExp, cb: any ) => {
+        result.resolveDependencies = (p1: any, p2: any, p3: any, p4: RegExp, cb: any) => {
           const dependencies = Object.keys(webpackDeepLinkModuleDictionary)
-                                  .map((key) => {
-                                    const value = webpackDeepLinkModuleDictionary[key];
-                                    if (value) {
-                                      return new ContextElementDependency(value, key);
-                                    }
-                                    return null;
-                                  }).filter(dependency => !!dependency);
+            .map((key) => {
+              const value = webpackDeepLinkModuleDictionary[key];
+              if (value) {
+                return new ContextElementDependency(value, key);
+              }
+              return null;
+            }).filter(dependency => !!dependency);
           cb(null, dependencies);
         };
         return callback(null, result);
@@ -62,7 +62,7 @@ export class IonicEnvironmentPlugin {
       this.initializeWebpackFileSystemCaches(webpackFileSystem);
 
       for (const filePath of Object.keys(fileStatsDictionary)) {
-        const stats =  fileStatsDictionary[filePath];
+        const stats = fileStatsDictionary[filePath];
         webpackFileSystem._statStorage.data[filePath] = [null, stats];
         webpackFileSystem._readFileStorage.data[filePath] = [null, stats.content];
       }
@@ -79,21 +79,21 @@ export class IonicEnvironmentPlugin {
 
   private initializeWebpackFileSystemCaches(webpackFileSystem: any) {
     if (!webpackFileSystem._statStorage) {
-      webpackFileSystem._statStorage = { };
+      webpackFileSystem._statStorage = {};
     }
     if (!webpackFileSystem._statStorage.data) {
       webpackFileSystem._statStorage.data = [];
     }
 
     if (!webpackFileSystem._readFileStorage) {
-      webpackFileSystem._readFileStorage = { };
+      webpackFileSystem._readFileStorage = {};
     }
     if (!webpackFileSystem._readFileStorage.data) {
       webpackFileSystem._readFileStorage.data = [];
     }
 
     if (!webpackFileSystem._readdirStorage) {
-      webpackFileSystem._readdirStorage = { };
+      webpackFileSystem._readdirStorage = {};
     }
     if (!webpackFileSystem._readdirStorage.data) {
       webpackFileSystem._readdirStorage.data = [];
@@ -103,7 +103,7 @@ export class IonicEnvironmentPlugin {
 
 
 export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: DeepLinkConfigEntry[]) {
-  const dictionary: { [index: string]: string} = { };
+  const dictionary: { [index: string]: string } = {};
   if (!parsedDeepLinkConfigs) {
     parsedDeepLinkConfigs = [];
   }

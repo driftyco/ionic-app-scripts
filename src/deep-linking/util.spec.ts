@@ -30,16 +30,16 @@ describe('util', () => {
       const someOtherFile = join('Users', 'hans-gruber', 'test.ts');
 
       const fileCache = new FileCache();
-      fileCache.set(pageOneTs, { path: pageOneTs, content: knownFileContent});
-      fileCache.set(pageOneHtml, { path: pageOneHtml, content: knownFileContent});
-      fileCache.set(pageOneModule, { path: pageOneModule, content: knownFileContent});
-      fileCache.set(pageTwoTs, { path: pageTwoTs, content: knownFileContent});
-      fileCache.set(pageTwoHtml, { path: pageTwoHtml, content: knownFileContent});
-      fileCache.set(pageTwoModule, { path: pageTwoModule, content: knownFileContent});
-      fileCache.set(pageThreeTs, { path: pageThreeTs, content: knownFileContent});
-      fileCache.set(pageThreeHtml, { path: pageThreeHtml, content: knownFileContent});
-      fileCache.set(pageThreeModule, { path: pageThreeModule, content: knownFileContent});
-      fileCache.set(someOtherFile, { path: someOtherFile, content: knownFileContent});
+      fileCache.set(pageOneTs, { path: pageOneTs, content: knownFileContent });
+      fileCache.set(pageOneHtml, { path: pageOneHtml, content: knownFileContent });
+      fileCache.set(pageOneModule, { path: pageOneModule, content: knownFileContent });
+      fileCache.set(pageTwoTs, { path: pageTwoTs, content: knownFileContent });
+      fileCache.set(pageTwoHtml, { path: pageTwoHtml, content: knownFileContent });
+      fileCache.set(pageTwoModule, { path: pageTwoModule, content: knownFileContent });
+      fileCache.set(pageThreeTs, { path: pageThreeTs, content: knownFileContent });
+      fileCache.set(pageThreeHtml, { path: pageThreeHtml, content: knownFileContent });
+      fileCache.set(pageThreeModule, { path: pageThreeModule, content: knownFileContent });
+      fileCache.set(someOtherFile, { path: someOtherFile, content: knownFileContent });
 
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValues(pagesDir, '.module.ts');
 
@@ -602,7 +602,7 @@ export class HomePageModule {}
       const pagePath = join(prefix, 'pages', 'page-one', 'page-one.ts');
       const knownClassName = 'PageOne';
       const fileCache = new FileCache();
-      fileCache.set(pageNgModulePath, { path: pageNgModulePath, content: pageNgModuleContent});
+      fileCache.set(pageNgModulePath, { path: pageNgModulePath, content: pageNgModuleContent });
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
 
       const result = util.getNgModuleDataFromPage(appNgModulePath, pagePath, knownClassName, fileCache, false);
@@ -635,7 +635,7 @@ export class HomePageModule {}
       const pagePath = join(prefix, 'pages', 'page-one', 'page-one.ts');
       const knownClassName = 'PageOne';
       const fileCache = new FileCache();
-      fileCache.set(pageNgModulePath, { path: pageNgModulePath, content: pageNgModuleContent});
+      fileCache.set(pageNgModulePath, { path: pageNgModulePath, content: pageNgModuleContent });
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
 
       const result = util.getNgModuleDataFromPage(appNgModulePath, pagePath, knownClassName, fileCache, true);
@@ -814,14 +814,14 @@ export class PageThreeModule {
       const pageSettingsPath = join(prefix, 'pages', 'settings-page', 'settings-page.ts');
 
       const fileCache = new FileCache();
-      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent});
-      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent});
-      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
-      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
-      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
-      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
-      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent});
-      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent});
+      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent });
+      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent });
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent });
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent });
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent });
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent });
+      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent });
+      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent });
 
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
 
@@ -1000,14 +1000,14 @@ export class PageThreeModule {
       const pageSettingsPath = join(srcDir, 'pages', 'settings-page', 'settings-page.ts');
 
       const fileCache = new FileCache();
-      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent});
-      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent});
-      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
-      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
-      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
-      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
-      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent});
-      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent});
+      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent });
+      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent });
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent });
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent });
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent });
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent });
+      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent });
+      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent });
 
       spyOn(helpers, helpers.getStringPropertyValue.name).and.callFake((input: string) => {
         if (input === Constants.ENV_VAR_DEEPLINKS_DIR) {
@@ -1193,14 +1193,14 @@ export class PageThreeModule {
       const pageSettingsPath = join(srcDir, 'pages', 'settings-page', 'fake-dir', 'settings-page.ts');
 
       const fileCache = new FileCache();
-      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent});
-      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent});
-      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
-      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
-      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
-      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
-      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent});
-      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent});
+      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent });
+      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent });
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent });
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent });
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent });
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent });
+      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent });
+      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent });
 
       spyOn(helpers, helpers.getStringPropertyValue.name).and.callFake((input: string) => {
         if (input === Constants.ENV_VAR_DEEPLINKS_DIR) {
@@ -1411,14 +1411,14 @@ export class PageThreeModule {
       const pageSettingsPath = join(srcDir, 'pages', 'settings-page', 'fake-dir', 'settings-page.ts');
 
       const fileCache = new FileCache();
-      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent});
-      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent});
-      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
-      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
-      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent});
-      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent});
-      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent});
-      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent});
+      fileCache.set(pageOnePath, { path: pageOnePath, content: pageOneContent });
+      fileCache.set(pageOneNgModulePath, { path: pageOneNgModulePath, content: pageOneNgModuleContent });
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent });
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent });
+      fileCache.set(pageTwoPath, { path: pageTwoPath, content: pageTwoContent });
+      fileCache.set(pageTwoNgModulePath, { path: pageTwoNgModulePath, content: pageTwoNgModuleContent });
+      fileCache.set(pageSettingsPath, { path: pageSettingsPath, content: pageSettingsContent });
+      fileCache.set(pageSettingsNgModulePath, { path: pageSettingsNgModulePath, content: pageSettingsNgModuleContent });
 
       spyOn(helpers, helpers.getStringPropertyValue.name).and.callFake((input: string) => {
         if (input === Constants.ENV_VAR_DEEPLINKS_DIR) {
@@ -2321,7 +2321,7 @@ export const AppModuleNgFactory:import0.NgModuleFactory<import1.AppModule> = new
 }
 `;
 
-  const expectedDeepLinkString = `this._DeepLinkConfigToken_21 =${contentToInject}`;
+      const expectedDeepLinkString = `this._DeepLinkConfigToken_21 =${contentToInject}`;
 
       const result = util.getUpdatedAppNgModuleFactoryContentWithDeepLinksConfig(knownContent, contentToInject);
       expect(result.indexOf(knownDeepLinkString)).toEqual(-1);
@@ -2422,7 +2422,7 @@ export class AppModule {}
 `;
 
       const knownAppNgModulePath = join(process.cwd(), 'myApp', 'src', 'app.module.ts');
-      fileCache.set(knownAppNgModulePath, { path: knownAppNgModulePath, content: ngModuleContent});
+      fileCache.set(knownAppNgModulePath, { path: knownAppNgModulePath, content: ngModuleContent });
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(knownAppNgModulePath);
       spyOn(fileCache, 'get').and.callThrough();
       spyOn(transpile, transpile.transpileTsString.name).and.callFake((context: BuildContext, filePath: string, contentToTranspile: string) => {
@@ -2485,7 +2485,7 @@ export class AppModule {}
 `;
 
       const knownAppNgModulePath = join(process.cwd(), 'myApp', 'src', 'app.module.ts');
-      fileCache.set(knownAppNgModulePath, { path: knownAppNgModulePath, content: ngModuleContent});
+      fileCache.set(knownAppNgModulePath, { path: knownAppNgModulePath, content: ngModuleContent });
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(knownAppNgModulePath);
       spyOn(fileCache, 'get').and.callThrough();
       spyOn(transpile, transpile.transpileTsString.name).and.callFake((context: BuildContext, filePath: string, contentToTranspile: string) => {
@@ -2957,8 +2957,8 @@ export const AppModuleNgFactory:import0.NgModuleFactory<import1.AppModule> = new
 
       const knownAppNgModulePath = join(process.cwd(), 'myApp', 'src', 'app.module.ts');
       const knownAppNgModuleFactoryPath = helpers.changeExtension(knownAppNgModulePath, '.ngfactory.ts');
-      fileCache.set(knownAppNgModulePath, { path: knownAppNgModulePath, content: ngModuleContent});
-      fileCache.set(knownAppNgModuleFactoryPath, { path: knownAppNgModuleFactoryPath, content: knownNgFactoryContent});
+      fileCache.set(knownAppNgModulePath, { path: knownAppNgModulePath, content: ngModuleContent });
+      fileCache.set(knownAppNgModuleFactoryPath, { path: knownAppNgModuleFactoryPath, content: knownNgFactoryContent });
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(knownAppNgModulePath);
       spyOn(fileCache, 'get').and.callThrough();
       spyOn(transpile, transpile.transpileTsString.name).and.callFake((context: BuildContext, filePath: string, contentToTranspile: string) => {

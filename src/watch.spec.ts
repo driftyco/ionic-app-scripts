@@ -155,10 +155,10 @@ describe('watch', () => {
         filePath: 'file1.ts',
         ext: '.ts'
       }, {
-        event: 'change',
-        filePath: 'file2.ts',
-        ext: '.ts'
-      }];
+          event: 'change',
+          filePath: 'file2.ts',
+          ext: '.ts'
+        }];
       watch.runBuildUpdate(context, files);
       expect(context.transpileState).toEqual(BuildState.RequiresBuild);
       expect(context.deepLinkState).toEqual(BuildState.RequiresBuild);
@@ -193,7 +193,7 @@ describe('watch', () => {
   describe('prepareWatcher', () => {
 
     it('should do nothing when options.ignored is a function', () => {
-      const ignoreFn = function(){};
+      const ignoreFn = function() { };
       const watcher: watch.Watcher = { options: { ignored: ignoreFn } };
       const context: BuildContext = { srcDir: '/some/src/' };
       watch.prepareWatcher(context, watcher);
@@ -202,25 +202,27 @@ describe('watch', () => {
 
     it('should set replacePathVars when options.ignored is a string', () => {
       const watcher: watch.Watcher = { options: { ignored: join('{{SRC}}', '**', '*.spec.ts') } };
-      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src')};
+      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src') };
       watch.prepareWatcher(context, watcher);
       expect(watcher.options.ignored).toEqual(join(process.cwd(), 'some', 'src', '**', '*.spec.ts'));
     });
 
     it('should set replacePathVars when options.ignored is an array of strings', () => {
       const watcher: watch.Watcher = { options: { ignored: [join('{{SRC}}', '**', '*.spec.ts'), join('{{SRC}}', 'index.html')] } };
-      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src')};
+      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src') };
       watch.prepareWatcher(context, watcher);
       expect((watcher.options.ignored as string[])[0]).toEqual(join(process.cwd(), 'some', 'src', '**', '*.spec.ts'));
       expect((watcher.options.ignored as string[])[1]).toEqual(join(process.cwd(), 'some', 'src', 'index.html'));
     });
 
     it('should set replacePathVars when paths is an array', () => {
-      const watcher: watch.Watcher = { paths: [
-        join('{{SRC}}', 'some', 'path1'),
-        join('{{SRC}}', 'some', 'path2')
-      ] };
-      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src')};
+      const watcher: watch.Watcher = {
+        paths: [
+          join('{{SRC}}', 'some', 'path1'),
+          join('{{SRC}}', 'some', 'path2')
+        ]
+      };
+      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src') };
       watch.prepareWatcher(context, watcher);
       expect(watcher.paths.length).toEqual(2);
       expect(watcher.paths[0]).toEqual(join(process.cwd(), 'some', 'src', 'some', 'path1'));
@@ -228,8 +230,8 @@ describe('watch', () => {
     });
 
     it('should set replacePathVars when paths is a string', () => {
-      const watcher: watch.Watcher = { paths: join('{{SRC}}', 'some', 'path')};
-      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src')};
+      const watcher: watch.Watcher = { paths: join('{{SRC}}', 'some', 'path') };
+      const context: BuildContext = { srcDir: join(process.cwd(), 'some', 'src') };
       watch.prepareWatcher(context, watcher);
       expect(watcher.paths).toEqual(join(process.cwd(), 'some', 'src', 'some', 'path'));
     });
@@ -300,7 +302,7 @@ describe('watch', () => {
     });
 
     it('should not queue changes when subsequent build is called after the first build', () => {
-       const changedFileOne: ChangedFile = {
+      const changedFileOne: ChangedFile = {
         event: 'change',
         ext: '.ts',
         filePath: '/some/fake/path/that/doesnt/matter.ts'
@@ -664,7 +666,7 @@ describe('watch', () => {
         expect(watch.queuedChangedFileMap.get(changedFileFive.filePath)).toEqual(changedFileFive);
         expect(watch.queuedChangedFileMap.get(changedFileSix.filePath)).toEqual(changedFileSix);
 
-         // cool beans yo, go ahead and resolve another promise
+        // cool beans yo, go ahead and resolve another promise
         thirdPromiseResolve();
         return thirdPromise;
 

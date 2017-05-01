@@ -21,9 +21,9 @@ export let cachedDeepLinkString: string = null;
 export function deepLinking(context: BuildContext) {
   const logger = new Logger(`deeplinks`);
   return deepLinkingWorker(context).then((deepLinkConfigEntries: DeepLinkConfigEntry[]) => {
-      setParsedDeepLinkConfig(deepLinkConfigEntries);
-      logger.finish();
-    })
+    setParsedDeepLinkConfig(deepLinkConfigEntries);
+    logger.finish();
+  })
     .catch((err: Error) => {
       const error = new BuildError(err.message);
       error.isFatal = true;
@@ -105,9 +105,9 @@ export function deepLinkingUpdateImpl(changedFiles: ChangedFile[], context: Buil
 export function deepLinkingWorkerFullUpdate(context: BuildContext) {
   const logger = new Logger(`deeplinks update`);
   return deepLinkingWorker(context).then((deepLinkConfigEntries: DeepLinkConfigEntry[]) => {
-      setParsedDeepLinkConfig(deepLinkConfigEntries);
-      logger.finish();
-    })
+    setParsedDeepLinkConfig(deepLinkConfigEntries);
+    logger.finish();
+  })
     .catch((err: Error) => {
       Logger.warn(err.message);
       const error = new BuildError(err.message);

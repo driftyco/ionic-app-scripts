@@ -25,10 +25,10 @@ export function addPureAnnotation(filePath: string, originalFileContent: string,
   parenthesizedExpressions.forEach(parenthesizedExpression => {
 
     if (parenthesizedExpression.expression && parenthesizedExpression.expression.kind === SyntaxKind.CallExpression
-        && (parenthesizedExpression.expression as CallExpression).expression
-        && (parenthesizedExpression.expression as CallExpression).expression.kind === SyntaxKind.FunctionExpression
-        && !((parenthesizedExpression.expression as CallExpression).expression as FunctionExpression).name
-        && ((parenthesizedExpression.expression as CallExpression).expression as FunctionExpression).parameters) {
+      && (parenthesizedExpression.expression as CallExpression).expression
+      && (parenthesizedExpression.expression as CallExpression).expression.kind === SyntaxKind.FunctionExpression
+      && !((parenthesizedExpression.expression as CallExpression).expression as FunctionExpression).name
+      && ((parenthesizedExpression.expression as CallExpression).expression as FunctionExpression).parameters) {
 
       // it's an iffe
       if (((parenthesizedExpression.expression as CallExpression).expression as FunctionExpression).parameters.length === 0) {
@@ -36,8 +36,8 @@ export function addPureAnnotation(filePath: string, originalFileContent: string,
         magicString.prependLeft(parenthesizedExpression.pos, PURE_ANNOTATION);
 
       } else if (((parenthesizedExpression.expression as CallExpression).expression as FunctionExpression).parameters[0]
-                && ((parenthesizedExpression.expression as CallExpression).expression as FunctionExpression).parameters[0].name
-                && (((parenthesizedExpression.expression as CallExpression).expression as FunctionExpression).parameters[0].name as Identifier).text === '_super') {
+        && ((parenthesizedExpression.expression as CallExpression).expression as FunctionExpression).parameters[0].name
+        && (((parenthesizedExpression.expression as CallExpression).expression as FunctionExpression).parameters[0].name as Identifier).text === '_super') {
 
 
         magicString.prependLeft(parenthesizedExpression.pos, PURE_ANNOTATION);
@@ -66,32 +66,32 @@ function getTranspiledDecoratorExpressionStatements(sourceFile: SourceFile) {
   const toReturn: ExpressionStatement[] = [];
   expressionStatements.forEach(expressionStatement => {
     if (expressionStatement && expressionStatement.expression
-          && expressionStatement.expression.kind === SyntaxKind.CallExpression
-          && (expressionStatement.expression as CallExpression).expression
-          && ((expressionStatement.expression as CallExpression).expression as Identifier).text === '___decorate'
-          && (expressionStatement.expression as CallExpression).arguments
-          && (expressionStatement.expression as CallExpression).arguments.length > 0
-          && (expressionStatement.expression as CallExpression).arguments[0].kind === SyntaxKind.ArrayLiteralExpression
-          && ((expressionStatement.expression as CallExpression).arguments[0] as ArrayLiteralExpression).elements
-          && ((expressionStatement.expression as CallExpression).arguments[0] as ArrayLiteralExpression).elements.length > 0
-          && (((expressionStatement.expression as CallExpression).arguments[0] as ArrayLiteralExpression).elements[0] as CallExpression).expression
-          && (((expressionStatement.expression as CallExpression).arguments[0] as ArrayLiteralExpression).elements[0] as CallExpression).expression.kind === SyntaxKind.Identifier
-          && canRemoveDecoratorNode(((((expressionStatement.expression as CallExpression).arguments[0] as ArrayLiteralExpression).elements[0] as CallExpression).expression as Identifier).text)
-          ) {
+      && expressionStatement.expression.kind === SyntaxKind.CallExpression
+      && (expressionStatement.expression as CallExpression).expression
+      && ((expressionStatement.expression as CallExpression).expression as Identifier).text === '___decorate'
+      && (expressionStatement.expression as CallExpression).arguments
+      && (expressionStatement.expression as CallExpression).arguments.length > 0
+      && (expressionStatement.expression as CallExpression).arguments[0].kind === SyntaxKind.ArrayLiteralExpression
+      && ((expressionStatement.expression as CallExpression).arguments[0] as ArrayLiteralExpression).elements
+      && ((expressionStatement.expression as CallExpression).arguments[0] as ArrayLiteralExpression).elements.length > 0
+      && (((expressionStatement.expression as CallExpression).arguments[0] as ArrayLiteralExpression).elements[0] as CallExpression).expression
+      && (((expressionStatement.expression as CallExpression).arguments[0] as ArrayLiteralExpression).elements[0] as CallExpression).expression.kind === SyntaxKind.Identifier
+      && canRemoveDecoratorNode(((((expressionStatement.expression as CallExpression).arguments[0] as ArrayLiteralExpression).elements[0] as CallExpression).expression as Identifier).text)
+    ) {
 
       toReturn.push(expressionStatement);
 
     } else if (expressionStatement && expressionStatement.expression
-        && expressionStatement.expression.kind === SyntaxKind.BinaryExpression
-        && (expressionStatement.expression as BinaryExpression).right
-        && (expressionStatement.expression as BinaryExpression).right.kind === SyntaxKind.CallExpression
-        && ((expressionStatement.expression as BinaryExpression).right as CallExpression).expression
-        && (((expressionStatement.expression as BinaryExpression).right as CallExpression).expression as Identifier).text === '___decorate'
-        && ((expressionStatement.expression as BinaryExpression).right as CallExpression).arguments
-        && ((expressionStatement.expression as BinaryExpression).right as CallExpression).arguments.length > 0
-        && ((expressionStatement.expression as BinaryExpression).right as CallExpression).arguments[0].kind === SyntaxKind.ArrayLiteralExpression
-        && (((expressionStatement.expression as BinaryExpression).right as CallExpression).arguments[0] as ArrayLiteralExpression).elements
-        && (((expressionStatement.expression as BinaryExpression).right as CallExpression).arguments[0] as ArrayLiteralExpression).elements.length > 0 ) {
+      && expressionStatement.expression.kind === SyntaxKind.BinaryExpression
+      && (expressionStatement.expression as BinaryExpression).right
+      && (expressionStatement.expression as BinaryExpression).right.kind === SyntaxKind.CallExpression
+      && ((expressionStatement.expression as BinaryExpression).right as CallExpression).expression
+      && (((expressionStatement.expression as BinaryExpression).right as CallExpression).expression as Identifier).text === '___decorate'
+      && ((expressionStatement.expression as BinaryExpression).right as CallExpression).arguments
+      && ((expressionStatement.expression as BinaryExpression).right as CallExpression).arguments.length > 0
+      && ((expressionStatement.expression as BinaryExpression).right as CallExpression).arguments[0].kind === SyntaxKind.ArrayLiteralExpression
+      && (((expressionStatement.expression as BinaryExpression).right as CallExpression).arguments[0] as ArrayLiteralExpression).elements
+      && (((expressionStatement.expression as BinaryExpression).right as CallExpression).arguments[0] as ArrayLiteralExpression).elements.length > 0) {
 
       let immovableDecoratorFound = false;
 
@@ -134,19 +134,19 @@ export function purgeStaticCtorFields(filePath: string, originalFileContent: str
   // TODO - we could extend this to other libs and stuff too such as material 2, but that doesn't seem
   // particularly maintainable
   if (isIonicOrAngular(filePath) && !isIonicEntryComponent(filePath)
-        && !filePath.includes('@angular/platform-browser')
-        && !filePath.includes('@angular/core')) {
+    && !filePath.includes('@angular/platform-browser')
+    && !filePath.includes('@angular/core')) {
     Logger.debug(`[decorators] purgeStaticCtorFields: processing ${filePath} ...`);
     const typescriptFile = getTypescriptSourceFile(filePath, originalFileContent);
     const expressionStatements = findNodes(typescriptFile, typescriptFile, SyntaxKind.ExpressionStatement, false) as ExpressionStatement[];
     const toPurge: ExpressionStatement[] = [];
     for (const expressionStatement of expressionStatements) {
       if (expressionStatement.expression && expressionStatement.expression.kind === SyntaxKind.BinaryExpression
-          && (expressionStatement.expression as BinaryExpression).left
-          && (expressionStatement.expression as BinaryExpression).left.kind === SyntaxKind.PropertyAccessExpression
-          && ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name
-          && ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name.text === 'ctorParameters'
-          ) {
+        && (expressionStatement.expression as BinaryExpression).left
+        && (expressionStatement.expression as BinaryExpression).left.kind === SyntaxKind.PropertyAccessExpression
+        && ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name
+        && ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name.text === 'ctorParameters'
+      ) {
 
         toPurge.push(expressionStatement);
 
@@ -188,8 +188,8 @@ function getDecoratorsExpressionStatements(typescriptFile: SourceFile) {
   const decoratorExpressionStatements: ExpressionStatement[] = [];
   for (const expressionStatement of expressionStatements) {
     if (expressionStatement.expression && (expressionStatement.expression as BinaryExpression).left
-        && ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name
-        &&  ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name.text === 'decorators') {
+      && ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name
+      && ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name.text === 'decorators') {
       decoratorExpressionStatements.push(expressionStatement);
     }
   }
@@ -200,7 +200,7 @@ function getPropDecoratorsExpressionStatements(typescriptFile: SourceFile) {
   const expressionStatements = findNodes(typescriptFile, typescriptFile, SyntaxKind.ExpressionStatement, false) as ExpressionStatement[];
   const decoratorExpressionStatements: ExpressionStatement[] = [];
   for (const expressionStatement of expressionStatements) {
-    if (expressionStatement.expression && (expressionStatement.expression as BinaryExpression).left && ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name &&  ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name.text === 'propDecorators') {
+    if (expressionStatement.expression && (expressionStatement.expression as BinaryExpression).left && ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name && ((expressionStatement.expression as BinaryExpression).left as PropertyAccessExpression).name.text === 'propDecorators') {
       decoratorExpressionStatements.push(expressionStatement);
     }
   }
@@ -216,8 +216,8 @@ function removeDecorators(decoratorExpressionStatements: ExpressionStatement[], 
         if (objectLiteral.properties && objectLiteral.properties.length > 1) {
           if (objectLiteral.properties[0].name && (objectLiteral.properties[0].name as Identifier).text === 'type'
             && canRemoveDecoratorNode(((objectLiteral.properties[0] as PropertyAssignment).initializer as Identifier).text)) {
-              // sweet, we can remove the object literal
-              objectLiteralsToPurge.push(objectLiteral);
+            // sweet, we can remove the object literal
+            objectLiteralsToPurge.push(objectLiteral);
           }
         }
       });

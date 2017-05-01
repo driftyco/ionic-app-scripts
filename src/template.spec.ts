@@ -16,7 +16,7 @@ describe('template', () => {
 
       const baseDir = join(process.cwd(), 'path', 'to', 'dir');
 
-      const d: any = { };
+      const d: any = {};
 
       d[baseDir] = {
         'some-file.html': '<div>A</div>',
@@ -35,7 +35,7 @@ describe('template', () => {
       const sourceText = '/*someprefix*/@Component({templateUrl: "some-file1.html" });/*somebetween*/@Component({templateUrl: "some-file2.html" })/*somesuffix*/';
 
       const baseDir = join(process.cwd(), 'path', 'to', 'dir');
-      const d: any = { };
+      const d: any = {};
 
       d[baseDir] = {
         'some-file1.html': '<div>A</div>',
@@ -56,7 +56,7 @@ describe('template', () => {
 
       const baseDir = join(process.cwd(), 'path', 'to', 'dir');
 
-      const d: any = { };
+      const d: any = {};
 
       d[baseDir] = {
         'some-file.html': '<div>hello</div>',
@@ -305,7 +305,7 @@ describe('template', () => {
   });
 
   const oldLoggerError = Logger.error;
-  Logger.error = function() {};
+  Logger.error = function() { };
 
   afterAll(() => {
     Logger.error = oldLoggerError;

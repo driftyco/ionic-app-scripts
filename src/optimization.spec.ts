@@ -12,7 +12,7 @@ describe('optimization task', () => {
     it('should not run optimizations unless flags are set', () => {
       // arrange
       const fileCache = new FileCache();
-      fileCache.set('somePath', { path: 'somePath', content: 'someContent'});
+      fileCache.set('somePath', { path: 'somePath', content: 'someContent' });
       const context = {
         fileCache: fileCache
       };
@@ -50,13 +50,13 @@ describe('optimization task', () => {
       const filePathFive = join(process.cwd(), 'some', 'fake', 'dir', 'myApp', 'src', `app.ts`);
       const filePathSix = join(process.cwd(), 'some', 'fake', 'dir', 'myApp', 'src', `app.js`);
       const filePathSeven = join(process.cwd(), 'some', 'fake', 'dir', 'myApp', 'src', 'pages', `1.${suffix}`);
-      context.fileCache.set(filePathOne, { path: filePathOne, content: filePathOne});
-      context.fileCache.set(filePathTwo, { path: filePathTwo, content: filePathTwo});
-      context.fileCache.set(filePathThree, { path: filePathThree, content: filePathThree});
-      context.fileCache.set(filePathFour, { path: filePathFour, content: filePathFour});
-      context.fileCache.set(filePathFive, { path: filePathFive, content: filePathFive});
-      context.fileCache.set(filePathSix, { path: filePathSix, content: filePathSix});
-      context.fileCache.set(filePathSeven, { path: filePathSeven, content: filePathSeven});
+      context.fileCache.set(filePathOne, { path: filePathOne, content: filePathOne });
+      context.fileCache.set(filePathTwo, { path: filePathTwo, content: filePathTwo });
+      context.fileCache.set(filePathThree, { path: filePathThree, content: filePathThree });
+      context.fileCache.set(filePathFour, { path: filePathFour, content: filePathFour });
+      context.fileCache.set(filePathFive, { path: filePathFive, content: filePathFive });
+      context.fileCache.set(filePathSix, { path: filePathSix, content: filePathSix });
+      context.fileCache.set(filePathSeven, { path: filePathSeven, content: filePathSeven });
 
       optimization.purgeGeneratedFiles(context, suffix);
 

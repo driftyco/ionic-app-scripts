@@ -31,7 +31,7 @@ export function ionicRollupResolverPlugin(context: BuildContext) {
         try {
           if (!file) {
             const content = readFileSync(jsSourcePath).toString();
-            file = { path: jsSourcePath, content: content};
+            file = { path: jsSourcePath, content: content };
             context.fileCache.set(jsSourcePath, file);
           }
         } catch (ex) {
@@ -41,7 +41,7 @@ export function ionicRollupResolverPlugin(context: BuildContext) {
         try {
           if (!map) {
             const content = readFileSync(mapPath).toString();
-            map = { path: mapPath, content: content};
+            map = { path: mapPath, content: content };
             context.fileCache.set(mapPath, map);
           }
         } catch (ex) {
@@ -100,7 +100,7 @@ export function resolveId(importee: string, importer: string, context: BuildCont
   if (context.fileCache) {
     const importerFile = context.fileCache.get(importer);
     if (importerFile && importerFile.content) {
-      const attemptedImporteeBasename =  resolve(join(dirname(importer), importee));
+      const attemptedImporteeBasename = resolve(join(dirname(importer), importee));
       const attemptedImportee = attemptedImporteeBasename + '.ts';
       const importeeFile = context.fileCache.get(attemptedImportee);
       if (importeeFile) {

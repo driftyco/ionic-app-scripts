@@ -24,7 +24,7 @@ import { Logger } from './logger/logger';
 export function run(task: string) {
   try {
     Logger.info(`ionic-app-scripts ${getAppScriptsVersion()}`, 'cyan');
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     const context = generateContext(null);

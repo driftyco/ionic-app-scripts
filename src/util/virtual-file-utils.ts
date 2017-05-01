@@ -13,7 +13,7 @@ export class VirtualStats implements Stats {
   protected _uid = process.env['UID'] || 0;
   protected _gid = process.env['GID'] || 0;
 
-  constructor(protected _path: string) {}
+  constructor(protected _path: string) { }
 
   isFile() { return false; }
   isDirectory() { return false; }

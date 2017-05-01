@@ -14,7 +14,7 @@ export function optimizationLoader(source: string, map: any, webpackContex: any)
 
   if (isSrcOrIonicOrIonicDeps(absolutePath)) {
     Logger.debug(`[Webpack] optimization: Caching the following file: ${absolutePath}`);
-    context.fileCache.set(webpackContex.resourcePath, { path: webpackContex.resourcePath, content: source});
+    context.fileCache.set(webpackContex.resourcePath, { path: webpackContex.resourcePath, content: source });
   }
   return callback(null, source, map);
 }

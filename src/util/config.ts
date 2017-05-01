@@ -369,7 +369,7 @@ export function fillConfigDefaults(userConfigFile: string, defaultConfigFile: st
 
       // if user config returns a function call it to determine proper object
       if (typeof userConfig === 'function') {
-         userConfig = userConfig();
+        userConfig = userConfig();
       }
     } catch (e) {
       if (e.code === 'ENOENT') {
@@ -637,7 +637,7 @@ function getAppPackageJsonData(context: BuildContext) {
   if (!appPackageJsonData) {
     try {
       appPackageJsonData = readJSONSync(join(context.rootDir, 'package.json'));
-    } catch (e) {}
+    } catch (e) { }
   }
 
   return appPackageJsonData;

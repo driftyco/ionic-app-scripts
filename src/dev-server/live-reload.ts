@@ -25,7 +25,7 @@ export function createLiveReloadServer(config: ServeConfig) {
   events.on(events.EventType.FileChange, fileChange);
 
   events.on(events.EventType.ReloadApp, () => {
-    fileChange([{ event: 'change', ext: '.html', filePath: 'index.html'}]);
+    fileChange([{ event: 'change', ext: '.html', filePath: 'index.html' }]);
   });
 }
 

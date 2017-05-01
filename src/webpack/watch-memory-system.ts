@@ -61,7 +61,7 @@ export class WatchMemorySystem {
 
   processChanges(filePaths: string[]) {
     this.immediateCallback(filePaths[0], Date.now());
-    for ( const path of filePaths) {
+    for (const path of filePaths) {
       this.changes.add(path);
     }
     // don't bother waiting around, just call doneAggregating right away.
@@ -81,7 +81,7 @@ export class WatchMemorySystem {
   }
 
   getTimes(allFiles: string[], startTime: number, fileCache: FileCache) {
-    let times: any = { };
+    let times: any = {};
     for (const filePath of allFiles) {
       const file = fileCache.get(filePath);
       if (file) {

@@ -30,30 +30,30 @@ export function closureWorker(context: BuildContext, configFile: string): Promis
   const closureConfig = getClosureConfig(context, configFile);
   const bundleFilePath = join(context.buildDir, process.env[Constants.ENV_OUTPUT_JS_FILE_NAME]);
   return runClosure(closureConfig, bundleFilePath, tempFilePath, context.buildDir, closureConfig.debug)
-  .then(() => {
-    const promises: Promise<any>[] = [];
-    promises.push(copyFileAsync(tempFilePath, bundleFilePath));
-    promises.push(copyFileAsync(tempFilePath + '.map', bundleFilePath + '.map'));
-    return Promise.all(promises);
-  }).then(() => {
-    // delete the temp bundle either way
-    const promises: Promise<any>[] = [];
-    promises.push(unlinkAsync(tempFilePath));
-    promises.push(unlinkAsync(tempFilePath + '.map'));
-    return Promise.all(promises);
-  }).catch(err => {
-    // delete the temp bundle either way
-    unlinkAsync(tempFilePath);
-    unlinkAsync(tempFilePath + '.map');
-    throw err;
-  });
+    .then(() => {
+      const promises: Promise<any>[] = [];
+      promises.push(copyFileAsync(tempFilePath, bundleFilePath));
+      promises.push(copyFileAsync(tempFilePath + '.map', bundleFilePath + '.map'));
+      return Promise.all(promises);
+    }).then(() => {
+      // delete the temp bundle either way
+      const promises: Promise<any>[] = [];
+      promises.push(unlinkAsync(tempFilePath));
+      promises.push(unlinkAsync(tempFilePath + '.map'));
+      return Promise.all(promises);
+    }).catch(err => {
+      // delete the temp bundle either way
+      unlinkAsync(tempFilePath);
+      unlinkAsync(tempFilePath + '.map');
+      throw err;
+    });
 }
 
 function checkIfJavaIsAvailable(closureConfig: ClosureConfig) {
   return new Promise((resolve, reject) => {
     const command = spawn(`${closureConfig.pathToJavaExecutable}`, ['-version']);
 
-     command.stdout.on('data', (buffer: Buffer) => {
+    command.stdout.on('data', (buffer: Buffer) => {
       Logger.debug(`[Closure]: ${buffer.toString()}`);
     });
 
@@ -73,16 +73,16 @@ function checkIfJavaIsAvailable(closureConfig: ClosureConfig) {
 function runClosure(closureConfig: ClosureConfig, nonMinifiedBundlePath: string, minifiedBundleFileName: string, outputDir: string, isDebug: boolean) {
   return new Promise((resolve, reject) => {
     const closureArgs = ['-jar', `${closureConfig.pathToClosureJar}`,
-                        '--js', `${nonMinifiedBundlePath}`,
-                        '--js_output_file', `${minifiedBundleFileName}`,
-                        `--language_out=${closureConfig.languageOut}`,
-                        '--language_in', `${closureConfig.languageIn}`,
-                        '--compilation_level', `${closureConfig.optimization}`,
-                        `--create_source_map=%outname%.map`,
-                        `--variable_renaming_report=${outputDir}/variable_renaming_report`,
-                        `--property_renaming_report=${outputDir}/property_renaming_report`,
-                        `--rewrite_polyfills=false`,
-                      ];
+      '--js', `${nonMinifiedBundlePath}`,
+      '--js_output_file', `${minifiedBundleFileName}`,
+      `--language_out=${closureConfig.languageOut}`,
+      '--language_in', `${closureConfig.languageIn}`,
+      '--compilation_level', `${closureConfig.optimization}`,
+      `--create_source_map=%outname%.map`,
+      `--variable_renaming_report=${outputDir}/variable_renaming_report`,
+      `--property_renaming_report=${outputDir}/property_renaming_report`,
+      `--rewrite_polyfills=false`,
+    ];
 
     if (isDebug) {
       closureArgs.push('--debug');

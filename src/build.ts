@@ -36,12 +36,12 @@ function buildWorker(context: BuildContext) {
     // load any 100% required files to ensure they exist
     return validateRequiredFilesExist();
   })
-  .then(([_, tsConfigContents]) => {
-    return validateTsConfigSettings(tsConfigContents);
-  })
-  .then(() => {
-    return buildProject(context);
-  });
+    .then(([_, tsConfigContents]) => {
+      return validateTsConfigSettings(tsConfigContents);
+    })
+    .then(() => {
+      return buildProject(context);
+    });
 }
 
 function validateRequiredFilesExist() {
@@ -285,7 +285,7 @@ function buildUpdateTasks(changedFiles: ChangedFile[], context: BuildContext) {
             filePath: outputCssFile
           };
 
-          context.fileCache.set(outputCssFile, { path: outputCssFile, content: outputCssFile});
+          context.fileCache.set(outputCssFile, { path: outputCssFile, content: outputCssFile });
 
           resolveValue.changedFiles.push(changedFile);
         });
@@ -299,7 +299,7 @@ function buildUpdateTasks(changedFiles: ChangedFile[], context: BuildContext) {
             filePath: outputCssFile
           };
 
-          context.fileCache.set(outputCssFile, { path: outputCssFile, content: outputCssFile});
+          context.fileCache.set(outputCssFile, { path: outputCssFile, content: outputCssFile });
 
           resolveValue.changedFiles.push(changedFile);
         });
@@ -324,7 +324,7 @@ function loadFiles(changedFiles: ChangedFile[], context: BuildContext) {
       const promise = readFileAsync(changedFile.filePath);
       promises.push(promise);
       promise.then((content: string) => {
-        context.fileCache.set(changedFile.filePath, { path: changedFile.filePath, content: content});
+        context.fileCache.set(changedFile.filePath, { path: changedFile.filePath, content: content });
       });
     }
   }

@@ -88,7 +88,7 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
       tsConfig.options.sourceMap = false;
 
     } else {
-       // build the ts source maps if the bundler is going to use source maps
+      // build the ts source maps if the bundler is going to use source maps
       tsConfig.options.sourceMap = buildJsSourceMaps(context);
     }
 
@@ -113,8 +113,8 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
     cachedProgram = program;
 
     const tsDiagnostics = program.getSyntacticDiagnostics()
-                          .concat(program.getSemanticDiagnostics())
-                          .concat(program.getOptionsDiagnostics());
+      .concat(program.getSemanticDiagnostics())
+      .concat(program.getOptionsDiagnostics());
 
     const diagnostics = runTypeScriptDiagnostics(context, tsDiagnostics);
 
@@ -317,9 +317,9 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
 
   } else {
     const parsedConfig = ts.parseJsonConfigFileContent(
-                                tsConfigFile.config,
-                                ts.sys, context.rootDir,
-                                {}, tsConfigPath);
+      tsConfigFile.config,
+      ts.sys, context.rootDir,
+      {}, tsConfigPath);
 
     const diagnostics = runTypeScriptDiagnostics(context, parsedConfig.errors);
 

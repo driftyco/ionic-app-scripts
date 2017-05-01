@@ -88,10 +88,10 @@ describe('ion-rollup-resolver', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = resolve(join(importerBasename, importee)) + '.ts';
 
-       context.fileCache.set(importeeFullPath, {
-         path: importeeFullPath,
-         content: 'someContent'
-       });
+      context.fileCache.set(importeeFullPath, {
+        path: importeeFullPath,
+        content: 'someContent'
+      });
 
       // act
       const result = resolveId(importee, importer, context);
@@ -114,7 +114,7 @@ describe('ion-rollup-resolver', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = resolve(join(importerBasename, importee)) + '.ts';
 
-      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null});
+      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null });
 
       // act
       const result = resolveId(importee, importer, context);
@@ -160,7 +160,7 @@ describe('ion-rollup-resolver', () => {
       const importerBasename = dirname(importer);
       const importeeFullPath = join(resolve(join(importerBasename, importee)), 'index.ts');
 
-      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null});
+      context.fileCache.set(importeeFullPath, { path: importeeFullPath, content: null });
 
       // act
       const result = resolveId(importee, importer, context);

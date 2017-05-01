@@ -129,7 +129,7 @@ export function createNotificationServer(config: ServeConfig) {
       default:
         Logger.info.apply(this, args);
         break;
-      }
+    }
   }
 
 
@@ -139,9 +139,9 @@ export function createNotificationServer(config: ServeConfig) {
       type: 'completed',
       data: {
         diagnosticsHtml: generateRuntimeDiagnosticContent(config.rootDir,
-                                                          config.buildDir,
-                                                          clientMsg.data.message,
-                                                          clientMsg.data.stack)
+          config.buildDir,
+          clientMsg.data.message,
+          clientMsg.data.stack)
       }
     };
     queueMessageSend(msg);

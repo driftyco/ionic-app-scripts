@@ -150,8 +150,8 @@ export interface VirtualFileSystem {
   getDirectoryStats(path: string): VirtualDirStats;
   getSubDirs(directoryPath: string): string[];
   getFileNamesInDirectory(directoryPath: string): string[];
-  getAllFileStats():  { [filePath: string]: VirtualFileStats };
-  getAllDirStats():  { [filePath: string]: VirtualDirStats };
+  getAllFileStats(): { [filePath: string]: VirtualFileStats };
+  getAllDirStats(): { [filePath: string]: VirtualDirStats };
 };
 
 export interface DeepLinkDecoratorAndClass {

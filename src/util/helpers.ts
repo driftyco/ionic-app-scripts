@@ -19,7 +19,7 @@ export function getAppScriptsPackageJson() {
   if (!cachedAppScriptsPackageJson) {
     try {
       cachedAppScriptsPackageJson = readJsonSync(join(__dirname, '..', '..', 'package.json'));
-    } catch (e) {}
+    } catch (e) { }
   }
   return cachedAppScriptsPackageJson;
 }
@@ -32,7 +32,7 @@ export function getAppScriptsVersion(): string {
 function getUserPackageJson(userRootDir: string) {
   try {
     return readJsonSync(join(userRootDir, 'package.json'));
-  } catch (e) {}
+  } catch (e) { }
   return null;
 }
 
@@ -76,7 +76,7 @@ export function getSystemData(userRootDir: string) {
         d.angularCompilerCli = userDependencies['@angular/compiler-cli'];
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return d;
 }
@@ -89,7 +89,7 @@ export function splitLineBreaks(sourceText: string) {
 }
 
 
-export const objectAssign = (Object.assign) ? Object.assign : function (target: any, source: any) {
+export const objectAssign = (Object.assign) ? Object.assign : function(target: any, source: any) {
   const output = Object(target);
 
   for (var index = 1; index < arguments.length; index++) {
@@ -140,12 +140,12 @@ export function readAndCacheFile(filePath: string, purge: boolean = false): Prom
     return Promise.resolve(file.content);
   }
   return readFileAsync(filePath).then((fileContent: string) => {
-    _context.fileCache.set(filePath, { path: filePath, content: fileContent});
+    _context.fileCache.set(filePath, { path: filePath, content: fileContent });
     return fileContent;
   });
 }
 
-export function unlinkAsync(filePath: string|string[]): Promise<any> {
+export function unlinkAsync(filePath: string | string[]): Promise<any> {
   let filePaths: string[];
 
   if (typeof filePath === 'string') {
@@ -262,11 +262,11 @@ export function changeExtension(filePath: string, newExtension: string) {
 
 export function escapeHtml(unsafe: string) {
   return unsafe
-         .replace(/&/g, '&amp;')
-         .replace(/</g, '&lt;')
-         .replace(/>/g, '&gt;')
-         .replace(/"/g, '&quot;')
-         .replace(/'/g, '&#039;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 export function escapeStringForRegex(input: string) {
@@ -337,7 +337,7 @@ export function webpackStatsToDependencyMap(context: BuildContext, stats: any) {
 export function processStatsImpl(webpackStats: WebpackStats) {
   const dependencyMap = new Map<string, Set<string>>();
   if (webpackStats && webpackStats.modules) {
-      webpackStats.modules.forEach(webpackModule => {
+    webpackStats.modules.forEach(webpackModule => {
       const moduleId = purgeWebpackPrefixFromPath(webpackModule.identifier);
       const dependencySet = new Set<string>();
       webpackModule.reasons.forEach(webpackDependency => {
@@ -429,7 +429,7 @@ export function pascalCase(input: string) {
 export function removeCaseFromString(input: string, inReplacement?: string) {
   const replacement = inReplacement && inReplacement.length > 0 ? inReplacement : ' ';
 
-  function replace (match: string, index: number, value: string) {
+  function replace(match: string, index: number, value: string) {
     if (index === 0 || index === (value.length - match.length)) {
       return '';
     }

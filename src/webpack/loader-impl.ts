@@ -14,8 +14,8 @@ export function webpackLoader(source: string, map: any, webpackContex: any) {
   const sourceMapPath = javascriptPath + '.map';
 
   Promise.all([
-   readFile(context.fileCache, javascriptPath),
-   readFile(context.fileCache, sourceMapPath)
+    readFile(context.fileCache, javascriptPath),
+    readFile(context.fileCache, sourceMapPath)
   ]).then(([javascriptFile, mapFile]) => {
     let sourceMapObject = map;
     if (mapFile) {

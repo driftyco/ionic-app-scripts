@@ -2,7 +2,7 @@ import { readFileSync } from 'fs-extra';
 import { extname, normalize, resolve } from 'path';
 
 import 'reflect-metadata';
-import { CompilerOptions, createProgram, ParsedCommandLine, Program,  transpileModule, TranspileOptions, TranspileOutput } from 'typescript';
+import { CompilerOptions, createProgram, ParsedCommandLine, Program, transpileModule, TranspileOptions, TranspileOutput } from 'typescript';
 import { NgcCliOptions }from '@angular/compiler-cli';
 import { tsc } from '@angular/tsc-wrapped/src/tsc';
 import AngularCompilerOptions from '@angular/tsc-wrapped/src/options';
@@ -68,48 +68,48 @@ export class AotCompiler {
       this.program = errorCheckProgram(this.context, this.tsConfig, this.compilerHost, this.program);
       Logger.debug('[AotCompiler] compile: Creating and validating new TypeScript Program ... DONE');
     })
-    .then(() => {
+      .then(() => {
 
-      Logger.debug('[AotCompiler] compile: The following files are included in the program: ');
-      for ( const fileName of this.tsConfig.parsed.fileNames) {
-        Logger.debug(`[AotCompiler] compile: ${fileName}`);
-        const cleanedFileName = normalize(resolve(fileName));
-        const content = readFileSync(cleanedFileName).toString();
-        this.context.fileCache.set(cleanedFileName, { path: cleanedFileName, content: content});
-      }
-    }).then(() => {
-      Logger.debug('[AotCompiler] compile: Starting to process and modify entry point ...');
-      const mainFile = this.context.fileCache.get(this.options.entryPoint);
-      if (!mainFile) {
-        throw new BuildError(new Error(`Could not find entry point (bootstrap file) ${this.options.entryPoint}`));
-      }
-      Logger.debug('[AotCompiler] compile: Resolving NgModule from entry point');
-      let modifiedFileContent: string = null;
-      try {
-        Logger.debug('[AotCompiler] compile: Dynamically changing entry point content to AOT mode content');
-        modifiedFileContent = replaceBootstrap(mainFile.path, mainFile.content, this.options.appNgModulePath, this.options.appNgModuleClass);
-      } catch (ex) {
-        Logger.debug(`Failed to parse bootstrap: `, ex.message);
-        Logger.warn(`Failed to parse and update ${this.options.entryPoint} content for AoT compilation.
+        Logger.debug('[AotCompiler] compile: The following files are included in the program: ');
+        for (const fileName of this.tsConfig.parsed.fileNames) {
+          Logger.debug(`[AotCompiler] compile: ${fileName}`);
+          const cleanedFileName = normalize(resolve(fileName));
+          const content = readFileSync(cleanedFileName).toString();
+          this.context.fileCache.set(cleanedFileName, { path: cleanedFileName, content: content });
+        }
+      }).then(() => {
+        Logger.debug('[AotCompiler] compile: Starting to process and modify entry point ...');
+        const mainFile = this.context.fileCache.get(this.options.entryPoint);
+        if (!mainFile) {
+          throw new BuildError(new Error(`Could not find entry point (bootstrap file) ${this.options.entryPoint}`));
+        }
+        Logger.debug('[AotCompiler] compile: Resolving NgModule from entry point');
+        let modifiedFileContent: string = null;
+        try {
+          Logger.debug('[AotCompiler] compile: Dynamically changing entry point content to AOT mode content');
+          modifiedFileContent = replaceBootstrap(mainFile.path, mainFile.content, this.options.appNgModulePath, this.options.appNgModuleClass);
+        } catch (ex) {
+          Logger.debug(`Failed to parse bootstrap: `, ex.message);
+          Logger.warn(`Failed to parse and update ${this.options.entryPoint} content for AoT compilation.
                     For now, the default fallback content will be used instead.
                     Please consider updating ${this.options.entryPoint} with the content from the following link:
                     https://github.com/driftyco/ionic2-app-base/tree/master/src/app/main.ts`);
-        modifiedFileContent = getFallbackMainContent();
-      }
+          modifiedFileContent = getFallbackMainContent();
+        }
 
-      Logger.debug(`[AotCompiler] compile: Modified File Content: ${modifiedFileContent}`);
-      this.context.fileCache.set(this.options.entryPoint, { path: this.options.entryPoint, content: modifiedFileContent});
-      Logger.debug('[AotCompiler] compile: Starting to process and modify entry point ... DONE');
-    })
-    .then(() => {
-      Logger.debug('[AotCompiler] compile: Transpiling files ...');
-      transpileFiles(this.context, this.tsConfig, this.fileSystem);
-      Logger.debug('[AotCompiler] compile: Transpiling files ... DONE');
-    }).then(() => {
-      return {
-        lazyLoadedModuleDictionary: this.lazyLoadedModuleDictionary
-      };
-    });
+        Logger.debug(`[AotCompiler] compile: Modified File Content: ${modifiedFileContent}`);
+        this.context.fileCache.set(this.options.entryPoint, { path: this.options.entryPoint, content: modifiedFileContent });
+        Logger.debug('[AotCompiler] compile: Starting to process and modify entry point ... DONE');
+      })
+      .then(() => {
+        Logger.debug('[AotCompiler] compile: Transpiling files ...');
+        transpileFiles(this.context, this.tsConfig, this.fileSystem);
+        Logger.debug('[AotCompiler] compile: Transpiling files ... DONE');
+      }).then(() => {
+        return {
+          lazyLoadedModuleDictionary: this.lazyLoadedModuleDictionary
+        };
+      });
   }
 }
 
@@ -119,8 +119,8 @@ function errorCheckProgram(context: BuildContext, tsConfig: ParsedTsConfig, comp
   const program = createProgram(tsConfig.parsed.fileNames, tsConfig.parsed.options, compilerHost, cachedProgram);
   const globalDiagnostics = program.getGlobalDiagnostics();
   const tsDiagnostics = program.getSyntacticDiagnostics()
-                    .concat(program.getSemanticDiagnostics())
-                    .concat(program.getOptionsDiagnostics());
+    .concat(program.getSemanticDiagnostics())
+    .concat(program.getOptionsDiagnostics());
 
   if (globalDiagnostics.length) {
     const diagnostics = runTypeScriptDiagnostics(context, globalDiagnostics);
@@ -187,4 +187,3 @@ export interface ParsedTsConfig {
   parsed: ParsedCommandLine;
   ngOptions: AngularCompilerOptions;
 }
-

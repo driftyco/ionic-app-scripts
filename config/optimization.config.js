@@ -15,8 +15,7 @@ module.exports = {
   },
 
   module: {
-    loaders: [
-      {
+    loaders: [{
         test: /\.ts$/,
         loader: process.env.IONIC_OPTIMIZATION_LOADER
       },

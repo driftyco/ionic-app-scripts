@@ -14,14 +14,14 @@ describe('Deep Linking task', () => {
       deepLinking.reset();
     });
 
-   it('should not update app ngmodule when it has an existing deeplink config', () => {
+    it('should not update app ngmodule when it has an existing deeplink config', () => {
       const appNgModulePath = join('some', 'fake', 'path', 'myApp', 'src', 'app', 'app.module.ts');
       const context = {
         fileCache: new FileCache()
       };
       const knownFileContent = 'someFileContent';
       const knownDeepLinkString = 'someDeepLinkString';
-      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent});
+      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent });
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(appNgModulePath);
       spyOn(deeplinkUtils, deeplinkUtils.getDeepLinkData.name).and.returnValue([1]);
       spyOn(deeplinkUtils, deeplinkUtils.hasExistingDeepLinkConfig.name).and.returnValue(true);
@@ -44,7 +44,7 @@ describe('Deep Linking task', () => {
       };
       const knownFileContent = 'someFileContent';
       const knownDeepLinkString = 'someDeepLinkString';
-      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent});
+      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent });
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(appNgModulePath);
       spyOn(deeplinkUtils, deeplinkUtils.getDeepLinkData.name).and.returnValue([]);
       spyOn(deeplinkUtils, deeplinkUtils.hasExistingDeepLinkConfig.name).and.returnValue(false);
@@ -69,7 +69,7 @@ describe('Deep Linking task', () => {
       const knownDeepLinkString = 'someDeepLinkString';
       const knownMockDeepLinkArray = [1];
       const changedFiles: ChangedFile[] = [];
-      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent});
+      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent });
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(appNgModulePath);
       spyOn(deeplinkUtils, deeplinkUtils.getDeepLinkData.name).and.returnValue(knownMockDeepLinkArray);
       spyOn(deeplinkUtils, deeplinkUtils.hasExistingDeepLinkConfig.name).and.returnValue(false);
@@ -99,7 +99,7 @@ describe('Deep Linking task', () => {
       const knownDeepLinkString2 = 'someDeepLinkString2';
       const knownMockDeepLinkArray = [1];
       const changedFiles: ChangedFile[] = null;
-      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent});
+      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent });
 
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(appNgModulePath);
       spyOn(deeplinkUtils, deeplinkUtils.getDeepLinkData.name).and.returnValue(knownMockDeepLinkArray);
@@ -156,7 +156,7 @@ describe('Deep Linking task', () => {
       const knownDeepLinkString = 'someDeepLinkString';
       const knownMockDeepLinkArray = [1];
       const changedFiles: ChangedFile[] = null;
-      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent});
+      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent });
 
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(appNgModulePath);
       spyOn(deeplinkUtils, deeplinkUtils.getDeepLinkData.name).and.returnValue(knownMockDeepLinkArray);
@@ -290,7 +290,7 @@ export class AppModule { }
       const knownDeepLinkString = 'someDeepLinkString';
       const knownMockDeepLinkArray = [1];
       const changedFiles: ChangedFile[] = [];
-      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent});
+      context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent });
 
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(appNgModulePath);
       spyOn(deeplinkUtils, deeplinkUtils.getDeepLinkData.name).and.returnValue(knownMockDeepLinkArray);
@@ -320,7 +320,7 @@ export class AppModule { }
           ext: '.ts',
           filePath: appNgModulePath
         });
-        context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent2});
+        context.fileCache.set(appNgModulePath, { path: appNgModulePath, content: knownFileContent2 });
         return deepLinking.deepLinkingWorkerImpl(context, changedFiles);
       }).then((result) => {
         expect(result).toEqual(knownMockDeepLinkArray);

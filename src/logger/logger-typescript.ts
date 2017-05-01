@@ -40,7 +40,7 @@ function loadDiagnostic(context: BuildContext, tsDiagnostic: ts.Diagnostic) {
 
     try {
       htmlLines = splitLineBreaks(highlight(d.language, sourceText, true).value);
-    } catch (e) {}
+    } catch (e) { }
 
     const posData = tsDiagnostic.file.getLineAndCharacterOfPosition(tsDiagnostic.start);
 
@@ -56,7 +56,7 @@ function loadDiagnostic(context: BuildContext, tsDiagnostic: ts.Diagnostic) {
     if (errorLine.html && errorLine.html.indexOf('class="hljs') === -1) {
       try {
         errorLine.html = highlight(d.language, errorLine.text, true).value;
-      } catch (e) {}
+      } catch (e) { }
     }
 
     d.lines.push(errorLine);
@@ -66,7 +66,7 @@ function loadDiagnostic(context: BuildContext, tsDiagnostic: ts.Diagnostic) {
       errorLine.errorCharStart--;
     }
 
-    d.header =  Logger.formatHeader('typescript', tsDiagnostic.file.fileName, context.rootDir, errorLine.lineNumber);
+    d.header = Logger.formatHeader('typescript', tsDiagnostic.file.fileName, context.rootDir, errorLine.lineNumber);
 
     if (errorLine.lineIndex > 0) {
       const previousLine: PrintLine = {
@@ -81,7 +81,7 @@ function loadDiagnostic(context: BuildContext, tsDiagnostic: ts.Diagnostic) {
       if (previousLine.html && previousLine.html.indexOf('class="hljs') === -1) {
         try {
           previousLine.html = highlight(d.language, previousLine.text, true).value;
-        } catch (e) {}
+        } catch (e) { }
       }
 
       d.lines.unshift(previousLine);
@@ -100,7 +100,7 @@ function loadDiagnostic(context: BuildContext, tsDiagnostic: ts.Diagnostic) {
       if (nextLine.html && nextLine.html.indexOf('class="hljs') === -1) {
         try {
           nextLine.html = highlight(d.language, nextLine.text, true).value;
-        } catch (e) {}
+        } catch (e) { }
       }
 
       d.lines.push(nextLine);
@@ -109,4 +109,3 @@ function loadDiagnostic(context: BuildContext, tsDiagnostic: ts.Diagnostic) {
 
   return d;
 }
-

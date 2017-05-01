@@ -39,7 +39,7 @@ export function createHttpServer(config: ServeConfig): express.Application {
   // Lab routes
   app.use(IONIC_LAB_URL + '/static', express.static(path.join(__dirname, '..', '..', 'lab', 'static')));
   app.get(IONIC_LAB_URL, LabAppView);
-  app.get(IONIC_LAB_URL + '/api/v1/cordova', ApiCordovaProject );
+  app.get(IONIC_LAB_URL + '/api/v1/cordova', ApiCordovaProject);
 
   app.get('/cordova.js', servePlatformResource, serveMockCordovaJS);
   app.get('/cordova_plugins.js', servePlatformResource);
@@ -75,7 +75,7 @@ function setupProxies(app: express.Application) {
 /**
  * http responder for /index.html base entrypoint
  */
-function serveIndex(req: express.Request, res: express.Response)  {
+function serveIndex(req: express.Request, res: express.Response) {
   const config: ServeConfig = req.app.get('serveConfig');
 
   // respond with the index.html file

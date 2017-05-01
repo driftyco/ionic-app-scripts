@@ -102,7 +102,7 @@ function consoleHighlightError(errorLine: string, errorCharStart: number, errorL
 }
 
 
-let diagnosticsHtmlCache: {[key: string]: any} = {};
+let diagnosticsHtmlCache: { [key: string]: any } = {};
 
 export function clearDiagnosticsCache() {
   diagnosticsHtmlCache = {};
@@ -112,7 +112,7 @@ export function clearDiagnostics(context: BuildContext, type: string) {
   try {
     delete diagnosticsHtmlCache[type];
     unlinkSync(getDiagnosticsFileName(context.buildDir, type));
-  } catch (e) {}
+  } catch (e) { }
 }
 
 
@@ -309,7 +309,7 @@ function cssConsoleSyntaxHighlight(text: string, errorCharStart: number) {
 }
 
 
-function prepareLines(orgLines: PrintLine[], code: 'text'|'html') {
+function prepareLines(orgLines: PrintLine[], code: 'text' | 'html') {
   const lines: PrintLine[] = JSON.parse(JSON.stringify(orgLines));
 
   for (var i = 0; i < 100; i++) {
@@ -329,12 +329,12 @@ function prepareLines(orgLines: PrintLine[], code: 'text'|'html') {
 }
 
 
-function eachLineHasLeadingWhitespace(lines: PrintLine[], code: 'text'|'html') {
+function eachLineHasLeadingWhitespace(lines: PrintLine[], code: 'text' | 'html') {
   if (!lines.length) {
     return false;
   }
   for (var i = 0; i < lines.length; i++) {
-    if ( !(<any>lines[i])[code] || (<any>lines[i])[code].length < 1) {
+    if (!(<any>lines[i])[code] || (<any>lines[i])[code].length < 1) {
       return false;
     }
     var firstChar = (<any>lines[i])[code].charAt(0);

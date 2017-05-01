@@ -101,7 +101,7 @@ export class HybridFileSystem implements FileSystem, VirtualFileSystem {
     return this.filesStats;
   }
 
-  getAllDirStats():  { [filePath: string]: VirtualDirStats } {
+  getAllDirStats(): { [filePath: string]: VirtualDirStats } {
     return this.directoryStats;
   }
 

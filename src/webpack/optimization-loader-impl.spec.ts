@@ -15,7 +15,7 @@ describe('optimization loader impl', () => {
 
       const spy = jasmine.createSpy('callback');
       const webpackContext = {
-        cacheable: () => {},
+        cacheable: () => { },
         async: () => spy,
         resourcePath: join(appDir, 'node_modules', 'moment', 'index.js')
       };
@@ -38,7 +38,7 @@ describe('optimization loader impl', () => {
 
       const spy = jasmine.createSpy('callback');
       const webpackContext = {
-        cacheable: () => {},
+        cacheable: () => { },
         async: () => spy,
         resourcePath: join(ionicAngularDir, 'index.js')
       };

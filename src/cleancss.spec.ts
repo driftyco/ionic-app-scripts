@@ -12,7 +12,7 @@ describe('clean css task', () => {
   describe('cleancss', () => {
     it('should return when the worker returns', () => {
       // arrange
-      const context = { };
+      const context = {};
       const configFile: any = null;
       const spy = spyOn(workerClient, workerClient.runWorker.name).and.returnValue(Promise.resolve());
       // act
@@ -24,7 +24,7 @@ describe('clean css task', () => {
 
     it('should throw when the worker throws', () => {
       // arrange
-      const context = { };
+      const context = {};
       const errorMessage = 'Simulating an error';
       spyOn(workerClient, workerClient.runWorker.name).and.returnValue(Promise.reject(new Error(errorMessage)));
 
@@ -40,10 +40,10 @@ describe('clean css task', () => {
 
   describe('cleancssworker', () => {
     it('should throw when reading the file throws', () => {
-       const errorMessage = 'simulating an error';
+      const errorMessage = 'simulating an error';
       // arrange
-      const context = { buildDir: 'www'};
-      const cleanCssConfig = { sourceFileName: 'sourceFileName', destFileName: 'destFileName'};
+      const context = { buildDir: 'www' };
+      const cleanCssConfig = { sourceFileName: 'sourceFileName', destFileName: 'destFileName' };
       spyOn(config, config.generateContext.name).and.returnValue(context);
       spyOn(config, config.fillConfigDefaults.name).and.returnValue(cleanCssConfig);
       spyOn(helpers, helpers.readFileAsync.name).and.returnValue(Promise.reject(new Error(errorMessage)));
@@ -58,8 +58,8 @@ describe('clean css task', () => {
 
     it('should return what writeFileAsync returns', () => {
       // arrange
-      const context = { buildDir: 'www'};
-      const cleanCssConfig = { sourceFileName: 'sourceFileName', destFileName: 'destFileName'};
+      const context = { buildDir: 'www' };
+      const cleanCssConfig = { sourceFileName: 'sourceFileName', destFileName: 'destFileName' };
       const fileContent = 'content';
       const minifiedContent = 'someContent';
       spyOn(config, config.generateContext.name).and.returnValue(context);
@@ -91,7 +91,7 @@ describe('clean css task', () => {
       const fileContent = 'fileContent';
       const destinationFilePath = 'filePath';
       const mockMinifier = {
-        minify: () => {}
+        minify: () => { }
       };
       const minifySpy = spyOn(mockMinifier, mockMinifier.minify.name);
       spyOn(cleanCssFactory, cleanCssFactory.getCleanCssInstance.name).and.returnValue(mockMinifier);
@@ -119,7 +119,7 @@ describe('clean css task', () => {
       };
       const destinationFilePath = 'filePath';
       const mockMinifier = {
-        minify: () => {}
+        minify: () => { }
       };
       const minifySpy = spyOn(mockMinifier, mockMinifier.minify.name);
       spyOn(cleanCssFactory, cleanCssFactory.getCleanCssInstance.name).and.returnValue(mockMinifier);
@@ -147,7 +147,7 @@ describe('clean css task', () => {
       };
       const destinationFilePath = 'filePath';
       const mockMinifier = {
-        minify: () => {}
+        minify: () => { }
       };
       minifySpy = spyOn(mockMinifier, mockMinifier.minify.name);
       spyOn(cleanCssFactory, cleanCssFactory.getCleanCssInstance.name).and.returnValue(mockMinifier);
@@ -166,4 +166,3 @@ describe('clean css task', () => {
     });
   });
 });
-

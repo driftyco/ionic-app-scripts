@@ -441,7 +441,7 @@ export interface SassConfig {
   excludeModules?: string[];
   includeFiles?: RegExp[];
   excludeFiles?: RegExp[];
-  directoryMaps?: {[key: string]: string};
+  directoryMaps?: { [key: string]: string };
   sortComponentPathsFn?: (a: any, b: any) => number;
   sortComponentFilesFn?: (a: any, b: any) => number;
   variableSassFiles?: string[];

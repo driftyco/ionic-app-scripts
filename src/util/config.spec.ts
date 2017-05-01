@@ -51,7 +51,7 @@ describe('config', () => {
 
     it('should set the correct defaults for a dev build', () => {
       // arrange
-      const fakeConfig: any = { };
+      const fakeConfig: any = {};
       config.setProcessEnv(fakeConfig);
 
       // act
@@ -169,7 +169,7 @@ describe('config', () => {
 
     it('should set defaults for a prod build', () => {
       // arrange
-      const fakeConfig: any = { };
+      const fakeConfig: any = {};
       config.setProcessEnv(fakeConfig);
 
       // act
@@ -195,7 +195,7 @@ describe('config', () => {
       const originalTrace = console.trace;
       const originalWarn = console.warn;
 
-      const fakeConfig: any = { };
+      const fakeConfig: any = {};
       config.setProcessEnv(fakeConfig);
 
       spyOn(helpers, helpers.getBooleanPropertyValue.name).and.returnValue(true);

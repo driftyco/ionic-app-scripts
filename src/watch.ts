@@ -391,9 +391,9 @@ export interface WatchConfig {
 
 export interface Watcher {
   // https://www.npmjs.com/package/chokidar
-  paths?: string[]|string;
+  paths?: string[] | string;
   options?: {
-    ignored?: string|string[]|Function;
+    ignored?: string | string[] | Function;
     ignoreInitial?: boolean;
     followSymlinks?: boolean;
     cwd?: string;

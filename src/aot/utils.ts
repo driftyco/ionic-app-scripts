@@ -26,7 +26,7 @@ function getBootstrapNodes(allCalls: CallExpression[]) {
     .map(call => call.expression as PropertyAccessExpression)
     .filter(access => {
       return access.name.kind === SyntaxKind.Identifier
-          && access.name.text === 'bootstrapModule';
+        && access.name.text === 'bootstrapModule';
     });
 }
 
@@ -46,12 +46,12 @@ function replacePlatformBrowser(filePath: string, fileContent: string) {
   const allCalls = findNodes(sourceFile, sourceFile, SyntaxKind.CallExpression, true) as CallExpression[];
   const bootstraps = getBootstrapNodes(allCalls);
   const calls: CallExpression[] = bootstraps.reduce((previous, access) => {
-      const expressions = findNodes(sourceFile, access, SyntaxKind.CallExpression, true) as CallExpression[];
-      return previous.concat(expressions);
-    }, [])
+    const expressions = findNodes(sourceFile, access, SyntaxKind.CallExpression, true) as CallExpression[];
+    return previous.concat(expressions);
+  }, [])
     .filter((call: CallExpression) => {
       return call.expression.kind === SyntaxKind.Identifier
-          && (call.expression as Identifier).text === 'platformBrowserDynamic';
+        && (call.expression as Identifier).text === 'platformBrowserDynamic';
     });
   let modifiedContent = fileContent;
   calls.forEach(call => {
@@ -65,12 +65,12 @@ function checkForPlatformDynamicBrowser(filePath: string, fileContent: string) {
   const allCalls = findNodes(sourceFile, sourceFile, SyntaxKind.CallExpression, true) as CallExpression[];
   const bootstraps = getBootstrapNodes(allCalls);
   const calls: CallExpression[] = bootstraps.reduce((previous, access) => {
-      const expressions = findNodes(sourceFile, access, SyntaxKind.CallExpression, true) as CallExpression[];
-      return previous.concat(expressions);
-    }, [])
+    const expressions = findNodes(sourceFile, access, SyntaxKind.CallExpression, true) as CallExpression[];
+    return previous.concat(expressions);
+  }, [])
     .filter((call: CallExpression) => {
       return call.expression.kind === SyntaxKind.Identifier
-          && (call.expression as Identifier).text === 'platformBrowserDynamic';
+        && (call.expression as Identifier).text === 'platformBrowserDynamic';
     });
   return calls && calls.length;
 }

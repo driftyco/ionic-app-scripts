@@ -15,7 +15,7 @@ describe('babili function', () => {
 
   it('should reject promise when non-zero status code', () => {
     const spawnMock: any = {
-      on: () => {}
+      on: () => { }
     };
     spyOn(crossSpawn, 'spawn').and.returnValue(spawnMock);
     const onSpy = spyOn(spawnMock, 'on');
@@ -38,7 +38,7 @@ describe('babili function', () => {
 
   it('should resolve promise when zero status code', () => {
     const spawnMock: any = {
-      on: () => {}
+      on: () => { }
     };
     spyOn(crossSpawn, 'spawn').and.returnValue(spawnMock);
     const onSpy = spyOn(spawnMock, 'on');

@@ -68,7 +68,7 @@ describe('lint utils', () => {
       const lintResults: any[] = [
         {
           failures: [
-            { }
+            {}
           ],
           filePath: '/Users/myFileOne.ts'
         },

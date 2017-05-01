@@ -15,8 +15,8 @@ import { getAppModuleNgFactoryPath, calculateUnusedComponents, purgeUnusedImport
 export function optimization(context: BuildContext, configFile: string) {
   const logger = new Logger(`optimization`);
   return optimizationWorker(context, configFile).then(() => {
-      logger.finish();
-    })
+    logger.finish();
+  })
     .catch((err: Error) => {
       const error = new BuildError(err.message);
       error.isFatal = true;
@@ -93,7 +93,7 @@ function removeDecorators(context: BuildContext) {
       includeContent: true
     });
     const sourceMapPath = jsFile.path + '.map';
-    context.fileCache.set(sourceMapPath, { path: sourceMapPath, content: sourceMap.toString()});
+    context.fileCache.set(sourceMapPath, { path: sourceMapPath, content: sourceMap.toString() });
   });
 }
 
@@ -134,7 +134,7 @@ function attemptToPurgeUnusedProvider(context: BuildContext, dependencyMap: Map<
 
     let updatedContent = purgeComponentNgFactoryImportAndUsage(file.path, file.content, providerComponentFactoryPath);
     updatedContent = purgeProviderControllerImportAndUsage(file.path, updatedContent, providerPath);
-    context.fileCache.set(appModuleNgFactoryPath, { path: appModuleNgFactoryPath, content: updatedContent});
+    context.fileCache.set(appModuleNgFactoryPath, { path: appModuleNgFactoryPath, content: updatedContent });
 
     // purge the provider name from the forRoot method providers list
     const indexFilePath = process.env[Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT];
@@ -142,7 +142,7 @@ function attemptToPurgeUnusedProvider(context: BuildContext, dependencyMap: Map<
     let newIndexFileContent = purgeProviderClassNameFromIonicModuleForRoot(ionicIndexFile.content, providerClassName);
 
     // purge the component from the index file
-    context.fileCache.set(indexFilePath, { path: indexFilePath, content: newIndexFileContent});
+    context.fileCache.set(indexFilePath, { path: indexFilePath, content: newIndexFileContent });
   }
 }
 
@@ -163,5 +163,3 @@ const taskInfo: TaskInfo = {
   packageConfig: 'ionic_dependency_tree',
   defaultConfigFile: 'optimization.config'
 };
-
-

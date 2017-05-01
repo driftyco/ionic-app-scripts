@@ -44,9 +44,9 @@ function requiredModule(modulePath: string) {
 function filterMap(dependencyMap: Map<string, Set<string>>) {
   const filteredMap = new Map<string, Set<string>>();
   dependencyMap.forEach((importeeSet: Set<string>, modulePath: string) => {
-     if (isIonicComponentOrAppSource(modulePath)) {
-       filteredMap.set(modulePath, importeeSet);
-     }
+    if (isIonicComponentOrAppSource(modulePath)) {
+      filteredMap.set(modulePath, importeeSet);
+    }
   });
   return filteredMap;
 }
@@ -157,7 +157,7 @@ export function isNgFactory(modulePath: string) {
   return modulePath.indexOf('.ngfactory.') >= 0;
 }
 
-export function purgeUnusedImportsAndExportsFromIndex(indexFilePath: string, indexFileContent: string, modulePathsToPurge: string[] ) {
+export function purgeUnusedImportsAndExportsFromIndex(indexFilePath: string, indexFileContent: string, modulePathsToPurge: string[]) {
   Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Starting to purge import/exports ... `);
   for (const modulePath of modulePathsToPurge) {
     // I cannot get the './' prefix to show up when using path api

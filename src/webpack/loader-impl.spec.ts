@@ -18,7 +18,7 @@ function getMockFileCache() {
 function getMockWebpackObject(resourcePath: string) {
   return {
     cacheable: () => { },
-    async: () => {},
+    async: () => { },
     resourcePath: resourcePath
   };
 }
@@ -27,7 +27,7 @@ describe('webpack loader', () => {
   it('should callback with file and original source map provided', (done: Function) => {
     // arrange
     const mockContext = getMockContext();
-    const mockSourceMap = { };
+    const mockSourceMap = {};
     const sourceString = 'sourceString';
     const fakePath = join(process.cwd(), 'some', 'path', 'content.js');
     const fakeContent = 'SomeFileContent';
@@ -60,7 +60,7 @@ describe('webpack loader', () => {
     // arrange
     const mockContext = getMockContext();
 
-    const mockSourceMap = { };
+    const mockSourceMap = {};
     const sourceString = 'sourceString';
     const fakePath = join(process.cwd(), 'some', 'path', 'content.js');
     const fakeContent = `{"test": "test"}`;
@@ -98,7 +98,7 @@ describe('webpack loader', () => {
     // arrange
     const cantReadFileError = 'Failed to read file from disk';
     const mockContext = getMockContext();
-    const mockSourceMap = { };
+    const mockSourceMap = {};
     const sourceString = 'sourceString';
     const fakePath = join(process.cwd(), 'some', 'path', 'content.js');
     const mockWebpackObject = getMockWebpackObject(fakePath);
@@ -127,7 +127,7 @@ describe('webpack loader', () => {
   it('should callback with content from disk', (done: Function) => {
     // arrange
     const mockContext = getMockContext();
-    const mockSourceMap = { };
+    const mockSourceMap = {};
     const sourceString = 'sourceString';
     const fakePath = join(process.cwd(), 'some', 'path', 'content.js');
     const fakeContent = `{"test": "test"}`;

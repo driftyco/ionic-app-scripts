@@ -9,8 +9,8 @@ import * as path from 'path';
 export function postprocess(context: BuildContext) {
   const logger = new Logger(`postprocess`);
   return postprocessWorker(context).then(() => {
-      logger.finish();
-    })
+    logger.finish();
+  })
     .catch((err: Error) => {
       throw logger.fail(err);
     });

@@ -19,12 +19,13 @@ export function ngc(context: BuildContext, configFile?: string) {
 }
 
 export function ngcWorker(context: BuildContext, configFile: string): Promise<void> {
-  const compiler = new AotCompiler(context, { entryPoint: process.env[Constants.ENV_APP_ENTRY_POINT],
-                                            rootDir: context.rootDir,
-                                            tsConfigPath: process.env[Constants.ENV_TS_CONFIG],
-                                            appNgModuleClass: process.env[Constants.ENV_APP_NG_MODULE_CLASS],
-                                            appNgModulePath: process.env[Constants.ENV_APP_NG_MODULE_PATH]
-                                          });
+  const compiler = new AotCompiler(context, {
+    entryPoint: process.env[Constants.ENV_APP_ENTRY_POINT],
+    rootDir: context.rootDir,
+    tsConfigPath: process.env[Constants.ENV_TS_CONFIG],
+    appNgModuleClass: process.env[Constants.ENV_APP_NG_MODULE_CLASS],
+    appNgModulePath: process.env[Constants.ENV_APP_NG_MODULE_PATH]
+  });
   return compiler.compile();
 }
 

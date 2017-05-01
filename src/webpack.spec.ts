@@ -28,18 +28,18 @@ describe('Webpack Task', () => {
       const fileElevenPath = join(buildDir, 'secondary.css');
       const fileTwelvePath = join(buildDir, 'secondary.css.map');
 
-      context.fileCache.set(fileOnePath, { path: fileOnePath, content: fileOnePath + 'content'});
-      context.fileCache.set(fileTwoPath, { path: fileTwoPath, content: fileTwoPath + 'content'});
-      context.fileCache.set(fileThreePath, { path: fileThreePath, content: fileThreePath + 'content'});
-      context.fileCache.set(fileFourPath, { path: fileFourPath, content: fileFourPath + 'content'});
-      context.fileCache.set(fileFivePath, { path: fileFivePath, content: fileFivePath + 'content'});
-      context.fileCache.set(fileSixPath, { path: fileSixPath, content: fileSixPath + 'content'});
-      context.fileCache.set(fileSevenPath, { path: fileSevenPath, content: fileSevenPath + 'content'});
-      context.fileCache.set(fileEightPath, { path: fileEightPath, content: fileEightPath + 'content'});
-      context.fileCache.set(fileNinePath, { path: fileNinePath, content: fileNinePath + 'content'});
-      context.fileCache.set(fileTenPath, { path: fileTenPath, content: fileTenPath + 'content'});
-      context.fileCache.set(fileElevenPath, { path: fileElevenPath, content: fileElevenPath + 'content'});
-      context.fileCache.set(fileTwelvePath, { path: fileTwelvePath, content: fileTwelvePath + 'content'});
+      context.fileCache.set(fileOnePath, { path: fileOnePath, content: fileOnePath + 'content' });
+      context.fileCache.set(fileTwoPath, { path: fileTwoPath, content: fileTwoPath + 'content' });
+      context.fileCache.set(fileThreePath, { path: fileThreePath, content: fileThreePath + 'content' });
+      context.fileCache.set(fileFourPath, { path: fileFourPath, content: fileFourPath + 'content' });
+      context.fileCache.set(fileFivePath, { path: fileFivePath, content: fileFivePath + 'content' });
+      context.fileCache.set(fileSixPath, { path: fileSixPath, content: fileSixPath + 'content' });
+      context.fileCache.set(fileSevenPath, { path: fileSevenPath, content: fileSevenPath + 'content' });
+      context.fileCache.set(fileEightPath, { path: fileEightPath, content: fileEightPath + 'content' });
+      context.fileCache.set(fileNinePath, { path: fileNinePath, content: fileNinePath + 'content' });
+      context.fileCache.set(fileTenPath, { path: fileTenPath, content: fileTenPath + 'content' });
+      context.fileCache.set(fileElevenPath, { path: fileElevenPath, content: fileElevenPath + 'content' });
+      context.fileCache.set(fileTwelvePath, { path: fileTwelvePath, content: fileTwelvePath + 'content' });
 
       const writeFileSpy = spyOn(helpers, helpers.writeFileAsync.name).and.returnValue(Promise.resolve());
 

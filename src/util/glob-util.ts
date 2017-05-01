@@ -32,12 +32,12 @@ export function generateGlobTasks(patterns: string[], opts: any) {
     ignore: []
   }, opts);
 
-  patterns.forEach(function (pattern, i) {
+  patterns.forEach(function(pattern, i) {
     if (isNegative(pattern)) {
       return;
     }
 
-    const ignore = patterns.slice(i).filter(isNegative).map(function (pattern) {
+    const ignore = patterns.slice(i).filter(isNegative).map(function(pattern) {
       return pattern.slice(1);
     });
 
@@ -150,20 +150,20 @@ function toAbsoluteGlob(pattern: string) {
 
 // https://github.com/es128/glob-parent/blob/master/index.js
 function globParent(pattern: string) {
-	// special case for strings ending in enclosure containing path separator
+  // special case for strings ending in enclosure containing path separator
   if (/[\{\[].*[\/]*.*[\}\]]$/.test(pattern)) pattern += '/';
 
-	// preserves full path in case of trailing path separator
+  // preserves full path in case of trailing path separator
   pattern += 'a';
 
-	// remove path parts that are globby
+  // remove path parts that are globby
   do {
     pattern = toUnixPath(dirname(pattern));
   }
 
   while (isGlob(pattern) || /(^|[^\\])([\{\[]|\([^\)]+$)/.test(pattern));
 
-	// remove escape chars and return result
+  // remove escape chars and return result
   return pattern.replace(/\\([\*\?\|\[\]\(\)\{\}])/g, '$1');
 };
 

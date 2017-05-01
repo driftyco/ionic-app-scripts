@@ -26,7 +26,7 @@ export function templateUpdate(changedFiles: ChangedFile[], context: BuildContex
       for (const bundleFile of bundleFiles) {
         const newContent = replaceExistingJsTemplate(bundleFile.content, file.content, changedTemplateFile.filePath);
         if (newContent && newContent !== bundleFile.content) {
-          context.fileCache.set(bundleFile.path, { path: bundleFile.path, content: newContent});
+          context.fileCache.set(bundleFile.path, { path: bundleFile.path, content: newContent });
           writeFileSync(bundleFile.path, newContent);
           break;
         }

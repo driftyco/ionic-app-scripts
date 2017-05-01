@@ -6,7 +6,7 @@ describe('copy task', () => {
   describe('copyConfigToWatchConfig', () => {
     it('should convert to watch config format', () => {
       // arrange
-      const context = { };
+      const context = {};
       const configFile = 'configFile';
       const sampleConfig: copy.CopyConfig = {
         copyAssets: {

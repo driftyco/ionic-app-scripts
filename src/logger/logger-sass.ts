@@ -36,7 +36,7 @@ export function runSassDiagnostics(context: BuildContext, sassError: SassError) 
 
         try {
           htmlLines = splitLineBreaks(highlight(d.language, sourceText, true).value);
-        } catch (e) {}
+        } catch (e) { }
 
         const errorLine: PrintLine = {
           lineIndex: sassError.line - 1,
@@ -50,7 +50,7 @@ export function runSassDiagnostics(context: BuildContext, sassError: SassError) 
         if (errorLine.html.indexOf('class="hljs') === -1) {
           try {
             errorLine.html = highlight(d.language, errorLine.text, true).value;
-          } catch (e) {}
+          } catch (e) { }
         }
 
         for (var i = errorLine.errorCharStart; i >= 0; i--) {
@@ -87,7 +87,7 @@ export function runSassDiagnostics(context: BuildContext, sassError: SassError) 
           if (previousLine.html.indexOf('class="hljs') === -1) {
             try {
               previousLine.html = highlight(d.language, previousLine.text, true).value;
-            } catch (e) {}
+            } catch (e) { }
           }
 
           d.lines.unshift(previousLine);
@@ -106,7 +106,7 @@ export function runSassDiagnostics(context: BuildContext, sassError: SassError) 
           if (nextLine.html.indexOf('class="hljs') === -1) {
             try {
               nextLine.html = highlight(d.language, nextLine.text, true).value;
-            } catch (e) {}
+            } catch (e) { }
           }
 
           d.lines.push(nextLine);

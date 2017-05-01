@@ -30,7 +30,7 @@ export let buildCordovaConfig = (errCb: Function, cb: Function) => {
   });
 };
 
-export let parseConfig = (parsedConfig: any) : CordovaProject => {
+export let parseConfig = (parsedConfig: any): CordovaProject => {
   if (!parsedConfig.widget) {
     return {};
   }

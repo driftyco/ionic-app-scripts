@@ -12,8 +12,8 @@ import { deepLinking, deepLinkingUpdate } from './deep-linking';
 export function preprocess(context: BuildContext) {
   const logger = new Logger(`preprocess`);
   return preprocessWorker(context).then(() => {
-      logger.finish();
-    })
+    logger.finish();
+  })
     .catch((err: Error) => {
       const error = new BuildError(err.message);
       error.isFatal = true;

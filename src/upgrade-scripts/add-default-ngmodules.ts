@@ -22,7 +22,7 @@ export function readTsFiles(context: BuildContext, tsFilePaths: string[]) {
   const promises = tsFilePaths.map(tsFilePath => {
     const promise = readFileAsync(tsFilePath);
     promise.then((fileContent: string) => {
-      context.fileCache.set(tsFilePath, { path: tsFilePath, content: fileContent});
+      context.fileCache.set(tsFilePath, { path: tsFilePath, content: fileContent });
     });
     return promise;
   });

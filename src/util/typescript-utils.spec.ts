@@ -287,9 +287,9 @@ import { RootPageModule } from '../pages/root-page/root-page.module';
 export class AppModule {}
 `;
 
-  const knownPath = '/some/fake/path';
+    const knownPath = '/some/fake/path';
 
-  const expectedContent = `
+    const expectedContent = `
 import { NgModule } from \'@angular/core\';
 import { BrowserModule } from \'@angular/platform-browser\';
 import { IonicApp, IonicModule } from \'../../../../..\';
@@ -312,9 +312,9 @@ import { RootPageModule } from \'../pages/root-page/root-page.module\';
 export class AppModule {}
 `;
 
-  const result = tsUtils.appendNgModuleDeclaration(knownPath, knownContent, 'CoolProvider', 'provider');
-  expect(result).toEqual(expectedContent);
-});
+    const result = tsUtils.appendNgModuleDeclaration(knownPath, knownContent, 'CoolProvider', 'provider');
+    expect(result).toEqual(expectedContent);
+  });
 
   it('should return a modified file content for providers that already has one provider', () => {
     const knownContent = `
@@ -340,9 +340,9 @@ import { RootPageModule } from '../pages/root-page/root-page.module';
 export class AppModule {}
 `;
 
-  const knownPath = '/some/fake/path';
+    const knownPath = '/some/fake/path';
 
-  const expectedContent = `
+    const expectedContent = `
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { IonicApp, IonicModule } from '../../../../..';
@@ -365,8 +365,7 @@ import { RootPageModule } from '../pages/root-page/root-page.module';
 export class AppModule {}
 `;
 
-  const result = tsUtils.appendNgModuleDeclaration(knownPath, knownContent, 'CoolProvider', 'provider');
-  expect(result).toEqual(expectedContent);
+    const result = tsUtils.appendNgModuleDeclaration(knownPath, knownContent, 'CoolProvider', 'provider');
+    expect(result).toEqual(expectedContent);
   });
 });
-

@@ -3,7 +3,7 @@ import { escapeHtml, splitLineBreaks } from '../util/helpers';
 import { generateCodeBlock, getDiagnosticsHtmlContent } from './logger-diagnostics';
 import { highlight } from '../highlight/highlight';
 import { readFileSync } from 'fs';
-import { resolve , normalize} from 'path';
+import { resolve, normalize} from 'path';
 
 
 export function generateRuntimeDiagnosticContent(rootDir: string, buildDir: string, runtimeErrorMessage: string, runtimeErrorStack: string) {
@@ -78,7 +78,7 @@ export function generateRuntimeStackDiagnostics(rootDir: string, stack: string) 
 
         try {
           htmlLines = splitLineBreaks(highlight(d.language, sourceText, true).value);
-        } catch (e) {}
+        } catch (e) { }
 
         const errorLine: PrintLine = {
           lineIndex: errorLineNumber - 1,
@@ -92,7 +92,7 @@ export function generateRuntimeStackDiagnostics(rootDir: string, stack: string) 
         if (errorLine.html.indexOf('class="hljs') === -1) {
           try {
             errorLine.html = highlight(d.language, errorLine.text, true).value;
-          } catch (e) {}
+          } catch (e) { }
         }
 
         d.lines.push(errorLine);
@@ -110,7 +110,7 @@ export function generateRuntimeStackDiagnostics(rootDir: string, stack: string) 
           if (previousLine.html.indexOf('class="hljs') === -1) {
             try {
               previousLine.html = highlight(d.language, previousLine.text, true).value;
-            } catch (e) {}
+            } catch (e) { }
           }
 
           d.lines.unshift(previousLine);
@@ -129,7 +129,7 @@ export function generateRuntimeStackDiagnostics(rootDir: string, stack: string) 
           if (nextLine.html.indexOf('class="hljs') === -1) {
             try {
               nextLine.html = highlight(d.language, nextLine.text, true).value;
-            } catch (e) {}
+            } catch (e) { }
           }
 
           d.lines.push(nextLine);
@@ -137,7 +137,7 @@ export function generateRuntimeStackDiagnostics(rootDir: string, stack: string) 
 
         diagnostics.push(d);
 
-      } catch (e) {}
+      } catch (e) { }
     });
   }
 

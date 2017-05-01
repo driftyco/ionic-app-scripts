@@ -32,10 +32,10 @@ function createTimestamp() {
   // YYYYMMDDHHMM
   var d = new Date();
   return d.getUTCFullYear() + // YYYY
-          ('0' + (d.getUTCMonth() + 1)).slice(-2) + // MM
-          ('0' + (d.getUTCDate())).slice(-2) + // DD
-          ('0' + (d.getUTCHours())).slice(-2) + // HH
-          ('0' + (d.getUTCMinutes())).slice(-2); // MM
+    ('0' + (d.getUTCMonth() + 1)).slice(-2) + // MM
+    ('0' + (d.getUTCDate())).slice(-2) + // DD
+    ('0' + (d.getUTCHours())).slice(-2) + // HH
+    ('0' + (d.getUTCMinutes())).slice(-2); // MM
 }
 
 function publishToNpm() {
@@ -56,8 +56,7 @@ function mainFunction() {
     console.log('Restoring original package.json');
     revertPackageJson();
     console.log('Building Nightly ... DONE');
-  }
-  catch (ex) {
+  } catch (ex) {
     console.log(`Something went wrong with publishing the nightly. This process modifies the package.json, so restore it before committing code! - ${ex.message}`);
     process.exit(1);
   }

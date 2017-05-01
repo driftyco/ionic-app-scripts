@@ -51,21 +51,21 @@ export function webpackUpdate(changedFiles: ChangedFile[], context: BuildContext
   const promisetoReturn = runWebpackIncrementalBuild(false, context, webpackConfig);
   emit(EventType.WebpackFilesChanged, null);
   return promisetoReturn.then((stats: any) => {
-      // the webpack incremental build finished, so reset the list of pending promises
-      pendingPromises = [];
-      Logger.debug('webpackUpdate: Incremental Build Done, processing Data');
-      return webpackBuildComplete(stats, context, webpackConfig);
-    }).then(() => {
-      context.bundleState = BuildState.SuccessfulBuild;
-      return logger.finish();
-    }).catch(err => {
-      context.bundleState = BuildState.RequiresBuild;
-      if (err instanceof IgnorableError) {
-        throw err;
-      }
+    // the webpack incremental build finished, so reset the list of pending promises
+    pendingPromises = [];
+    Logger.debug('webpackUpdate: Incremental Build Done, processing Data');
+    return webpackBuildComplete(stats, context, webpackConfig);
+  }).then(() => {
+    context.bundleState = BuildState.SuccessfulBuild;
+    return logger.finish();
+  }).catch(err => {
+    context.bundleState = BuildState.RequiresBuild;
+    if (err instanceof IgnorableError) {
+      throw err;
+    }
 
-      throw logger.fail(err);
-    });
+    throw logger.fail(err);
+  });
 }
 
 

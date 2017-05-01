@@ -42,14 +42,11 @@ export function processTabsRequest(context: BuildContext, name: string, tabs: st
 
 export function listOptions() {
   const list: GeneratorOption[] = [];
-  list.push({type: Constants.COMPONENT, multiple: false});
-  list.push({type: Constants.DIRECTIVE, multiple: false});
-  list.push({type: Constants.PAGE, multiple: false});
-  list.push({type: Constants.PIPE, multiple: false});
-  list.push({type: Constants.PROVIDER, multiple: false});
-  list.push({type: Constants.TABS, multiple: true});
+  list.push({ type: Constants.COMPONENT, multiple: false });
+  list.push({ type: Constants.DIRECTIVE, multiple: false });
+  list.push({ type: Constants.PAGE, multiple: false });
+  list.push({ type: Constants.PIPE, multiple: false });
+  list.push({ type: Constants.PROVIDER, multiple: false });
+  list.push({ type: Constants.TABS, multiple: true });
   return list;
 }
-
-
-

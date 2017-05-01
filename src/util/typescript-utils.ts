@@ -88,14 +88,14 @@ export function insertNamedImportIfNeeded(filePath: string, fileContent: string,
   const allImports = findNodes(sourceFile, sourceFile, SyntaxKind.ImportDeclaration);
   const maybeImports = allImports.filter((node: ImportDeclaration) => {
     return node.moduleSpecifier.kind === SyntaxKind.StringLiteral
-            && (node.moduleSpecifier as StringLiteral).text === fromModule;
+      && (node.moduleSpecifier as StringLiteral).text === fromModule;
   }).filter((node: ImportDeclaration) => {
     // Remove import statements that are either `import 'XYZ'` or `import * as X from 'XYZ'`.
-        const clause = node.importClause as ImportClause;
-        if (!clause || clause.name || !clause.namedBindings) {
-          return false;
-        }
-        return clause.namedBindings.kind === SyntaxKind.NamedImports;
+    const clause = node.importClause as ImportClause;
+    if (!clause || clause.name || !clause.namedBindings) {
+      return false;
+    }
+    return clause.namedBindings.kind === SyntaxKind.NamedImports;
   }).map((node: ImportDeclaration) => {
     return (node.importClause as ImportClause).namedBindings as NamedImports;
   });
@@ -118,7 +118,7 @@ export function insertNamedImportIfNeeded(filePath: string, fileContent: string,
   } else {
     // Find the last import and insert after.
     fileContent = appendAfter(fileContent, allImports[allImports.length - 1],
-        `\nimport { ${namedImport} } from '${fromModule}';`);
+      `\nimport { ${namedImport} } from '${fromModule}';`);
   }
 
   return fileContent;
@@ -150,7 +150,7 @@ export function replaceImportModuleSpecifier(filePath: string, fileContent: stri
   const allImports = findNodes(sourceFile, sourceFile, SyntaxKind.ImportDeclaration);
   let modifiedContent = fileContent;
   allImports.forEach((node: ImportDeclaration) => {
-    if (node.moduleSpecifier.kind === SyntaxKind.StringLiteral && (node.moduleSpecifier as StringLiteral).text === moduleSpecifierOriginal ) {
+    if (node.moduleSpecifier.kind === SyntaxKind.StringLiteral && (node.moduleSpecifier as StringLiteral).text === moduleSpecifierOriginal) {
       modifiedContent = replaceNode(filePath, modifiedContent, node.moduleSpecifier, `'${moduleSpecifierReplacement}'`);
     }
   });

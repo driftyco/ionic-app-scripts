@@ -6,7 +6,7 @@ import { buildCordovaConfig, CordovaProject } from '../util/cordova-config';
  * Main Lab app view
  */
 export let LabAppView = (req: any, res: any) => {
-  return res.sendFile('index.html', {root: path.join(__dirname, '..', '..', 'lab')});
+  return res.sendFile('index.html', { root: path.join(__dirname, '..', '..', 'lab') });
 };
 
 export let ApiCordovaProject = (req: any, res: any) => {

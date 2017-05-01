@@ -20,11 +20,11 @@ describe('add default ngmodules upgrade script', () => {
       const knownFileThree = join(srcDirectory, 'pages', 'page-three', 'page-three.ts');
       const knownFileFour = join(srcDirectory, 'util', 'some-util.ts');
       const globResults = [
-                            { absolutePath: knownFileOne},
-                            { absolutePath: knownFileTwo},
-                            { absolutePath: knownFileThree},
-                            { absolutePath: knownFileFour},
-                          ];
+        { absolutePath: knownFileOne },
+        { absolutePath: knownFileTwo },
+        { absolutePath: knownFileThree },
+        { absolutePath: knownFileFour },
+      ];
       spyOn(globUtil, globUtil.globAll.name).and.returnValue(Promise.resolve(globResults));
       const promise = upgradeScript.getTsFilePaths(context);
 
@@ -90,13 +90,13 @@ describe('add default ngmodules upgrade script', () => {
         fileCache: new FileCache()
       };
 
-      context.fileCache.set(knownFileOne, { path: knownFileOne, content: getClassContent('PageOne', 'page-one')});
-      context.fileCache.set(knownFileTwo, { path: knownFileTwo, content: getClassContent('PageTwo', 'page-two')});
-      context.fileCache.set(knownFileThree, { path: knownFileThree, content: getClassContent('PageThree', 'page-three')});
-      context.fileCache.set(knownFileThreeModule, { path: knownFileThreeModule, content: deeplinkUtils.generateDefaultDeepLinkNgModuleContent(knownFileThree, 'PageThree')});
-      context.fileCache.set(knownFileFour, { path: knownFileFour, content: `${knownFileFour} content`});
-      context.fileCache.set(knownFileFive, { path: knownFileFive, content: `${knownFileFive} content`});
-      context.fileCache.set(knownFileSix, { path: knownFileSix, content: getClassContent('ModalOne', 'modal-one')});
+      context.fileCache.set(knownFileOne, { path: knownFileOne, content: getClassContent('PageOne', 'page-one') });
+      context.fileCache.set(knownFileTwo, { path: knownFileTwo, content: getClassContent('PageTwo', 'page-two') });
+      context.fileCache.set(knownFileThree, { path: knownFileThree, content: getClassContent('PageThree', 'page-three') });
+      context.fileCache.set(knownFileThreeModule, { path: knownFileThreeModule, content: deeplinkUtils.generateDefaultDeepLinkNgModuleContent(knownFileThree, 'PageThree') });
+      context.fileCache.set(knownFileFour, { path: knownFileFour, content: `${knownFileFour} content` });
+      context.fileCache.set(knownFileFive, { path: knownFileFive, content: `${knownFileFive} content` });
+      context.fileCache.set(knownFileSix, { path: knownFileSix, content: getClassContent('ModalOne', 'modal-one') });
 
       const ngModuleFileExtension = '.module.ts';
 

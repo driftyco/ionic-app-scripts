@@ -12,7 +12,7 @@ var objectKeys: any = Object.keys;
 
 // Global internal variables used within the highlight.js library.
 var languages: any = {},
-    aliases: any   = {};
+  aliases: any = {};
 
 var spanEndTag = '</span>';
 
@@ -62,7 +62,7 @@ function inherit(parent: any, obj: any) {
 function compileLanguage(language: any) {
 
   function reStr(re: any) {
-      return (re && re.source) || re;
+    return (re && re.source) || re;
   }
 
   function langRe(value: any, global?: any) {
@@ -94,7 +94,7 @@ function compileLanguage(language: any) {
       if (typeof mode.keywords === 'string') { // string
         flatten('keyword', mode.keywords);
       } else {
-        objectKeys(mode.keywords).forEach(function (className: any) {
+        objectKeys(mode.keywords).forEach(function(className: any) {
           flatten(className, mode.keywords[className]);
         });
       }
@@ -127,13 +127,13 @@ function compileLanguage(language: any) {
     var expanded_contains: any = [];
     mode.contains.forEach(function(c: any) {
       if (c.variants) {
-        c.variants.forEach(function(v: any) {expanded_contains.push(inherit(c, v)); });
+        c.variants.forEach(function(v: any) { expanded_contains.push(inherit(c, v)); });
       } else {
         expanded_contains.push(c === 'self' ? mode : c);
       }
     });
     mode.contains = expanded_contains;
-    mode.contains.forEach(function(c: any) {compileMode(c, mode); });
+    mode.contains.forEach(function(c: any) { compileMode(c, mode); });
 
     if (mode.starts) {
       compileMode(mode.starts, parent);
@@ -143,10 +143,10 @@ function compileLanguage(language: any) {
       mode.contains.map(function(c: any) {
         return c.beginKeywords ? '\\.?(' + c.begin + ')\\.?' : c.begin;
       })
-      .concat([mode.terminator_end, mode.illegal])
-      .map(reStr)
-      .filter(Boolean);
-    mode.terminators = terminators.length ? langRe(terminators.join('|'), true) : {exec: function(/*s*/): any {return null; }};
+        .concat([mode.terminator_end, mode.illegal])
+        .map(reStr)
+        .filter(Boolean);
+    mode.terminators = terminators.length ? langRe(terminators.join('|'), true) : { exec: function(/*s*/): any { return null; } };
   }
 
   compileMode(language);
@@ -217,7 +217,7 @@ properties:
 - value (an HTML string with highlighting markup)
 
 */
-export function highlight(name: string, value: string, ignore_illegals?: boolean, continuation?: any): {value: string, relevance: number, language?: string, top?: any} {
+export function highlight(name: string, value: string, ignore_illegals?: boolean, continuation?: any): { value: string, relevance: number, language?: string, top?: any } {
 
   function subMode(lexeme: any, mode: any) {
     var i: any, length: any;
@@ -252,8 +252,8 @@ export function highlight(name: string, value: string, ignore_illegals?: boolean
 
   function buildSpan(classname: any, insideSpan: any, leaveOpen?: any, noPrefix?: any): any {
     var classPrefix = noPrefix ? '' : options.classPrefix,
-        openSpan    = '<span class="' + classPrefix,
-        closeSpan   = leaveOpen ? '' : spanEndTag;
+      openSpan = '<span class="' + classPrefix,
+      closeSpan = leaveOpen ? '' : spanEndTag;
 
     openSpan += classname + '">';
 
@@ -293,8 +293,8 @@ export function highlight(name: string, value: string, ignore_illegals?: boolean
     }
 
     var result = explicit ?
-                  highlight(top.subLanguage, mode_buffer, true, continuations[top.subLanguage]) :
-                  highlightAuto(mode_buffer, top.subLanguage.length ? top.subLanguage : undefined);
+      highlight(top.subLanguage, mode_buffer, true, continuations[top.subLanguage]) :
+      highlightAuto(mode_buffer, top.subLanguage.length ? top.subLanguage : undefined);
 
     // Counting embedded language score towards the host language may be disabled
     // with zeroing the containing mode relevance. Usecase in point is Markdown that
@@ -316,7 +316,7 @@ export function highlight(name: string, value: string, ignore_illegals?: boolean
 
   function startNewMode(mode: any, asdf?: any) {
     result += mode.className ? buildSpan(mode.className, '', true) : '';
-    top = Object.create(mode, {parent: {value: top}});
+    top = Object.create(mode, { parent: { value: top } });
   }
 
   function processLexeme(buffer: any, lexeme?: any): any {
@@ -481,7 +481,7 @@ function configure(user_options: any) {
 function registerLanguage(name: any, language: any) {
   var lang = languages[name] = language(hljs);
   if (lang.aliases) {
-    lang.aliases.forEach(function(alias: any) {aliases[alias] = name; });
+    lang.aliases.forEach(function(alias: any) { aliases[alias] = name; });
   }
 }
 
@@ -531,7 +531,7 @@ hljs.QUOTE_STRING_MODE = {
 hljs.PHRASAL_WORDS_MODE = {
   begin: /\b(a|an|the|are|I'm|isn't|don't|doesn't|won't|but|just|should|pretty|simply|enough|gonna|going|wtf|so|such|will|you|your|like)\b/
 };
-hljs.COMMENT = function (begin: any, end: any, inherits: any) {
+hljs.COMMENT = function(begin: any, end: any, inherits: any) {
   var mode = hljs.inherit(
     {
       className: 'comment',
@@ -569,14 +569,14 @@ hljs.BINARY_NUMBER_MODE = {
 hljs.CSS_NUMBER_MODE = {
   className: 'number',
   begin: hljs.NUMBER_RE + '(' +
-    '%|em|ex|ch|rem'  +
-    '|vw|vh|vmin|vmax' +
-    '|cm|mm|in|pt|pc|px' +
-    '|deg|grad|rad|turn' +
-    '|s|ms' +
-    '|Hz|kHz' +
-    '|dpi|dpcm|dppx' +
-    ')?',
+  '%|em|ex|ch|rem' +
+  '|vw|vh|vmin|vmax' +
+  '|cm|mm|in|pt|pc|px' +
+  '|deg|grad|rad|turn' +
+  '|s|ms' +
+  '|Hz|kHz' +
+  '|dpi|dpcm|dppx' +
+  ')?',
   relevance: 0
 };
 hljs.REGEXP_MODE = {
@@ -613,20 +613,20 @@ hljs.registerLanguage('typescript', typescript);
 function typescript(hljs: any) {
   var KEYWORDS = {
     keyword:
-      'in if for while finally var new function do return void else break catch ' +
-      'instanceof with throw case default try this switch continue typeof delete ' +
-      'let yield const class public private protected get set super ' +
-      'static implements enum export import declare type namespace abstract',
+    'in if for while finally var new function do return void else break catch ' +
+    'instanceof with throw case default try this switch continue typeof delete ' +
+    'let yield const class public private protected get set super ' +
+    'static implements enum export import declare type namespace abstract',
     literal:
-      'true false null undefined NaN Infinity',
+    'true false null undefined NaN Infinity',
     built_in:
-      'eval isFinite isNaN parseFloat parseInt decodeURI decodeURIComponent ' +
-      'encodeURI encodeURIComponent escape unescape Object Function Boolean Error ' +
-      'EvalError InternalError RangeError ReferenceError StopIteration SyntaxError ' +
-      'TypeError URIError Number Math Date String RegExp Array Float32Array ' +
-      'Float64Array Int16Array Int32Array Int8Array Uint16Array Uint32Array ' +
-      'Uint8Array Uint8ClampedArray ArrayBuffer DataView JSON Intl arguments require ' +
-      'module console window document any number boolean string void'
+    'eval isFinite isNaN parseFloat parseInt decodeURI decodeURIComponent ' +
+    'encodeURI encodeURIComponent escape unescape Object Function Boolean Error ' +
+    'EvalError InternalError RangeError ReferenceError StopIteration SyntaxError ' +
+    'TypeError URIError Number Math Date String RegExp Array Float32Array ' +
+    'Float64Array Int16Array Int32Array Int8Array Uint16Array Uint32Array ' +
+    'Uint8Array Uint8ClampedArray ArrayBuffer DataView JSON Intl arguments require ' +
+    'module console window document any number boolean string void'
   };
 
   return {
@@ -677,7 +677,7 @@ function typescript(hljs: any) {
         keywords: KEYWORDS,
         contains: [
           'self',
-          hljs.inherit(hljs.TITLE_MODE, {begin: /[A-Za-z$_][0-9A-Za-z$_]*/}),
+          hljs.inherit(hljs.TITLE_MODE, { begin: /[A-Za-z$_][0-9A-Za-z$_]*/ }),
           {
             className: 'params',
             begin: /\(/, end: /\)/,
@@ -699,7 +699,7 @@ function typescript(hljs: any) {
       },
       { // prevent references like module.id from being higlighted as module definitions
         begin: /module\./,
-        keywords: {built_in: 'module'},
+        keywords: { built_in: 'module' },
         relevance: 0
       },
       {
@@ -843,9 +843,9 @@ function xml(hljs: any) {
             className: 'string',
             endsParent: true,
             variants: [
-              {begin: /"/, end: /"/},
-              {begin: /'/, end: /'/},
-              {begin: /[^\s"'=<>`]+/}
+              { begin: /"/, end: /"/ },
+              { begin: /'/, end: /'/ },
+              { begin: /[^\s"'=<>`]+/ }
             ]
           }
         ]
@@ -860,7 +860,7 @@ function xml(hljs: any) {
         className: 'meta',
         begin: '<!DOCTYPE', end: '>',
         relevance: 10,
-        contains: [{begin: '\\[', end: '\\]'}]
+        contains: [{ begin: '\\[', end: '\\]' }]
       },
       hljs.COMMENT(
         '<!--',
@@ -876,7 +876,7 @@ function xml(hljs: any) {
       {
         begin: /<\?(php)?/, end: /\?>/,
         subLanguage: 'php',
-        contains: [{begin: '/\\*', end: '\\*/', skip: true}]
+        contains: [{ begin: '/\\*', end: '\\*/', skip: true }]
       },
       {
         className: 'tag',
@@ -887,7 +887,7 @@ function xml(hljs: any) {
         by hljs.subMode() that tests lexemes outside the stream.
         */
         begin: '<style(?=\\s|>|$)', end: '>',
-        keywords: {name: 'style'},
+        keywords: { name: 'style' },
         contains: [TAG_INTERNALS],
         starts: {
           end: '</style>', returnEnd: true,
@@ -898,7 +898,7 @@ function xml(hljs: any) {
         className: 'tag',
         // See the comment in the <style tag about the lookahead pattern
         begin: '<script(?=\\s|>|$)', end: '>',
-        keywords: {name: 'script'},
+        keywords: { name: 'script' },
         contains: [TAG_INTERNALS],
         starts: {
           end: '\<\/script\>', returnEnd: true,
@@ -908,8 +908,8 @@ function xml(hljs: any) {
       {
         className: 'meta',
         variants: [
-          {begin: /<\?xml/, end: /\?>/, relevance: 10},
-          {begin: /<\?\w+/, end: /\?>/}
+          { begin: /<\?xml/, end: /\?>/, relevance: 10 },
+          { begin: /<\?\w+/, end: /\?>/ }
         ]
       },
       {

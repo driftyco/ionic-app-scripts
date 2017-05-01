@@ -8,9 +8,14 @@ var changelogCommand = './node_modules/.bin/conventional-changelog -p angular';
 var packageJsonPath = path.join(__dirname, '..', 'package.json');
 var packageJson = require(packageJsonPath);
 
-var github = new GithubApi({ version: '3.0.0'});
+var github = new GithubApi({
+  version: '3.0.0'
+});
 
-github.authenticate({ type: 'oauth', token: process.env.GH_TOKEN });
+github.authenticate({
+  type: 'oauth',
+  token: process.env.GH_TOKEN
+});
 
 var changelogContent = execSync(changelogCommand).toString();
 
@@ -26,8 +31,7 @@ github.releases.createRelease({
   if (err) {
     console.log('[create-github-release] An error occurred: ' + err.message);
     process.exit(1);
-  }
-  else {
+  } else {
     console.log('[create-github-release]: Process succeeded');
   }
 });

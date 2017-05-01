@@ -93,12 +93,12 @@ export function rollupWorker(context: BuildContext, configFile: string): Promise
         // write the bundle
         const promises: Promise<any>[] = [];
         promises.push(writeFileAsync(rollupConfig.dest, bundleOutput.code));
-        context.fileCache.set(rollupConfig.dest, { path: rollupConfig.dest, content: bundleOutput.code});
+        context.fileCache.set(rollupConfig.dest, { path: rollupConfig.dest, content: bundleOutput.code });
         const filePaths = [rollupConfig.dest];
         if (bundleOutput.map) {
           const sourceMapContent = bundleOutput.map.toString();
           promises.push(writeFileAsync(rollupConfig.dest + '.map', sourceMapContent));
-          context.fileCache.set(rollupConfig.dest + '.map', { path: rollupConfig.dest + '.map', content: sourceMapContent});
+          context.fileCache.set(rollupConfig.dest + '.map', { path: rollupConfig.dest + '.map', content: sourceMapContent });
           filePaths.push(rollupConfig.dest + '.map');
         }
         context.bundledFilePaths = filePaths;
@@ -156,7 +156,7 @@ let cachedBundle: RollupBundle = null;
 
 
 function createOnWarnFn() {
-  const previousWarns: {[key: string]: boolean} = {};
+  const previousWarns: { [key: string]: boolean } = {};
 
   return function onWarningMessage(warning: RollupWarning) {
     if (warning && warning.message in previousWarns) {

@@ -10,7 +10,7 @@ describe('bundle task', () => {
     it('should return the value rollup task returns', () => {
       // arrange
       spyOn(rollup, rollup.rollup.name).and.returnValue(Promise.resolve());
-      const context = { bundler: Constants.BUNDLER_ROLLUP};
+      const context = { bundler: Constants.BUNDLER_ROLLUP };
 
       // act
       return bundle.bundle(context).then(() => {
@@ -23,7 +23,7 @@ describe('bundle task', () => {
       const errorText = 'simulating an error';
       // arrange
       spyOn(rollup, rollup.rollup.name).and.returnValue(Promise.reject(new Error(errorText)));
-      const context = { bundler: Constants.BUNDLER_ROLLUP};
+      const context = { bundler: Constants.BUNDLER_ROLLUP };
 
       // act
       return bundle.bundle(context).then(() => {
@@ -38,7 +38,7 @@ describe('bundle task', () => {
     it('should return the value webpack task returns', () => {
       // arrange
       spyOn(webpack, webpack.webpack.name).and.returnValue(Promise.resolve());
-      const context = { bundler: Constants.BUNDLER_WEBPACK};
+      const context = { bundler: Constants.BUNDLER_WEBPACK };
 
       // act
       return bundle.bundle(context).then(() => {
@@ -51,7 +51,7 @@ describe('bundle task', () => {
       const errorText = 'simulating an error';
       // arrange
       spyOn(webpack, webpack.webpack.name).and.returnValue(Promise.reject(new Error(errorText)));
-      const context = { bundler: Constants.BUNDLER_WEBPACK};
+      const context = { bundler: Constants.BUNDLER_WEBPACK };
 
       // act
       return bundle.bundle(context).then(() => {
@@ -68,7 +68,7 @@ describe('bundle task', () => {
     it('should return the value rollup returns', () => {
       // arrange
       spyOn(rollup, rollup.rollupUpdate.name).and.returnValue(Promise.resolve());
-      const context = { bundler: Constants.BUNDLER_ROLLUP};
+      const context = { bundler: Constants.BUNDLER_ROLLUP };
       const changedFiles: ChangedFile[] = [];
 
       // act
@@ -82,7 +82,7 @@ describe('bundle task', () => {
       const errorText = 'simulating an error';
       // arrange
       spyOn(rollup, rollup.rollupUpdate.name).and.returnValue(Promise.reject(new Error(errorText)));
-      const context = { bundler: Constants.BUNDLER_ROLLUP};
+      const context = { bundler: Constants.BUNDLER_ROLLUP };
       const changedFiles: ChangedFile[] = [];
 
       // act
@@ -98,7 +98,7 @@ describe('bundle task', () => {
     it('should return the value webpack returns', () => {
       // arrange
       spyOn(webpack, webpack.webpackUpdate.name).and.returnValue(Promise.resolve());
-      const context = { bundler: Constants.BUNDLER_WEBPACK};
+      const context = { bundler: Constants.BUNDLER_WEBPACK };
       const changedFiles: ChangedFile[] = [];
 
       // act
@@ -113,7 +113,7 @@ describe('bundle task', () => {
       try {
         // arrange
         spyOn(webpack, webpack.webpackUpdate.name).and.returnValue(Promise.reject(new Error(errorText)));
-        const context = { bundler: Constants.BUNDLER_WEBPACK};
+        const context = { bundler: Constants.BUNDLER_WEBPACK };
         const changedFiles: ChangedFile[] = [];
 
         // act
@@ -138,7 +138,7 @@ describe('bundle task', () => {
         sourceMap: true
       };
       spyOn(rollup, rollup.getRollupConfig.name).and.returnValue(config);
-      const context = { bundler: Constants.BUNDLER_ROLLUP};
+      const context = { bundler: Constants.BUNDLER_ROLLUP };
       // act
       const result = bundle.buildJsSourceMaps(context);
 
@@ -149,9 +149,9 @@ describe('bundle task', () => {
 
     it('should get false when devtool is null for webpack', () => {
       // arrange
-      const config = { };
+      const config = {};
       spyOn(webpack, webpack.getWebpackConfig.name).and.returnValue(config);
-      const context = { bundler: Constants.BUNDLER_WEBPACK};
+      const context = { bundler: Constants.BUNDLER_WEBPACK };
       // act
       const result = bundle.buildJsSourceMaps(context);
 
@@ -162,9 +162,9 @@ describe('bundle task', () => {
 
     it('should get false when devtool is valid', () => {
       // arrange
-      const config = { devtool: 'someValue'};
+      const config = { devtool: 'someValue' };
       spyOn(webpack, webpack.getWebpackConfig.name).and.returnValue(config);
-      const context = { bundler: Constants.BUNDLER_WEBPACK};
+      const context = { bundler: Constants.BUNDLER_WEBPACK };
       // act
       const result = bundle.buildJsSourceMaps(context);
 
@@ -177,11 +177,11 @@ describe('bundle task', () => {
   describe('getJsOutputDest', () => {
     it('should get the value from rollup', () => {
       // arrange
-      const config = { };
+      const config = {};
       const returnValue = 'someString';
       spyOn(rollup, rollup.getRollupConfig.name).and.returnValue(config);
       spyOn(rollup, rollup.getOutputDest.name).and.returnValue(returnValue);
-      const context = { bundler: Constants.BUNDLER_ROLLUP};
+      const context = { bundler: Constants.BUNDLER_ROLLUP };
       // act
       const result = bundle.getJsOutputDest(context);
 
@@ -195,7 +195,7 @@ describe('bundle task', () => {
       // arrange
       const returnValue = 'someString';
       spyOn(webpack, webpack.getOutputDest.name).and.returnValue(returnValue);
-      const context = { bundler: Constants.BUNDLER_WEBPACK};
+      const context = { bundler: Constants.BUNDLER_WEBPACK };
       // act
       const result = bundle.getJsOutputDest(context);
 

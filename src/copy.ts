@@ -137,7 +137,7 @@ function cleanDirectories(context: BuildContext, directoriesToCreate: Set<string
 function deleteDirectories(directoryPaths: string[]) {
   const promises: Promise<void>[] = [];
   for (const directoryPath of directoryPaths) {
-   promises.push(rimRafAsync(directoryPath));
+    promises.push(rimRafAsync(directoryPath));
   }
   return Promise.all(promises);
 }

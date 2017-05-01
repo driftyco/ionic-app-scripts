@@ -19,7 +19,7 @@ describe('treeshake', () => {
 
   beforeEach(() => {
     originalEnv = process.env;
-    let env: any = { };
+    let env: any = {};
     env[Constants.ENV_VAR_IONIC_ANGULAR_DIR] = ionicAngularDir;
     env[Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT] = ionicAngularEntryPoint;
     env[Constants.ENV_VAR_SRC_DIR] = srcDir;
@@ -160,7 +160,7 @@ describe('treeshake', () => {
       dependencyOneHelperTwoSet.add(dependencyOne);
       dependencyOneHelperTwoSet.add(ionicAngularEntryPoint);
 
-      const alertSet  = new Set<string>();
+      const alertSet = new Set<string>();
       alertSet.add(alertController);
 
       const alertControllerSet = new Set<string>();
@@ -174,7 +174,7 @@ describe('treeshake', () => {
       const alertComponentNgFactorySet = new Set<string>();
       alertComponentNgFactorySet.add(appModuleNgFactory);
 
-      const actionSheetSet  = new Set<string>();
+      const actionSheetSet = new Set<string>();
       actionSheetSet.add(actionSheetController);
 
       const actionSheetControllerSet = new Set<string>();
@@ -521,8 +521,8 @@ export { Transition } from './transitions/transition';
       // act
 
       const modulesToPurge = [join(componentDir, 'range', 'range-knob'),
-                              join(componentDir, 'refresher', 'refresher'),
-                              join(componentDir, 'refresher', 'refresher-content')];
+        join(componentDir, 'refresher', 'refresher'),
+        join(componentDir, 'refresher', 'refresher-content')];
       const newContent = treeshake.purgeUnusedImportsAndExportsFromIndex(ionicAngularEntryPoint, indexFileContent, modulesToPurge);
 
       // assert

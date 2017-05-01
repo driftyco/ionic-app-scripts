@@ -14,9 +14,9 @@ export function babili(context: BuildContext, configFile?: string) {
   return babiliWorker(context, configFile).then(() => {
     logger.finish();
   })
-  .catch(err => {
-    return logger.fail(err);
-  });
+    .catch(err => {
+      return logger.fail(err);
+    });
 }
 
 
