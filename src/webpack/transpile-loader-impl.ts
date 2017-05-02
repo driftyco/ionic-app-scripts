@@ -15,7 +15,7 @@ export function transpileLoader(source: string, map: any, webpackContex: any) {
 
     // we only really care about transpiling stuff that is not ionic-angular, angular, rxjs, or the users app
     // so third party deps that may be es2015 or something
-    if (! isSrcOrIonicOrIonicDeps(absolutePath) && !context.isWatch && getBooleanPropertyValue(Constants.ENV_BUILD_TO_ES5)) {
+    if (! isSrcOrIonicOrIonicDeps(absolutePath) && context.isProd && getBooleanPropertyValue(Constants.ENV_BUILD_TO_ES5)) {
       const transpiledOutput = transpileTsString(context, absolutePath, source);
       const sourceMapObject = JSON.parse(transpiledOutput.sourceMapText);
       return callback(null, transpiledOutput.outputText, sourceMapObject);
