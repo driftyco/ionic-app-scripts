@@ -24,7 +24,10 @@ import * as Constants from './constants';
 export function generateContext(context?: BuildContext): BuildContext {
   if (!context) {
     context = {};
-    context.fileCache = new FileCache();
+  }
+  
+  if (!context.fileCache) {
+     context.fileCache = new FileCache();
   }
 
   context.isProd = [
