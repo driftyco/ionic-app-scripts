@@ -40,6 +40,9 @@ export function deepLinkingWorkerImpl(context: BuildContext, changedFiles: Chang
   return Promise.resolve().then(() => {
     const appNgModulePath = getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH);
     const appNgModuleFile = context.fileCache.get(appNgModulePath);
+    if (!appNgModuleFile) {
+      throw new Error(`The main app NgModule was not found at the following path: ${appNgModulePath}`);
+    }
     if (!cachedUnmodifiedAppNgModuleFileContent || hasAppModuleChanged(changedFiles, appNgModulePath)) {
       cachedUnmodifiedAppNgModuleFileContent = appNgModuleFile.content;
     }
