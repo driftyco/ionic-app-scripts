@@ -1,8 +1,16 @@
-import { dirname, join, relative } from 'path';
+import { dirname, extname, join, relative } from 'path';
 import { Logger } from '../logger/logger';
 import * as Constants from '../util/constants';
 import { changeExtension, convertFilePathToNgFactoryPath, escapeStringForRegex, getStringPropertyValue, toUnixPath } from '../util/helpers';
-import { TreeShakeCalcResults } from '../util/interfaces';
+import { BuildContext, TreeShakeCalcResults } from '../util/interfaces';
+import { findNodes, getTypescriptSourceFile, } from '../util/typescript-utils';
+
+import {
+  ImportDeclaration,
+  ImportSpecifier,
+  NamedImports,
+  StringLiteral,
+  SyntaxKind } from 'typescript';
 
 export function calculateUnusedComponents(dependencyMap: Map<string, Set<string>>): TreeShakeCalcResults {
   return calculateUnusedComponentsImpl(dependencyMap, getIonicModuleFilePath());
@@ -111,12 +119,29 @@ function calculateUnusedIonicProviders(dependencyMap: Map<string, Set<string>>) 
 
   // in this case, it's actually an entry component, not a provider
   processIonicProviders(dependencyMap, getStringPropertyValue(Constants.ENV_SELECT_POPOVER_COMPONENT_FACTORY_PATH));
+
+  restoreOverlayViewControllers(dependencyMap, getStringPropertyValue(Constants.ENV_ACTION_SHEET_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_ACTION_SHEET_VIEW_CONTROLLER_PATH));
+  restoreOverlayViewControllers(dependencyMap, getStringPropertyValue(Constants.ENV_ALERT_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_ALERT_VIEW_CONTROLLER_PATH));
+  restoreOverlayViewControllers(dependencyMap, getStringPropertyValue(Constants.ENV_LOADING_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_LOADING_VIEW_CONTROLLER_PATH));
+  restoreOverlayViewControllers(dependencyMap, getStringPropertyValue(Constants.ENV_MODAL_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_MODAL_VIEW_CONTROLLER_PATH));
+  restoreOverlayViewControllers(dependencyMap, getStringPropertyValue(Constants.ENV_PICKER_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_PICKER_VIEW_CONTROLLER_PATH));
+  restoreOverlayViewControllers(dependencyMap, getStringPropertyValue(Constants.ENV_POPOVER_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_POPOVER_VIEW_CONTROLLER_PATH));
+  restoreOverlayViewControllers(dependencyMap, getStringPropertyValue(Constants.ENV_TOAST_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_TOAST_VIEW_CONTROLLER_PATH));
 }
 
 function processIonicProviderComponents(dependencyMap: Map<string, Set<string>>, providerPath: string, componentPath: string) {
   const importeeSet = dependencyMap.get(providerPath);
   if (importeeSet && importeeSet.size === 0) {
     processIonicProviders(dependencyMap, componentPath);
+  }
+}
+
+function restoreOverlayViewControllers(dependencyMap: Map<string, Set<string>>, providerPath: string, viewControllerPath: string) {
+  const providerImporteeSet = dependencyMap.get(providerPath);
+  if (providerImporteeSet && providerImporteeSet.size > 0) {
+    const viewControllerImportees = dependencyMap.get(viewControllerPath) || new Set<string>();
+    viewControllerImportees.add(providerPath);
+    dependencyMap.set(viewControllerPath, viewControllerImportees);
   }
 }
 
@@ -129,9 +154,8 @@ export function getAppModuleNgFactoryPath() {
 function processIonicProviders(dependencyMap: Map<string, Set<string>>, providerPath: string) {
   const importeeSet = dependencyMap.get(providerPath);
   const appModuleNgFactoryPath = getAppModuleNgFactoryPath();
-
   // we can only purge an ionic provider if it is imported from one module, which is the AppModuleNgFactory
-  if (importeeSet && importeeSet.size === 1 && importeeSet.has(appModuleNgFactoryPath)) {
+  if (importeeSet && importeeSet.has(appModuleNgFactoryPath)) {
     Logger.debug(`[treeshake] processIonicProviders: Purging ${providerPath}`);
     importeeSet.delete(appModuleNgFactoryPath);
     // loop over the dependency map and remove this provider from importee sets
@@ -161,33 +185,52 @@ export function isNgFactory(modulePath: string) {
   return modulePath.indexOf('.ngfactory.') >= 0;
 }
 
-export function purgeUnusedImportsAndExportsFromIndex(indexFilePath: string, indexFileContent: string, modulePathsToPurge: string[] ) {
-  Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Starting to purge import/exports ... `);
+export function purgeUnusedExportsFromIndexFile(filePath: string, fileContent: string, modulePathsToPurge: string[]) {
+  Logger.debug(`[treeshake] purgeUnusedExportsFromIndexFile: Starting to purge exports ... `);
   for (const modulePath of modulePathsToPurge) {
     // I cannot get the './' prefix to show up when using path api
-    Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Removing ${modulePath} from ${indexFilePath}`);
+    Logger.debug(`[treeshake] purgeUnusedExportsFromIndexFile: Removing ${modulePath} from ${filePath}`);
+    const extensionless = changeExtension(modulePath, '');
+    const relativeImportPath = './' + relative(dirname(filePath), extensionless);
+    const importPath = toUnixPath(relativeImportPath);
+    const exportRegex = generateExportRegex(importPath);
+    Logger.debug(`[treeshake] purgeUnusedExportsFromIndexFile: Removing exports with path ${importPath}`);
+    let results: RegExpExecArray = null;
+    while ((results = exportRegex.exec(fileContent)) && results.length) {
+      fileContent = fileContent.replace(exportRegex, `/*${results[0]}*/`);
+    }
+  }
+  Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Starting to purge exports ... DONE`);
+  return fileContent;
+}
+
+export function purgeUnusedImportsAndExportsFromModuleFile(moduleFilePath: string, moduleFileContent: string, modulePathsToPurge: string[] ) {
+  Logger.debug(`[treeshake] purgeUnusedImportsAndExportsFromModuleFile: Starting to purge import/exports ... `);
+  for (const modulePath of modulePathsToPurge) {
+    // I cannot get the './' prefix to show up when using path api
+    Logger.debug(`[treeshake] purgeUnusedImportsAndExportsFromModuleFile: Removing ${modulePath} from ${moduleFilePath}`);
 
     const extensionless = changeExtension(modulePath, '');
-    const relativeImportPath = './' + relative(dirname(indexFilePath), extensionless);
+    const relativeImportPath = './' + relative(dirname(moduleFilePath), extensionless);
     const importPath = toUnixPath(relativeImportPath);
-    Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Removing imports with path ${importPath}`);
+    Logger.debug(`[treeshake] purgeUnusedImportsAndExportsFromModuleFile: Removing imports with path ${importPath}`);
     const importRegex = generateImportRegex(importPath);
     // replace the import if it's found
     let results: RegExpExecArray = null;
-    while ((results = importRegex.exec(indexFileContent)) && results.length) {
-      indexFileContent = indexFileContent.replace(importRegex, `/*${results[0]}*/`);
+    while ((results = importRegex.exec(moduleFileContent)) && results.length) {
+      moduleFileContent = moduleFileContent.replace(importRegex, `/*${results[0]}*/`);
     }
 
     results = null;
     const exportRegex = generateExportRegex(importPath);
-    Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Removing exports with path ${importPath}`);
-    while ((results = exportRegex.exec(indexFileContent)) && results.length) {
-      indexFileContent = indexFileContent.replace(exportRegex, `/*${results[0]}*/`);
+    Logger.debug(`[treeshake] purgeUnusedImportsAndExportsFromModuleFile: Removing exports with path ${importPath}`);
+    while ((results = exportRegex.exec(moduleFileContent)) && results.length) {
+      moduleFileContent = moduleFileContent.replace(exportRegex, `/*${results[0]}*/`);
     }
   }
 
-  Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Starting to purge import/exports ... DONE`);
-  return indexFileContent;
+  Logger.debug(`[treeshake] purgeUnusedImportsAndExportsFromModuleFile: Starting to purge import/exports ... DONE`);
+  return moduleFileContent;
 }
 
 function generateImportRegex(relativeImportPath: string) {
@@ -222,54 +265,58 @@ export function purgeComponentNgFactoryImportAndUsage(appModuleNgFactoryPath: st
   return appModuleNgFactoryContent;
 }
 
-export function purgeProviderControllerImportAndUsage(appModuleNgFactoryPath: string, appModuleNgFactoryContent: string, providerPath: string) {
+export function purgeProviderControllerImportAndUsage(moduleNgFactoryPath: string, moduleNgFactoryContent: string, providerPath: string) {
   Logger.debug(`[treeshake] purgeProviderControllerImportAndUsage: Starting to purge provider controller and usage ...`);
   const extensionlessComponentFactoryPath = changeExtension(providerPath, '');
   const relativeImportPath = relative(dirname(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR)), extensionlessComponentFactoryPath);
   const importPath = toUnixPath(relativeImportPath);
   Logger.debug(`[treeshake] purgeProviderControllerImportAndUsage: Looking for imports from ${importPath}`);
   const importRegex = generateWildCardImportRegex(importPath);
-  const results = importRegex.exec(appModuleNgFactoryContent);
+  const results = importRegex.exec(moduleNgFactoryContent);
   if (results && results.length >= 2) {
     const namedImport = results[1].trim();
 
     // purge the getter
-    const purgeGetterRegEx = generateRemoveGetterFromImportRegex(namedImport);
-    const purgeGetterResults = purgeGetterRegEx.exec(appModuleNgFactoryContent);
 
     const purgeIfRegEx = generateRemoveIfStatementRegex(namedImport);
-    const purgeIfResults = purgeIfRegEx.exec(appModuleNgFactoryContent);
+    const purgeIfResults = purgeIfRegEx.exec(moduleNgFactoryContent);
+    if (purgeIfResults) {
+      // okay, sweet, find out what is actually returned from this bad boy
+      const getNameOfReturnedPropertyRegex = /return this\.(.*?);/g;
+      const returnValueResults = getNameOfReturnedPropertyRegex.exec(purgeIfResults[0]);
+      if (returnValueResults && returnValueResults.length >= 2) {
+        const propertyNameOfProvider = returnValueResults[1];
+        const getterRegex = generateRemoveGetterFromImportRegex(namedImport, propertyNameOfProvider);
+        const getterRegexResults = getterRegex.exec(moduleNgFactoryContent);
+        if (getterRegexResults) {
+          moduleNgFactoryContent = moduleNgFactoryContent.replace(importRegex, `/*${results[0]}*/`);
+          Logger.debug(`[treeshake] purgeProviderControllerImportAndUsage: Purging getter logic using ${namedImport}`);
+          const getterContentToReplace = getterRegexResults[0];
+          const newGetterContent = `/*${getterContentToReplace}*/`;
+          moduleNgFactoryContent = moduleNgFactoryContent.replace(getterContentToReplace, newGetterContent);
 
-    if (purgeGetterResults && purgeIfResults) {
-
-      Logger.debug(`[treeshake] purgeProviderControllerImportAndUsage: Purging imports ${namedImport}`);
-      appModuleNgFactoryContent = appModuleNgFactoryContent.replace(importRegex, `/*${results[0]}*/`);
-
-      Logger.debug(`[treeshake] purgeProviderControllerImportAndUsage: Purging getter logic using ${namedImport}`);
-      const getterContentToReplace = purgeGetterResults[0];
-      const newGetterContent = `/*${getterContentToReplace}*/`;
-      appModuleNgFactoryContent = appModuleNgFactoryContent.replace(getterContentToReplace, newGetterContent);
-
-      Logger.debug(`[treeshake] purgeProviderControllerImportAndUsage: Purging additional logic using ${namedImport}`);
-      const purgeIfContentToReplace = purgeIfResults[0];
-      const newPurgeIfContent = `/*${purgeIfContentToReplace}*/`;
-      appModuleNgFactoryContent = appModuleNgFactoryContent.replace(purgeIfContentToReplace, newPurgeIfContent);
+          Logger.debug(`[treeshake] purgeProviderControllerImportAndUsage: Purging factory logic using ${namedImport}`);
+          const purgeIfContentToReplace = purgeIfResults[0];
+          const newPurgeIfContent = `/*${purgeIfContentToReplace}*/`;
+          moduleNgFactoryContent = moduleNgFactoryContent.replace(purgeIfContentToReplace, newPurgeIfContent);
+        }
+      }
     }
   }
 
   Logger.debug(`[treeshake] purgeProviderControllerImportAndUsage: Starting to purge provider controller and usage ... DONE`);
-  return appModuleNgFactoryContent;
+  return moduleNgFactoryContent;
 }
 
-export function purgeProviderClassNameFromIonicModuleForRoot(indexFileContent: string, providerClassName: string) {
+export function purgeProviderClassNameFromIonicModuleForRoot(moduleFileContent: string, providerClassName: string) {
   Logger.debug(`[treeshake] purgeProviderClassNameFromIonicModuleForRoot: Purging reference in the ionicModule forRoot method ...`);
   const regex = generateIonicModulePurgeProviderRegex(providerClassName);
-  const results = regex.exec(indexFileContent);
+  const results = regex.exec(moduleFileContent);
   if (results && results.length) {
-    indexFileContent = indexFileContent.replace(regex, `/*${results[0]}*/`);
+    moduleFileContent = moduleFileContent.replace(regex, `/*${results[0]}*/`);
   }
   Logger.debug(`[treeshake] purgeProviderClassNameFromIonicModuleForRoot: Purging reference in the ionicModule forRoot method ... DONE`);
-  return indexFileContent;
+  return moduleFileContent;
 }
 
 export function generateWildCardImportRegex(relativeImportPath: string) {
@@ -281,8 +328,8 @@ export function generateRemoveComponentFromConstructorRegex(namedImport: string)
   return new RegExp(`${namedImport}\..*?,`);
 }
 
-export function generateRemoveGetterFromImportRegex(namedImport: string) {
-  const regexString = `(get _.*?_\\d*\\(\\) {[\\s\\S][^}]*?${namedImport}[\\s\\S]*?}[\\s\\S]*?})`;
+export function generateRemoveGetterFromImportRegex(namedImport: string, propertyName: string) {
+  const regexString = `(Object.defineProperty.*?"${propertyName}".*?{[\\s\\S]*?${namedImport}[\\s\\S]*?}[\\s\\S]*?}[\\s\\S]*?}\\);)`;
   return new RegExp(regexString);
 }
 
@@ -297,4 +344,70 @@ export function generateIonicModulePurgeProviderRegex(className: string) {
 export function getIonicModuleFilePath() {
   const entryPoint = getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT);
   return join(dirname(entryPoint), 'module.js');
+}
+
+// okay, so real talk
+// the ng4 compiler changed how some of this stuff works.
+// basically, due to imports not-really-being-used in AoT mode WRT pages/providers,
+// we don't have a good way of detecting whether a provider is actually used in an app
+// since they're in the ng-module ng-factories regardless if they're used or not. If that sounds
+// confusing and weird - it's because it is.
+// the simple answer is this method analyzes a developers srcDir for TS files
+// and if they import a provider, we are manually inserting those files into the "dependency map"
+// so that we have an accurate representation of what's user providers
+export function checkIfProviderIsUsedInSrc(context: BuildContext, dependencyMap: Map<string, Set<string>>) {
+  const srcFiles = context.fileCache.getAll().filter(file => extname(file.path) === '.ts'
+                                                    && file.path.startsWith(context.srcDir)
+                                                    && !file.path.endsWith('.d.ts')
+                                                    && !file.path.endsWith('.ngfactory.ts')
+                                                    && !file.path.endsWith(getStringPropertyValue(Constants.ENV_NG_MODULE_FILE_NAME_SUFFIX)));
+  srcFiles.forEach(srcFile => {
+    const sourceFile = getTypescriptSourceFile(srcFile.path, srcFile.content);
+    const imports = findNodes(sourceFile, sourceFile, SyntaxKind.ImportDeclaration) as ImportDeclaration[];
+    imports.forEach((importStatement: ImportDeclaration) => {
+      if ((importStatement.moduleSpecifier as StringLiteral).text === 'ionic-angular'
+        && importStatement.importClause.namedBindings
+        && (importStatement.importClause.namedBindings as NamedImports).elements) {
+        (importStatement.importClause.namedBindings as NamedImports).elements.forEach((importSpecifier: ImportSpecifier) => {
+          if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_ACTION_SHEET_CONTROLLER_CLASSNAME)) {
+            const actionSheetControllerPath = getStringPropertyValue(Constants.ENV_ACTION_SHEET_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(actionSheetControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(actionSheetControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_ALERT_CONTROLLER_CLASSNAME)) {
+            const alertControllerPath = getStringPropertyValue(Constants.ENV_ALERT_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(alertControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(alertControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_LOADING_CONTROLLER_CLASSNAME)) {
+            const loadingControllerPath = getStringPropertyValue(Constants.ENV_LOADING_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(loadingControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(loadingControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_MODAL_CONTROLLER_CLASSNAME)) {
+            const modalControllerPath = getStringPropertyValue(Constants.ENV_MODAL_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(modalControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(modalControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_PICKER_CONTROLLER_CLASSNAME)) {
+            const pickerControllerPath = getStringPropertyValue(Constants.ENV_PICKER_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(pickerControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(pickerControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_POPOVER_CONTROLLER_CLASSNAME)) {
+            const popoverControllerPath = getStringPropertyValue(Constants.ENV_POPOVER_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(popoverControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(popoverControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_TOAST_CONTROLLER_CLASSNAME)) {
+            const toastControllerPath = getStringPropertyValue(Constants.ENV_TOAST_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(toastControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(toastControllerPath, importeeSet);
+          }
+        });
+      }
+    });
+  });
+  return dependencyMap;
 }
