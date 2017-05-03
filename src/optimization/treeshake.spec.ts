@@ -253,7 +253,7 @@ describe('treeshake', () => {
     });
   });
 
-  describe('purgeUnusedImportsAndExportsFromIndex', () => {
+  describe('purgeUnusedImportsAndExportsFromModuleFile', () => {
     it('should remove the import and export statement', () => {
       // arrange
       const importsToPurge =
@@ -392,7 +392,7 @@ import { VirtualFooter } from './components/virtual-scroll/virtual-footer';
       const modulesToPurge = [join(componentDir, 'range', 'range-knob'),
                               join(componentDir, 'refresher', 'refresher'),
                               join(componentDir, 'refresher', 'refresher-content')];
-      const newContent = treeshake.purgeUnusedImportsAndExportsFromIndex(ionicAngularEntryPoint, moduleFileContent, modulesToPurge);
+      const newContent = treeshake.purgeUnusedImportsAndExportsFromModuleFile(ionicAngularEntryPoint, moduleFileContent, modulesToPurge);
       // assert
       expect(newContent).not.toEqual(moduleFileContent);
       expect(newContent.indexOf(importsToPurge)).toEqual(-1);

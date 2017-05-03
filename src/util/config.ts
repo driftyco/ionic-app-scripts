@@ -25,7 +25,7 @@ export function generateContext(context?: BuildContext): BuildContext {
   if (!context) {
     context = {};
   }
-  
+
   if (!context.fileCache) {
      context.fileCache = new FileCache();
   }
@@ -295,6 +295,8 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_POPOVER_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'popover', 'popover-component.js'));
   setProcessEnvVar(Constants.ENV_POPOVER_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'popover', 'popover-component.ngfactory.js'));
 
+  setProcessEnvVar(Constants.ENV_SELECT_POPOVER_CLASSNAME, 'SelectPopover');
+  setProcessEnvVar(Constants.ENV_SELECT_POPOVER_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'select', 'select-popover-component.js'));
   setProcessEnvVar(Constants.ENV_SELECT_POPOVER_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'select', 'select-popover-component.ngfactory.js'));
 
   setProcessEnvVar(Constants.ENV_TOAST_CONTROLLER_CLASSNAME, 'ToastController');

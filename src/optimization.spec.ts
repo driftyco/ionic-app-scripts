@@ -76,7 +76,7 @@ describe('optimization task', () => {
       const mockIndexPath = join('some', 'path', 'myApp', 'node_modules', 'ionic-angular', 'index.js');
 
       spyOn(treeshake, treeshake.calculateUnusedComponents.name);
-      spyOn(treeshake, treeshake.purgeUnusedImportsAndExportsFromIndex.name);
+      spyOn(treeshake, treeshake.purgeUnusedImportsAndExportsFromModuleFile.name);
       spyOn(treeshake, treeshake.purgeComponentNgFactoryImportAndUsage.name);
       spyOn(treeshake, treeshake.purgeProviderControllerImportAndUsage.name);
       spyOn(treeshake, treeshake.purgeProviderClassNameFromIonicModuleForRoot.name);
@@ -92,7 +92,7 @@ describe('optimization task', () => {
       optimization.doOptimizations(context, new Map());
 
       expect(treeshake.calculateUnusedComponents).not.toHaveBeenCalled();
-      expect(treeshake.purgeUnusedImportsAndExportsFromIndex).not.toHaveBeenCalled();
+      expect(treeshake.purgeUnusedImportsAndExportsFromModuleFile).not.toHaveBeenCalled();
       expect(treeshake.purgeComponentNgFactoryImportAndUsage).not.toHaveBeenCalled();
       expect(treeshake.purgeProviderControllerImportAndUsage).not.toHaveBeenCalled();
       expect(treeshake.purgeProviderClassNameFromIonicModuleForRoot).not.toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe('optimization task', () => {
 
       spyOn(treeshake, treeshake.getAppModuleNgFactoryPath.name);
       spyOn(treeshake, treeshake.calculateUnusedComponents.name).and.returnValue({ purgedModules: new Map()});
-      spyOn(treeshake, treeshake.purgeUnusedImportsAndExportsFromIndex.name);
+      spyOn(treeshake, treeshake.purgeUnusedImportsAndExportsFromModuleFile.name);
 
       spyOn(helpers, helpers.getStringPropertyValue.name).and.callFake((propertyName: string) => {
         return mockIndexPath;
@@ -127,7 +127,7 @@ describe('optimization task', () => {
       optimization.doOptimizations(context, new Map());
 
       expect(treeshake.calculateUnusedComponents).toHaveBeenCalled();
-      expect(treeshake.purgeUnusedImportsAndExportsFromIndex).toHaveBeenCalled();
+      expect(treeshake.purgeUnusedImportsAndExportsFromModuleFile).toHaveBeenCalled();
     });
   });
 });

@@ -1,8 +1,16 @@
-import { dirname, join, relative } from 'path';
+import { dirname, extname, join, relative } from 'path';
 import { Logger } from '../logger/logger';
 import * as Constants from '../util/constants';
 import { changeExtension, convertFilePathToNgFactoryPath, escapeStringForRegex, getStringPropertyValue, toUnixPath } from '../util/helpers';
-import { TreeShakeCalcResults } from '../util/interfaces';
+import { BuildContext, TreeShakeCalcResults } from '../util/interfaces';
+import { findNodes, getTypescriptSourceFile, } from '../util/typescript-utils';
+
+import {
+  ImportDeclaration,
+  ImportSpecifier,
+  NamedImports,
+  StringLiteral,
+  SyntaxKind } from 'typescript';
 
 export function calculateUnusedComponents(dependencyMap: Map<string, Set<string>>): TreeShakeCalcResults {
   return calculateUnusedComponentsImpl(dependencyMap, getIonicModuleFilePath());
@@ -111,6 +119,7 @@ function calculateUnusedIonicProviders(dependencyMap: Map<string, Set<string>>) 
 
   // in this case, it's actually an entry component, not a provider
   processIonicProviders(dependencyMap, getStringPropertyValue(Constants.ENV_SELECT_POPOVER_COMPONENT_FACTORY_PATH));
+
 }
 
 function processIonicProviderComponents(dependencyMap: Map<string, Set<string>>, providerPath: string, componentPath: string) {
@@ -131,7 +140,7 @@ function processIonicProviders(dependencyMap: Map<string, Set<string>>, provider
   const appModuleNgFactoryPath = getAppModuleNgFactoryPath();
 
   // we can only purge an ionic provider if it is imported from one module, which is the AppModuleNgFactory
-  if (importeeSet && importeeSet.size === 1 && importeeSet.has(appModuleNgFactoryPath)) {
+  if (importeeSet && importeeSet.has(appModuleNgFactoryPath)) {
     Logger.debug(`[treeshake] processIonicProviders: Purging ${providerPath}`);
     importeeSet.delete(appModuleNgFactoryPath);
     // loop over the dependency map and remove this provider from importee sets
@@ -161,7 +170,7 @@ export function isNgFactory(modulePath: string) {
   return modulePath.indexOf('.ngfactory.') >= 0;
 }
 
-export function purgeUnusedImportsAndExportsFromIndex(indexFilePath: string, indexFileContent: string, modulePathsToPurge: string[] ) {
+export function purgeUnusedImportsAndExportsFromModuleFile(indexFilePath: string, indexFileContent: string, modulePathsToPurge: string[] ) {
   Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Starting to purge import/exports ... `);
   for (const modulePath of modulePathsToPurge) {
     // I cannot get the './' prefix to show up when using path api
@@ -297,4 +306,70 @@ export function generateIonicModulePurgeProviderRegex(className: string) {
 export function getIonicModuleFilePath() {
   const entryPoint = getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT);
   return join(dirname(entryPoint), 'module.js');
+}
+
+// okay, so real talk
+// the ng4 compiler changed how some of this stuff works.
+// basically, due to imports not-really-being-used in AoT mode WRT pages/providers,
+// we don't have a good way of detecting whether a provider is actually used in an app
+// since they're in the ng-module ng-factories regardless if they're used or not. If that sounds
+// confusing and weird - it's because it is.
+// the simple answer is this method analyzes a developers srcDir for TS files
+// and if they import a provider, we are manually inserting those files into the "dependency map"
+// so that we have an accurate representation of what's user providers
+export function checkIfProviderIsUsedInSrc(context: BuildContext, dependencyMap: Map<string, Set<string>>) {
+  const srcFiles = context.fileCache.getAll().filter(file => extname(file.path) === '.ts'
+                                                    && file.path.startsWith(context.srcDir)
+                                                    && !file.path.endsWith('.d.ts')
+                                                    && !file.path.endsWith('.ngfactory.ts')
+                                                    && !file.path.endsWith(getStringPropertyValue(Constants.ENV_NG_MODULE_FILE_NAME_SUFFIX)));
+  srcFiles.forEach(srcFile => {
+    const sourceFile = getTypescriptSourceFile(srcFile.path, srcFile.content);
+    const imports = findNodes(sourceFile, sourceFile, SyntaxKind.ImportDeclaration) as ImportDeclaration[];
+    imports.forEach((importStatement: ImportDeclaration) => {
+      if ((importStatement.moduleSpecifier as StringLiteral).text === 'ionic-angular'
+        && importStatement.importClause.namedBindings
+        && (importStatement.importClause.namedBindings as NamedImports).elements) {
+        (importStatement.importClause.namedBindings as NamedImports).elements.forEach((importSpecifier: ImportSpecifier) => {
+          if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_ACTION_SHEET_CONTROLLER_CLASSNAME)) {
+            const actionSheetControllerPath = getStringPropertyValue(Constants.ENV_ACTION_SHEET_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(actionSheetControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(actionSheetControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_ALERT_CONTROLLER_CLASSNAME)) {
+            const alertControllerPath = getStringPropertyValue(Constants.ENV_ALERT_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(alertControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(alertControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_LOADING_CONTROLLER_CLASSNAME)) {
+            const loadingControllerPath = getStringPropertyValue(Constants.ENV_LOADING_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(loadingControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(loadingControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_MODAL_CONTROLLER_CLASSNAME)) {
+            const modalControllerPath = getStringPropertyValue(Constants.ENV_MODAL_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(modalControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(modalControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_PICKER_CONTROLLER_CLASSNAME)) {
+            const pickerControllerPath = getStringPropertyValue(Constants.ENV_PICKER_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(pickerControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(pickerControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_POPOVER_CONTROLLER_CLASSNAME)) {
+            const popoverControllerPath = getStringPropertyValue(Constants.ENV_POPOVER_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(popoverControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(popoverControllerPath, importeeSet);
+          } else if (importSpecifier.name.text === getStringPropertyValue(Constants.ENV_TOAST_CONTROLLER_CLASSNAME)) {
+            const toastControllerPath = getStringPropertyValue(Constants.ENV_TOAST_CONTROLLER_PATH);
+            const importeeSet = dependencyMap.get(toastControllerPath);
+            importeeSet.add(srcFile.path);
+            dependencyMap.set(toastControllerPath, importeeSet);
+          }
+        });
+      }
+    });
+  });
+  return dependencyMap;
 }
