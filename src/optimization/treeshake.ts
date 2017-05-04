@@ -1,7 +1,7 @@
 import { dirname, extname, join, relative } from 'path';
 import { Logger } from '../logger/logger';
 import * as Constants from '../util/constants';
-import { changeExtension, convertFilePathToNgFactoryPath, escapeStringForRegex, getStringPropertyValue, toUnixPath, printDependencyMap } from '../util/helpers';
+import { changeExtension, convertFilePathToNgFactoryPath, escapeStringForRegex, getStringPropertyValue, toUnixPath } from '../util/helpers';
 import { BuildContext, TreeShakeCalcResults } from '../util/interfaces';
 import { findNodes, getTypescriptSourceFile, } from '../util/typescript-utils';
 
@@ -20,7 +20,6 @@ export function calculateUnusedComponentsImpl(dependencyMap: Map<string, Set<str
   const filteredMap = filterMap(dependencyMap);
   processImportTree(filteredMap, importee);
   calculateUnusedIonicProviders(filteredMap);
-  printDependencyMap(filteredMap);
   return generateResults(filteredMap);
 }
 
@@ -48,7 +47,13 @@ function requiredModule(modulePath: string) {
   const appModule = changeExtension(getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH), '.js');
   const appModuleNgFactory = getAppModuleNgFactoryPath();
   const moduleFile = getIonicModuleFilePath();
-  return modulePath === mainJsFile || modulePath === mainTsFile || modulePath === appModule || modulePath === appModuleNgFactory || modulePath === moduleFile;
+  const menuTypes = join(dirname(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT)), 'components', 'menu', 'menu-types.js');
+  return modulePath === mainJsFile
+        || modulePath === mainTsFile
+        || modulePath === appModule
+        || modulePath === appModuleNgFactory
+        || modulePath === moduleFile
+        || modulePath === menuTypes;
 }
 
 function filterMap(dependencyMap: Map<string, Set<string>>) {
@@ -123,18 +128,11 @@ function calculateUnusedIonicProviders(dependencyMap: Map<string, Set<string>>) 
 }
 
 function processIonicOverlayComponents(dependencyMap: Map<string, Set<string>>, viewControllerPath: string, componentPath: string, componentFactoryPath: string) {
-  console.log('\n\n\n\n\n\n');
-  console.log('viewControllerPath: ', viewControllerPath);
   const viewControllerImportees = dependencyMap.get(viewControllerPath);
-  console.log(viewControllerImportees);
-  console.log('componentPath: ', componentPath);
   const componentImportees = dependencyMap.get(componentPath);
-  console.log(componentImportees);
   if (viewControllerImportees && viewControllerImportees.size === 0 && componentImportees && componentImportees.size === 1 && componentImportees.has(componentFactoryPath)) {
     const componentFactoryImportees = dependencyMap.get(componentFactoryPath);
-    console.log('componentFactoryImportees: ', componentFactoryImportees);
     const onlyNgModuleFactoryImportees = onlyNgModuleFactories(componentFactoryImportees);
-    console.log('onlyNgModuleFactoryImportees: ', onlyNgModuleFactoryImportees);
     if (onlyNgModuleFactoryImportees) {
       // sweet, we can remove this bad boy
       dependencyMap.set(componentFactoryPath, new Set<string>());
