@@ -1998,35 +1998,36 @@ export var AppModuleNgFactory = new import0.NgModuleFactory(AppModuleInjector, i
       updatedContent = treeshake.purgeProviderControllerImportAndUsage(appModuleNgFactoryPath, updatedContent, controllerPath2);
 
       // assert
-      /*expect(updatedContent).not.toEqual(knownContent);
+      expect(updatedContent).not.toEqual(knownContent);
       const relativeImportPathOne = helpers.toUnixPath(helpers.changeExtension(relative(nodeModulesDir, controllerPath), ''));
       const relativeImportPathTwo = helpers.toUnixPath(helpers.changeExtension(relative(nodeModulesDir, controllerPath2), ''));
 
       const importRegexOne = treeshake.generateWildCardImportRegex(relativeImportPathOne);
       const importRegexTwo = treeshake.generateWildCardImportRegex(relativeImportPathTwo);
       const importResultOne = importRegexOne.exec(updatedContent);
-      const importResultTwo = importRegexTwo.exec(updatedContent);
-      *///expect(updatedContent.indexOf(`/*${importResultOne[0]}*/`)).toBeGreaterThanOrEqual(0);
-      //expect(updatedContent.indexOf(`/*${importResultTwo[0]}*/`)).toBeGreaterThanOrEqual(0);
 
-      /*const namedImportOne = importResultOne[1].trim();
+      const importResultTwo = importRegexTwo.exec(updatedContent);
+      expect(updatedContent.indexOf(`/*${importResultOne[0]}*/`)).toBeGreaterThanOrEqual(0);
+      expect(updatedContent.indexOf(`/*${importResultTwo[0]}*/`)).toBeGreaterThanOrEqual(0);
+
+      const namedImportOne = importResultOne[1].trim();
       const namedImportTwo = importResultTwo[1].trim();
 
-      //const purgeGetterRegExOne = treeshake.generateRemoveGetterFromImportRegex(namedImportOne);
+      const purgeGetterRegExOne = treeshake.generateRemoveGetterFromImportRegex(namedImportOne, '_ActionSheetController_46');
       const purgeGetterResultsOne = purgeGetterRegExOne.exec(updatedContent);
       const purgeIfRegExOne = treeshake.generateRemoveIfStatementRegex(namedImportOne);
       const purgeIfResultsOne = purgeIfRegExOne.exec(updatedContent);
 
-      const purgeGetterRegExTwo = treeshake.generateRemoveGetterFromImportRegex(namedImportTwo);
+      const purgeGetterRegExTwo = treeshake.generateRemoveGetterFromImportRegex(namedImportTwo, '_AlertController_47');
 
       const purgeGetterResultsTwo = purgeGetterRegExTwo.exec(updatedContent);
       const purgeIfRegExTwo = treeshake.generateRemoveIfStatementRegex(namedImportTwo);
       const purgeIfResultsTwo = purgeIfRegExTwo.exec(updatedContent);
 
-      *///expect(updatedContent.indexOf(`/*${purgeGetterResultsOne[0]}*/`)).toBeGreaterThanOrEqual(0);
-      //expect(updatedContent.indexOf(`/*${purgeIfResultsOne[0]}*/`)).toBeGreaterThanOrEqual(0);
-      //expect(updatedContent.indexOf(`/*${purgeGetterResultsTwo[0]}*/`)).toBeGreaterThanOrEqual(0);
-      //expect(updatedContent.indexOf(`/*${purgeIfResultsTwo[0]}*/`)).toBeGreaterThanOrEqual(0);
+      expect(updatedContent.indexOf(`/*${purgeGetterResultsOne[0]}*/`)).toBeGreaterThanOrEqual(0);
+      expect(updatedContent.indexOf(`/*${purgeIfResultsOne[0]}*/`)).toBeGreaterThanOrEqual(0);
+      expect(updatedContent.indexOf(`/*${purgeGetterResultsTwo[0]}*/`)).toBeGreaterThanOrEqual(0);
+      expect(updatedContent.indexOf(`/*${purgeIfResultsTwo[0]}*/`)).toBeGreaterThanOrEqual(0);
     });
   });
 });

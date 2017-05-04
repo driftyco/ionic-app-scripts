@@ -14,6 +14,7 @@ import { calculateUnusedComponents,
         checkIfProviderIsUsedInSrc,
         getIonicModuleFilePath,
         purgeUnusedImportsAndExportsFromModuleFile,
+        purgeUnusedExportsFromIndexFile,
         purgeComponentNgFactoryImportAndUsage,
         purgeProviderControllerImportAndUsage,
         purgeProviderClassNameFromIonicModuleForRoot
@@ -131,6 +132,9 @@ function purgeUnusedImports(context: BuildContext, purgeDependencyMap: Map<strin
 
   const updatedFileContent = purgeUnusedImportsAndExportsFromModuleFile(moduleFilePath, moduleFile.content, modulesToPurge);
   context.fileCache.set(moduleFilePath, { path: moduleFilePath, content: updatedFileContent });
+
+  const updatedIndexContent = purgeUnusedExportsFromIndexFile(file.path, file.content, modulesToPurge);
+  context.fileCache.set(file.path, { path: file.path, content: updatedIndexContent });
 
   attemptToPurgeUnusedProvider(context, purgeDependencyMap, getStringPropertyValue(Constants.ENV_ACTION_SHEET_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_ACTION_SHEET_CONTROLLER_CLASSNAME));
   attemptToPurgeUnusedProvider(context, purgeDependencyMap, getStringPropertyValue(Constants.ENV_ALERT_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_ALERT_CONTROLLER_CLASSNAME));

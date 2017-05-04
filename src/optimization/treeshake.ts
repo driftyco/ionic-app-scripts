@@ -185,33 +185,52 @@ export function isNgFactory(modulePath: string) {
   return modulePath.indexOf('.ngfactory.') >= 0;
 }
 
-export function purgeUnusedImportsAndExportsFromModuleFile(indexFilePath: string, indexFileContent: string, modulePathsToPurge: string[] ) {
-  Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Starting to purge import/exports ... `);
+export function purgeUnusedExportsFromIndexFile(filePath: string, fileContent: string, modulePathsToPurge: string[]) {
+  Logger.debug(`[treeshake] purgeUnusedExportsFromIndexFile: Starting to purge exports ... `);
   for (const modulePath of modulePathsToPurge) {
     // I cannot get the './' prefix to show up when using path api
-    Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Removing ${modulePath} from ${indexFilePath}`);
+    Logger.debug(`[treeshake] purgeUnusedExportsFromIndexFile: Removing ${modulePath} from ${filePath}`);
+    const extensionless = changeExtension(modulePath, '');
+    const relativeImportPath = './' + relative(dirname(filePath), extensionless);
+    const importPath = toUnixPath(relativeImportPath);
+    const exportRegex = generateExportRegex(importPath);
+    Logger.debug(`[treeshake] purgeUnusedExportsFromIndexFile: Removing exports with path ${importPath}`);
+    let results: RegExpExecArray = null;
+    while ((results = exportRegex.exec(fileContent)) && results.length) {
+      fileContent = fileContent.replace(exportRegex, `/*${results[0]}*/`);
+    }
+  }
+  Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Starting to purge exports ... DONE`);
+  return fileContent;
+}
+
+export function purgeUnusedImportsAndExportsFromModuleFile(moduleFilePath: string, moduleFileContent: string, modulePathsToPurge: string[] ) {
+  Logger.debug(`[treeshake] purgeUnusedImportsAndExportsFromModuleFile: Starting to purge import/exports ... `);
+  for (const modulePath of modulePathsToPurge) {
+    // I cannot get the './' prefix to show up when using path api
+    Logger.debug(`[treeshake] purgeUnusedImportsAndExportsFromModuleFile: Removing ${modulePath} from ${moduleFilePath}`);
 
     const extensionless = changeExtension(modulePath, '');
-    const relativeImportPath = './' + relative(dirname(indexFilePath), extensionless);
+    const relativeImportPath = './' + relative(dirname(moduleFilePath), extensionless);
     const importPath = toUnixPath(relativeImportPath);
-    Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Removing imports with path ${importPath}`);
+    Logger.debug(`[treeshake] purgeUnusedImportsAndExportsFromModuleFile: Removing imports with path ${importPath}`);
     const importRegex = generateImportRegex(importPath);
     // replace the import if it's found
     let results: RegExpExecArray = null;
-    while ((results = importRegex.exec(indexFileContent)) && results.length) {
-      indexFileContent = indexFileContent.replace(importRegex, `/*${results[0]}*/`);
+    while ((results = importRegex.exec(moduleFileContent)) && results.length) {
+      moduleFileContent = moduleFileContent.replace(importRegex, `/*${results[0]}*/`);
     }
 
     results = null;
     const exportRegex = generateExportRegex(importPath);
-    Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Removing exports with path ${importPath}`);
-    while ((results = exportRegex.exec(indexFileContent)) && results.length) {
-      indexFileContent = indexFileContent.replace(exportRegex, `/*${results[0]}*/`);
+    Logger.debug(`[treeshake] purgeUnusedImportsAndExportsFromModuleFile: Removing exports with path ${importPath}`);
+    while ((results = exportRegex.exec(moduleFileContent)) && results.length) {
+      moduleFileContent = moduleFileContent.replace(exportRegex, `/*${results[0]}*/`);
     }
   }
 
-  Logger.debug(`[treeshake] purgeUnusedImportsFromIndex: Starting to purge import/exports ... DONE`);
-  return indexFileContent;
+  Logger.debug(`[treeshake] purgeUnusedImportsAndExportsFromModuleFile: Starting to purge import/exports ... DONE`);
+  return moduleFileContent;
 }
 
 function generateImportRegex(relativeImportPath: string) {
@@ -289,15 +308,15 @@ export function purgeProviderControllerImportAndUsage(moduleNgFactoryPath: strin
   return moduleNgFactoryContent;
 }
 
-export function purgeProviderClassNameFromIonicModuleForRoot(indexFileContent: string, providerClassName: string) {
+export function purgeProviderClassNameFromIonicModuleForRoot(moduleFileContent: string, providerClassName: string) {
   Logger.debug(`[treeshake] purgeProviderClassNameFromIonicModuleForRoot: Purging reference in the ionicModule forRoot method ...`);
   const regex = generateIonicModulePurgeProviderRegex(providerClassName);
-  const results = regex.exec(indexFileContent);
+  const results = regex.exec(moduleFileContent);
   if (results && results.length) {
-    indexFileContent = indexFileContent.replace(regex, `/*${results[0]}*/`);
+    moduleFileContent = moduleFileContent.replace(regex, `/*${results[0]}*/`);
   }
   Logger.debug(`[treeshake] purgeProviderClassNameFromIonicModuleForRoot: Purging reference in the ionicModule forRoot method ... DONE`);
-  return indexFileContent;
+  return moduleFileContent;
 }
 
 export function generateWildCardImportRegex(relativeImportPath: string) {
