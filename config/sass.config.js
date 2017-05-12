@@ -75,6 +75,15 @@ module.exports = {
   ],
 
   /**
+   * globalSassFiles: Lists out the global styles that should
+   * be included. This gets loaded before an of the pages
+   * specific styles do.
+   */
+  globalSassFiles: [
+    '{{SRC}}/theme/global.scss'
+  ],
+
+  /**
    * directoryMaps: Compiled JS modules may be within a different
    * directory than its source file and sibling component sass files.
    * For example, NGC places it's files within the .tmp directory
