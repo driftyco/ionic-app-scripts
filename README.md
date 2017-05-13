@@ -2,7 +2,7 @@
 [![Circle CI](https://circleci.com/gh/driftyco/ionic-app-scripts.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/driftyco/ionic-app-scripts)
 # Ionic App Scripts
 
-Helper scripts to get [Ionic apps](http://ionicframework.com/) up and running quickly (minus the config overload).
+Helper scripts to get [Ionic apps](https://ionicframework.com/) up and running quickly (minus the config overload).
 
 To get the latest `@ionic/app-scripts`, please run:
 
@@ -235,16 +235,16 @@ npm run lint --bailOnLintError true
 
 ## The Stack
 
-- [Ionic Framework](http://ionicframework.com/)
+- [Ionic Framework](https://ionicframework.com/)
 - [TypeScript Compiler](https://www.typescriptlang.org/)
 - [Angular Compiler (NGC)](https://github.com/angular/angular/tree/master/modules/%40angular/compiler-cli)
-- [Rollup Module Bundler](http://rollupjs.org/)
+- [Rollup Module Bundler](https://rollupjs.org/)
 - Ionic Component Sass
 - [Node Sass](https://www.npmjs.com/package/node-sass)
 - [Autoprefixer](https://github.com/postcss/autoprefixer)
-- [UglifyJS](http://lisperator.net/uglifyjs/)
+- [UglifyJS](https://lisperator.net/uglifyjs/)
 - [CleanCss](https://github.com/jakubpawlowicz/clean-css)
-- [TSLint](http://palantir.github.io/tslint/)
+- [TSLint](https://palantir.github.io/tslint/)
 
 ## Contributing
 
