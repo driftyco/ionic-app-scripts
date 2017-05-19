@@ -49,8 +49,10 @@ export function sassUpdate(changedFiles: ChangedFile[], context: BuildContext) {
 
 
 export function sassWorker(context: BuildContext, configFile: string) {
+  const sassConfig: SassConfig = getSassConfig(context, configFile);
+
   const bundlePromise: Promise<any>[] = [];
-  if (!context.moduleFiles) {
+  if (!context.moduleFiles && !sassConfig.file) {
     // sass must always have a list of all the used module files
     // so ensure we bundle if moduleFiles are currently unknown
     bundlePromise.push(bundle(context));
@@ -58,8 +60,6 @@ export function sassWorker(context: BuildContext, configFile: string) {
 
   return Promise.all(bundlePromise).then(() => {
     clearDiagnostics(context, DiagnosticsType.Sass);
-
-    const sassConfig: SassConfig = getSassConfig(context, configFile);
 
     // where the final css output file is saved
     if (!sassConfig.outFile) {
@@ -81,6 +81,8 @@ export function sassWorker(context: BuildContext, configFile: string) {
       // scanning through all the components included in the bundle
       // and generate the sass on the fly
       generateSassData(context, sassConfig);
+    } else {
+      sassConfig.file = replacePathVars(context, sassConfig.file);
     }
 
     return render(context, sassConfig);
