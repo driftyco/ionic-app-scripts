@@ -260,6 +260,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_NG_MODULE_FILE_NAME_SUFFIX, ngModuleFileNameSuffix);
   Logger.debug(`ngModuleFileNameSuffix set to ${ngModuleFileNameSuffix}`);
 
+  const polyfillName = getConfigValue(context, '--polyfillName', null, Constants.ENV_POLYFILL_NAME, Constants.ENV_POLYFILL_NAME.toLowerCase(), 'polyfills');
+  setProcessEnvVar(Constants.ENV_POLYFILL_NAME, polyfillName);
+  Logger.debug(`polyfillName set to ${polyfillName}`);
+
   /* Provider Path Stuff */
   setProcessEnvVar(Constants.ENV_ACTION_SHEET_CONTROLLER_CLASSNAME, 'ActionSheetController');
   setProcessEnvVar(Constants.ENV_ACTION_SHEET_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'action-sheet', 'action-sheet-controller.js'));
