@@ -1,3 +1,17 @@
+<a name="1.3.8"></a>
+## [1.3.8](https://github.com/driftyco/ionic-app-scripts/compare/v1.3.7...v1.3.8) (2017-05-21)
+
+
+### Features
+
+* **config:** Config for supporting for picking of polyfill ([f4a59e4](https://github.com/driftyco/ionic-app-scripts/commit/f4a59e4))
+
+### Bug Fixes
+
+* **serve:** if a build error occurs, return config if non-fatal ([e5a4134](https://github.com/driftyco/ionic-app-scripts/commit/e5a4134))
+
+
+
 <a name="1.3.7"></a>
 ## [1.3.7](https://github.com/driftyco/ionic-app-scripts/compare/v1.3.6...v1.3.7) (2017-05-04)
 
