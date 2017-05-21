@@ -22,7 +22,7 @@ describe('copy task', () => {
           dest: '{{WWW}}/assets/fonts'
         },
         copyPolyfills: {
-          src: ['{{ROOT}}/node_modules/ionic-angular/polyfills/polyfills.js'],
+          src: [`{{ROOT}}/node_modules/ionic-angular/polyfills/${process.env.POLLYFILL_NAME}.js`],
           dest: '{{BUILD}}'
         },
         someOtherOption: {
