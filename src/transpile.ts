@@ -104,7 +104,7 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
     const program = ts.createProgram(tsFileNames, tsConfig.options, host, cachedProgram);
     program.emit(undefined, (path: string, data: string, writeByteOrderMark: boolean, onError: Function, sourceFiles: ts.SourceFile[]) => {
       if (workerConfig.writeInMemory) {
-        writeSourceFiles(context.fileCache, sourceFiles);
+        writeSourceFiles(context.fileCache, sourceFiles || []);
         writeTranspiledFilesCallback(context.fileCache, path, data, workerConfig.inlineTemplate);
       }
     });
