@@ -1,5 +1,5 @@
 [![npm version](https://img.shields.io/npm/v/@ionic/app-scripts.svg)](https://www.npmjs.com/package/@ionic/app-scripts)
-[![Circle CI](https://circleci.com/gh/driftyco/ionic-app-scripts.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/driftyco/ionic-app-scripts)
+[![Circle CI](https://circleci.com/gh/ionic-team/ionic-app-scripts.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/driftyco/ionic-app-scripts)
 # Ionic App Scripts
 
 Helper scripts to get [Ionic apps](http://ionicframework.com/) up and running quickly (minus the config overload).
