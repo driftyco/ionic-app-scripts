@@ -112,10 +112,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/driftyco/ionic-app-scripts.git"
+    "url": "git+https://github.com/ionic-team/ionic-app-scripts.git"
   },
   "bugs": {
-    "url": "https://github.com/driftyco/ionic-app-scripts/issues"
+    "url": "https://github.com/ionic-team/ionic-app-scripts/issues"
   },
   "config": {
     "commitizen": {
