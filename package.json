@@ -3,7 +3,7 @@
   "version": "1.3.7",
   "description": "Scripts for Ionic Projects",
   "homepage": "https://ionicframework.com/",
-  "author": "Ionic Team <hi@ionic.io> (http://ionic.io)",
+  "author": "Ionic Team <hi@ionic.io> (https://ionic.io)",
   "license": "MIT",
   "files": [
     "bin/",
