@@ -2,8 +2,8 @@
   "name": "@ionic/app-scripts",
   "version": "1.3.7",
   "description": "Scripts for Ionic Projects",
-  "homepage": "http://ionicframework.com/",
-  "author": "Ionic Team <hi@ionic.io> (http://ionic.io)",
+  "homepage": "https://ionicframework.com/",
+  "author": "Ionic Team <hi@ionic.io> (https://ionic.io)",
   "license": "MIT",
   "files": [
     "bin/",
@@ -112,10 +112,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/driftyco/ionic-app-scripts.git"
+    "url": "git+https://github.com/ionic-team/ionic-app-scripts.git"
   },
   "bugs": {
-    "url": "https://github.com/driftyco/ionic-app-scripts/issues"
+    "url": "https://github.com/ionic-team/ionic-app-scripts/issues"
   },
   "config": {
     "commitizen": {
