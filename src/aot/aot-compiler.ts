@@ -93,7 +93,7 @@ export class AotCompiler {
         Logger.warn(`Failed to parse and update ${this.options.entryPoint} content for AoT compilation.
                     For now, the default fallback content will be used instead.
                     Please consider updating ${this.options.entryPoint} with the content from the following link:
-                    https://github.com/driftyco/ionic2-app-base/tree/master/src/app/main.ts`);
+                    https://github.com/ionic-team/ionic2-app-base/tree/master/src/app/main.ts`);
         modifiedFileContent = getFallbackMainContent();
       }
 
