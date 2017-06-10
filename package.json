@@ -45,7 +45,7 @@
     "magic-string": "^0.19.1",
     "node-sass": "4.5.3",
     "os-name": "2.0.1",
-    "postcss": "5.2.11",
+    "postcss": "^5.2.17",
     "proxy-middleware": "0.15.0",
     "rollup": "^0.42.0",
     "rollup-plugin-commonjs": "8.0.2",
