@@ -31,7 +31,7 @@
   },
   "main": "dist/index.js",
   "dependencies": {
-    "autoprefixer": "6.7.2",
+    "autoprefixer": "^7.1.1",
     "babili": "0.0.10",
     "bonjour": "^3.5.0",
     "chalk": "1.1.3",
@@ -85,7 +85,7 @@
     "@types/node-sass": "^3.10.32",
     "@types/rewire": "^2.5.27",
     "@types/uglify-js": "^2.6.28",
-    "@types/webpack": "^2.2.15",
+    "@types/webpack": "^1.12.36",
     "@types/ws": "^0.0.38",
     "conventional-changelog-cli": "1.2.0",
     "github": "0.2.4",
