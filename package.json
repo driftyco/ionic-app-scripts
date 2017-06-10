@@ -47,7 +47,7 @@
     "os-name": "2.0.1",
     "postcss": "5.2.11",
     "proxy-middleware": "0.15.0",
-    "rollup": "0.41.6",
+    "rollup": "^0.42.0",
     "rollup-plugin-commonjs": "8.0.2",
     "rollup-plugin-json": "2.1.1",
     "rollup-plugin-node-builtins": "2.1.2",
