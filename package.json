@@ -85,7 +85,7 @@
     "@types/node-sass": "^3.10.32",
     "@types/rewire": "^2.5.27",
     "@types/uglify-js": "^2.6.28",
-    "@types/webpack": "^1.12.35",
+    "@types/webpack": "^2.2.15",
     "@types/ws": "^0.0.38",
     "conventional-changelog-cli": "1.2.0",
     "github": "0.2.4",
