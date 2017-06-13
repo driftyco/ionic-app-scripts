@@ -3,28 +3,26 @@ import { getProjectJson } from '../util/ionic-project';
 import { ServeConfig } from './serve-config';
 
 export function createBonjourService(config: ServeConfig) {
-  if (!config.bonjour) {
+  if (!config.devapp) {
     return;
   }
   getProjectJson()
     .then(project => project.name)
     .catch(() => 'ionic-app-scripts')
     .then(projectName => {
-      Logger.info(`publishing bonjour service`);
+      try {
+        const bonjour = require('bonjour')();
+        const name = projectName + ':' + config.httpPort;
+        bonjour.publish({
+          name: name,
+          type: 'ionicdev',
+          port: config.httpPort
+        });
+        Logger.info(`publishing devapp service (${name})`);
 
-      const bonjour = require('bonjour')();
-      bonjour.publish({
-        name: projectName,
-        type: 'ionicdev',
-        port: config.httpPort
-      });
-
-      const unpublish = function () {
-        bonjour.unpublishAll();
-        bonjour.destroy();
-      };
-
-      process.on('exit', unpublish);
-      process.on('SIGINT', unpublish);
+      } catch (e) {
+        Logger.warn('bonjour failed when trying to publish service');
+        Logger.debug(e);
+      }
     });
 }

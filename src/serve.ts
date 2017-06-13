@@ -47,7 +47,7 @@ export function serve(context: BuildContext) {
         useServerLogs: useServerLogs(context),
         useProxy: useProxy(context),
         notifyOnConsoleLog: sendClientConsoleLogs(context),
-        bonjour: useBonjour(context)
+        devapp: useBonjour(context)
       };
 
       createNotificationServer(config);
@@ -144,7 +144,7 @@ function browserOption(context: BuildContext): string {
 }
 
 function useBonjour(context: BuildContext): boolean {
-  return hasConfigValue(context, '--bonjour', '-B', 'bonjour', false);
+  return hasConfigValue(context, '--devapp', '-D', 'devapp', false);
 }
 
 function launchLab(context: BuildContext): boolean {
