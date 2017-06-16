@@ -98,7 +98,7 @@
     "sw-toolbox": "3.6.0",
     "tslint-ionic-rules": "0.0.8",
     "typescript": "~2.3.4",
-    "zone.js": "^0.8.11"
+    "zone.js": "^0.8.12"
   },
   "peerDependencies": {
     "@angular/core": "*",
