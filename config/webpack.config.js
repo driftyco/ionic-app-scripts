@@ -28,6 +28,10 @@ module.exports = {
         loader: process.env.IONIC_WEBPACK_LOADER
       },
       {
+        test: /\.ts$/,
+        loader: process.env.CUSTOM_TS_LOADER,
+      },
+      {
         test: /\.js$/,
         loader: process.env.IONIC_WEBPACK_TRANSPILE_LOADER
       }

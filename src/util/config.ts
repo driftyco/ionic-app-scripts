@@ -5,6 +5,7 @@ import { Logger } from '../logger/logger';
 import { BuildContext, TaskInfo } from './interfaces';
 import { getBooleanPropertyValue, objectAssign } from './helpers';
 import { FileCache } from './file-cache';
+import { initVendorConfig } from '../custom/config/config';
 import * as Constants from './constants';
 
 /**
@@ -354,6 +355,10 @@ export function generateContext(context?: BuildContext): BuildContext {
     console.trace = () => { };
     console.warn = () => { };
   }
+
+
+  // keep vendor logic in one call
+  initVendorConfig(context);
 
   return context;
 }
