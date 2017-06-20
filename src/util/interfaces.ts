@@ -49,6 +49,10 @@ export interface BuildContext {
 
   // platform examples: ios, android, windows
   platform?: string;
+
+  // Example: home.ma.ts. Pattern: ma
+  // Example: home.ma.android.ts Pattern: ma.android
+  fileNamePattern?: string,
 }
 
 
