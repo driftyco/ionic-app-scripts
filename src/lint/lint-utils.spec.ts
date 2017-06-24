@@ -1,94 +1,156 @@
-import * as lintUtils from './lint-utils';
-import * as lintFactory from './lint-factory';
-import * as helpers from '../util/helpers';
 import * as fs from 'fs';
-
-import * as tsLintLogger from '../logger/logger-tslint';
+import { LintResult } from 'tslint';
+import { DiagnosticCategory } from 'typescript';
+import * as helpers from '../util/helpers';
 import * as loggerDiagnostics from '../logger/logger-diagnostics';
+import * as tsLogger from '../logger/logger-typescript';
+import * as tsLintLogger from '../logger/logger-tslint';
+import * as linter from './lint-factory';
+import * as utils from './lint-utils';
+
 
 describe('lint utils', () => {
-  describe('lintFile', () => {
+  describe('lintFile()', () => {
     it('should return lint details', () => {
-      // arrange
-      const mockLintResults: any = {
-        failures: []
+      const filePath = 'test.ts';
+      const tsConfigPath = '';
+      const fileContent = `
+        export const foo = 'bar';
+      `;
+      const context: any = {};
+      const linterOptions = {
+        typeCheck: true
       };
-      const mockLinter = {
-        lint: () => {
-          return mockLintResults;
-        }
+      const mockLintResult: any = {
+        errorCount: 0,
+        warningCount: 0,
+        failures: [],
+        fixes: [],
+        format: '',
+        output: ''
       };
-      const filePath = '/Users/noone/someFile.ts';
-      const fileContent = 'someContent';
-      const mockProgram: any = {};
+
+      spyOn(linter, linter.lint.name).and.returnValue(mockLintResult);
+
+      // Mock the file read
       spyOn(helpers, helpers.readFileAsync.name).and.returnValue(Promise.resolve(fileContent));
-      spyOn(lintFactory, lintFactory.getLinter.name).and.returnValue(mockLinter);
       spyOn(fs, 'openSync').and.returnValue(null);
       spyOn(fs, 'readSync').and.returnValue(null);
       spyOn(fs, 'closeSync').and.returnValue(null);
-      // act
 
-      const result = lintUtils.lintFile(null, mockProgram, filePath);
-
-      // assert
-      return result.then((result: lintUtils.LintResult) => {
-        expect(result.filePath).toEqual(filePath);
-        expect(result.failures).toEqual(mockLintResults.failures);
-        expect(lintFactory.getLinter).toHaveBeenCalledWith(filePath, fileContent, mockProgram);
-      });
+      return utils.lintFile(context, tsConfigPath, null, filePath, linterOptions)
+        .then((result: LintResult) => {
+          expect(result).toEqual(mockLintResult);
+          expect(linter.lint)
+            .toHaveBeenCalledWith(context, tsConfigPath, null, filePath, fileContent, linterOptions);
+        });
     });
   });
 
-  describe('processLintResults', () => {
-    it('should complete when no files have an error', () => {
-      // arrange
-      const lintResults: any[] = [
-        {
-          failures: [],
-          filePath: '/Users/myFileOne.ts'
-        },
-        {
-          failures: [],
-          filePath: '/Users/myFileTwo.ts'
-        }
-      ];
-
-      // act
-      lintUtils.processLintResults(null, lintResults);
-
-      // assert
-
+  describe('processTypeCheckDiagnostics()', () => {
+    it('should not throw an error when there are no files with errors or warnings', () => {
+      utils.processTypeCheckDiagnostics({}, []);
     });
 
     it('should throw an error when one or more file has failures', () => {
-      // arrange
-
-      spyOn(loggerDiagnostics, loggerDiagnostics.printDiagnostics.name).and.returnValue(null);
-      spyOn(tsLintLogger, tsLintLogger.runTsLintDiagnostics.name).and.returnValue(null);
-      const lintResults: any[] = [
+      const knownError = new Error('Should never get here');
+      const results: any[] = [
         {
-          failures: [
-            { }
-          ],
-          filePath: '/Users/myFileOne.ts'
-        },
-        {
-          failures: [
-          ],
-          filePath: '/Users/myFileTwo.ts'
+          file: {},
+          start: 0,
+          length: 10,
+          messageText: 'Something failed',
+          category: DiagnosticCategory.Warning,
+          code: 100
         }
       ];
-      const knownError = new Error('Should never get here');
 
-      // act
+      spyOn(tsLogger, tsLogger.runTypeScriptDiagnostics.name).and.returnValue(null);
+      spyOn(loggerDiagnostics, loggerDiagnostics.printDiagnostics.name).and.returnValue(null);
+
       try {
-        lintUtils.processLintResults(null, lintResults);
+        utils.processTypeCheckDiagnostics({}, results);
+        throw knownError;
+      } catch (e) {
+        expect(loggerDiagnostics.printDiagnostics).toHaveBeenCalledTimes(1);
+        expect(e).not.toEqual(knownError);
+      }
+    });
+  });
+
+  describe('processLintResults()', () => {
+    it('should not throw an error when there are no files with errors or warnings', () => {
+      utils.processLintResults({}, [
+        {
+          errorCount: 0,
+          warningCount: 0,
+          failures: [],
+          fixes: [],
+          format: '',
+          output: ''
+        }
+      ]);
+    });
+
+    it('should throw an error when one or more file has failures', () => {
+      const knownError = new Error('Should never get here');
+      const results: any[] = [
+        {
+          errorCount: 1,
+          warningCount: 0,
+          failures: [
+            {
+              getFileName() {
+                return 'test.ts';
+              }
+            }
+          ],
+          fixes: [],
+          format: '',
+          output: ''
+        }
+      ];
+
+      spyOn(tsLintLogger, tsLintLogger.runTsLintDiagnostics.name).and.returnValue(null);
+      spyOn(loggerDiagnostics, loggerDiagnostics.printDiagnostics.name).and.returnValue(null);
+
+      try {
+        utils.processLintResults({}, results);
         throw knownError;
       } catch (ex) {
         expect(loggerDiagnostics.printDiagnostics).toHaveBeenCalledTimes(1);
-        expect(loggerDiagnostics.printDiagnostics).toHaveBeenCalledTimes(1);
         expect(ex).not.toEqual(knownError);
       }
+    });
+  });
+
+  describe('generateErrorMessageForFiles()', () => {
+    it('should generate a string from an array of files', () => {
+      expect(utils.generateErrorMessageForFiles(['test_one.ts', 'test_two.ts'], 'Just testing:'))
+        .toEqual('Just testing:\ntest_one.ts\ntest_two.ts');
+    });
+  });
+
+  describe('getFileNames()', () => {
+    it('should retrieve file names from an array of RuleFailure objects', () => {
+      const ruleFailures: any[] = [
+          {
+            getFileName() {
+              return '/User/john/test.ts';
+            }
+          }
+      ];
+      const fileNames = utils.getFileNames({rootDir: '/User/john'}, ruleFailures);
+
+      expect(fileNames)
+        .toEqual(['test.ts']);
+    });
+  });
+
+  describe('removeDuplicateFileNames()', () => {
+    it('should remove duplicate string entries in arrays', () => {
+      expect(utils.removeDuplicateFileNames(['test.ts', 'test.ts']))
+        .toEqual(['test.ts']);
     });
   });
 });

@@ -15,7 +15,8 @@ import { convertDeepLinkConfigEntriesToString, getDeepLinkData, hasExistingDeepL
  * as the cached version of the App's main NgModule content will basically always
  * have a generated deep likn config in it.
 */
-let cachedUnmodifiedAppNgModuleFileContent: string = null;
+export let cachedUnmodifiedAppNgModuleFileContent: string = null;
+export let cachedDeepLinkString: string = null;
 
 export function deepLinking(context: BuildContext) {
   const logger = new Logger(`deeplinks`);
@@ -32,25 +33,51 @@ export function deepLinking(context: BuildContext) {
 
 
 function deepLinkingWorker(context: BuildContext) {
-  return deepLinkingWorkerImpl(context, null);
+  return deepLinkingWorkerImpl(context, []);
 }
 
 export function deepLinkingWorkerImpl(context: BuildContext, changedFiles: ChangedFile[]) {
   return Promise.resolve().then(() => {
     const appNgModulePath = getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH);
     const appNgModuleFile = context.fileCache.get(appNgModulePath);
-    if (!cachedUnmodifiedAppNgModuleFileContent) {
+    if (!appNgModuleFile) {
+      throw new Error(`The main app NgModule was not found at the following path: ${appNgModulePath}`);
+    }
+    if (!cachedUnmodifiedAppNgModuleFileContent || hasAppModuleChanged(changedFiles, appNgModulePath)) {
       cachedUnmodifiedAppNgModuleFileContent = appNgModuleFile.content;
     }
-    const deepLinkConfigEntries = getDeepLinkData(appNgModulePath, context.fileCache, context.runAot);
+
+    // is there is an existing (legacy) deep link config, just move on and don't look for decorators
     const hasExisting = hasExistingDeepLinkConfig(appNgModulePath, cachedUnmodifiedAppNgModuleFileContent);
-    if (!hasExisting && deepLinkConfigEntries && deepLinkConfigEntries.length) {
-      // only update the app's main ngModule if there isn't an existing config
-      const deepLinkString = convertDeepLinkConfigEntriesToString(deepLinkConfigEntries);
-      updateAppNgModuleAndFactoryWithDeepLinkConfig(context, deepLinkString, changedFiles, context.runAot);
+    if (hasExisting) {
+      return [];
+    }
+
+    const deepLinkConfigEntries = getDeepLinkData(appNgModulePath, context.fileCache, context.runAot) || [];
+    if (deepLinkConfigEntries.length) {
+      const newDeepLinkString = convertDeepLinkConfigEntriesToString(deepLinkConfigEntries);
+      // 1. this is the first time running this, so update the build either way
+      // 2. we have an existing deep link string, and we have a new one, and they're different - so go ahead and update the config
+      // 3. the app's main ngmodule has changed, so we need to rewrite the config
+      if (!cachedDeepLinkString || newDeepLinkString !== cachedDeepLinkString || hasAppModuleChanged(changedFiles, appNgModulePath)) {
+        cachedDeepLinkString = newDeepLinkString;
+        updateAppNgModuleAndFactoryWithDeepLinkConfig(context, newDeepLinkString, changedFiles, context.runAot);
+      }
     }
     return deepLinkConfigEntries;
   });
+}
+
+export function hasAppModuleChanged(changedFiles: ChangedFile[], appNgModulePath: string) {
+  if (!changedFiles) {
+    changedFiles = [];
+  }
+  for (const changedFile of changedFiles) {
+    if (changedFile.filePath === appNgModulePath) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function deepLinkingUpdate(changedFiles: ChangedFile[], context: BuildContext) {
@@ -79,6 +106,9 @@ export function deepLinkingUpdateImpl(changedFiles: ChangedFile[], context: Buil
 
 export function deepLinkingWorkerFullUpdate(context: BuildContext) {
   const logger = new Logger(`deeplinks update`);
+  // when a full build is required (when a template fails to update, etc), remove the cached deep link string to force a new one
+  // to be inserted
+  cachedDeepLinkString = null;
   return deepLinkingWorker(context).then((deepLinkConfigEntries: DeepLinkConfigEntry[]) => {
       setParsedDeepLinkConfig(deepLinkConfigEntries);
       logger.finish();
@@ -88,4 +118,14 @@ export function deepLinkingWorkerFullUpdate(context: BuildContext) {
       const error = new BuildError(err.message);
       throw logger.fail(error);
     });
+}
+
+// these functions are  purely for testing
+export function reset() {
+  cachedUnmodifiedAppNgModuleFileContent = null;
+  cachedDeepLinkString = null;
+}
+
+export function setCachedDeepLinkString(input: string) {
+  cachedDeepLinkString = input;
 }

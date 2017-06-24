@@ -331,9 +331,9 @@ export function runBuildUpdate(context: BuildContext, changedFiles: ChangedFile[
   }
 
 
-  const sassFiles = changedFiles.filter(f => f.ext === '.scss');
+  const sassFiles = changedFiles.filter(f => /^\.s(c|a)ss$/.test(f.ext));
   if (sassFiles.length) {
-    // .scss file was changed/added/deleted, lets do a sass update
+    // .scss or .sass file was changed/added/deleted, lets do a sass update
     context.sassState = BuildState.RequiresUpdate;
   }
 

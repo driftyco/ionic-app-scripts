@@ -11,7 +11,8 @@ describe('util', () => {
   describe('hydrateRequest', () => {
     it('should take a component request and return a hydrated component request', () => {
       // arrange
-      const componentsDir = '/Users/noone/project/src/components';
+      const baseDir = join(process.cwd(), 'someDir', 'project');
+      const componentsDir = join(baseDir, 'src', 'components');
       const context = {
         componentsDir: componentsDir
       };
@@ -22,14 +23,14 @@ describe('util', () => {
         includeNgModule: true
       };
 
-      const templateDir = '/Users/noone/project/node_modules/ionic-angular/templates';
+      const templateDir = join(baseDir, 'node_modules', 'ionic-angular', 'templates');
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(templateDir);
 
       // act
       const hydratedRequest = util.hydrateRequest(context, request);
 
       // assert
-      expect(hydratedRequest).toEqual({'className': 'SettingsViewComponent', 'dirToRead': '/Users/noone/project/node_modules/ionic-angular/templates/component', 'dirToWrite': '/Users/noone/project/src/components/settings-view', 'fileName': 'settings-view', 'includeNgModule': true, 'includeSpec': true, 'name': 'settings view', 'type': 'component'});
+      expect(hydratedRequest).toEqual({'className': 'SettingsViewComponent', 'dirToRead': join(templateDir, 'component'), 'dirToWrite': join(componentsDir, 'settings-view'), 'fileName': 'settings-view', 'includeNgModule': true, 'includeSpec': true, 'name': 'settings view', 'type': 'component'});
       expect(hydratedRequest.type).toEqual(Constants.COMPONENT);
       expect(hydratedRequest.name).toEqual(request.name);
       expect(hydratedRequest.includeNgModule).toBeTruthy();
@@ -42,7 +43,8 @@ describe('util', () => {
 
     it('should take a page request and return a hydrated page request', () => {
       // arrange
-      const pagesDir = '/Users/noone/project/src/pages';
+      const baseDir = join(process.cwd(), 'someDir', 'project');
+      const pagesDir = join(baseDir, 'src', 'pages');
       const context = {
         pagesDir: pagesDir
       };
@@ -53,14 +55,14 @@ describe('util', () => {
         includeNgModule: true
       };
 
-      const templateDir = '/Users/noone/project/node_modules/ionic-angular/templates';
+      const templateDir = join(baseDir, 'node_modules', 'ionic-angular', 'templates');
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(templateDir);
 
       // act
       const hydratedRequest = util.hydrateRequest(context, request);
 
       // assert
-      expect(hydratedRequest).toEqual({'className': 'SettingsViewPage', 'dirToRead': '/Users/noone/project/node_modules/ionic-angular/templates/page', 'dirToWrite': '/Users/noone/project/src/pages/settings-view', 'fileName': 'settings-view', 'includeNgModule': true, 'includeSpec': true, 'name': 'settings view', 'type': 'page'});
+      expect(hydratedRequest).toEqual({'className': 'SettingsViewPage', 'dirToRead': join(templateDir, 'page'), 'dirToWrite': join(pagesDir, 'settings-view'), 'fileName': 'settings-view', 'includeNgModule': true, 'includeSpec': true, 'name': 'settings view', 'type': 'page'});
       expect(hydratedRequest.type).toEqual(Constants.PAGE);
       expect(hydratedRequest.name).toEqual(request.name);
       expect(hydratedRequest.includeNgModule).toBeTruthy();
@@ -371,11 +373,11 @@ $TAB_CONTENT
 
   describe('getNgModules', () => {
     let context: any;
-    const componentsDir = '/path/to/components';
-    const directivesDir = '/path/to/directives';
-    const pagesDir = '/path/to/pages';
-    const pipesDir = '/path/to/pipes';
-    const providersDir = '/path/to/providers';
+    const componentsDir = join(process.cwd(), 'path', 'to', 'components');
+    const directivesDir = join(process.cwd(), 'path', 'to', 'directives');
+    const pagesDir = join(process.cwd(), 'path', 'to', 'pages');
+    const pipesDir = join(process.cwd(), 'path', 'to', 'pipes');
+    const providersDir = join(process.cwd(), 'path', 'to', 'providers');
 
     beforeEach(() => {
       context = { componentsDir, directivesDir, pagesDir, pipesDir, providersDir };
@@ -391,14 +393,14 @@ $TAB_CONTENT
       const globAllSpy = spyOn(globUtils, globUtils.globAll.name);
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
       util.getNgModules(context, ['component']);
-      expect(globAllSpy).toHaveBeenCalledWith(['/path/to/components/**/*.module.ts']);
+      expect(globAllSpy).toHaveBeenCalledWith([join(componentsDir, '**', '*.module.ts')]);
     });
 
     it('should return a list of glob results for pages and components', () => {
       const globAllSpy = spyOn(globUtils, globUtils.globAll.name);
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
       util.getNgModules(context, ['page', 'component']);
-      expect(globAllSpy).toHaveBeenCalledWith(['/path/to/pages/**/*.module.ts', '/path/to/components/**/*.module.ts']);
+      expect(globAllSpy).toHaveBeenCalledWith([join(pagesDir, '**', '*.module.ts'), join(componentsDir, '**', '*.module.ts')]);
     });
   });
 
@@ -408,17 +410,20 @@ $TAB_CONTENT
     const suppliedName = 'settings view';
 
     it('should return a succesful promise', () => {
+			// set up spies
       spyOn(helpers, helpers.readFileAsync.name).and.returnValue(Promise.resolve('file content'));
       spyOn(fs, 'readdirSync').and.returnValue([
-        '/path/to/nowhere',
-        'path/to/somewhere'
+        join(process.cwd(), 'path', 'to', 'nowhere'),
+        join(process.cwd(), 'path', 'to', 'somewhere'),
       ]);
       spyOn(helpers, helpers.writeFileAsync.name).and.returnValue(Promise.resolve());
       spyOn(TypeScriptUtils, TypeScriptUtils.insertNamedImportIfNeeded.name).and.returnValue('file content');
       spyOn(TypeScriptUtils, TypeScriptUtils.appendNgModuleDeclaration.name).and.returnValue('sliced string');
 
+			// what we want to test
       const promise = util.tabsModuleManipulation([['/src/pages/cool-tab-one/cool-tab-one.module.ts']], { name: suppliedName, className: className, fileName: fileName }, [{ name: suppliedName, className: className, fileName: fileName }]);
 
+      // test
       return promise.then(() => {
         expect(helpers.readFileAsync).toHaveBeenCalled();
         expect(helpers.writeFileAsync).toHaveBeenCalled();
@@ -426,10 +431,17 @@ $TAB_CONTENT
     });
 
     it('should throw when files are not written succesfully', () => {
-      spyOn(helpers, helpers.writeFileAsync.name).and.throwError;
+      const knownErrorMsg = `ENOENT: no such file or directory, open 'undefined/settings-view.module.ts'`;
+      spyOn(helpers, helpers.writeFileAsync.name).and.returnValue(Promise.reject(new Error(knownErrorMsg)));
 
-      expect(util.tabsModuleManipulation([['/src/pages/cool-tab-one/cool-tab-one.module.ts']], { name: suppliedName, className: className, fileName: fileName }, [{ name: suppliedName, className: className, fileName: fileName }])).toThrow();
+      const promise = util.tabsModuleManipulation([['/src/pages/cool-tab-one/cool-tab-one.module.ts']], { name: suppliedName, className: className, fileName: fileName }, [{ name: suppliedName, className: className, fileName: fileName }]);
+      return promise.then(() => {
+        throw new Error('should never happen');
+      }).catch((err: Error) => {
+        expect(err.message).toEqual(knownErrorMsg);
+      });
     });
+
   });
 
   describe('nonPageFileManipulation', () => {
@@ -470,9 +482,15 @@ $TAB_CONTENT
     });
 
     it('should throw when files are not written succesfully', () => {
-      spyOn(helpers, helpers.writeFileAsync.name).and.throwError;
+      const knownErrorMsg = `ENOENT: no such file or directory, open 'src/pages/cool-tab-one/cool-tab-one.module.ts'`;
+      spyOn(helpers, helpers.writeFileAsync.name).and.returnValue(Promise.reject(new Error(knownErrorMsg)));
 
-      expect(util.nonPageFileManipulation(context, 'coolStuff', '/src/pages/cool-tab-one/cool-tab-one.module.ts', 'pipe')).toThrow();
+      const promise = util.nonPageFileManipulation(context, 'coolStuff', join('src', 'pages', 'cool-tab-one', 'cool-tab-one.module.ts'), 'pipe');
+      return promise.then(() => {
+        throw new Error('should never happen');
+      }).catch((err: Error) => {
+        expect(err.message).toEqual(knownErrorMsg);
+      });
     });
   });
 });

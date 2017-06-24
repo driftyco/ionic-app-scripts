@@ -11,7 +11,11 @@ module.exports = {
   /**
    * compress: uglify 2's compress option
    */
-  compress: true,
+  compress: {
+    unused: true,
+    dead_code: true,
+    toplevel: true
+  },
 
   /**
    * comments: uglify 2's comments option

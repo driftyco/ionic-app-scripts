@@ -277,7 +277,16 @@ function renderSassSuccess(context: BuildContext, sassResult: Result, sassConfig
 
     Logger.debug(`sass, start postcss/autoprefixer`);
 
-    return postcss([autoprefixer(sassConfig.autoprefixer)])
+    let postCssPlugins = [autoprefixer(sassConfig.autoprefixer)];
+
+    if (sassConfig.postCssPlugins) {
+      postCssPlugins = [
+        ...sassConfig.postCssPlugins,
+        ...postCssPlugins
+      ];
+    }
+
+    return postcss(postCssPlugins)
       .process(sassResult.css, postcssOptions).then((postCssResult: any) => {
         postCssResult.warnings().forEach((warn: any) => {
           Logger.warn(warn.toString());
@@ -441,7 +450,7 @@ export interface SassConfig {
   excludeModules?: string[];
   includeFiles?: RegExp[];
   excludeFiles?: RegExp[];
-  directoryMaps?: {[key: string]: string};
+  directoryMaps?: { [key: string]: string };
   sortComponentPathsFn?: (a: any, b: any) => number;
   sortComponentFilesFn?: (a: any, b: any) => number;
   variableSassFiles?: string[];
@@ -449,6 +458,7 @@ export interface SassConfig {
   sourceMap?: string;
   omitSourceMapUrl?: boolean;
   sourceMapContents?: boolean;
+  postCssPlugins?: any[];
 }
 
 

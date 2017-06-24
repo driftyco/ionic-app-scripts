@@ -1,3 +1,4 @@
+import { extname } from 'path';
 import { FileCache } from '../util/file-cache';
 import { on, EventType } from '../util/events';
 import { Logger } from '../logger/logger';
@@ -17,7 +18,7 @@ export class WatchMemorySystem {
   private immediateCallback: (filePath: string, timestamp: number) => void;
   private aggregatedCallback: (err: Error, changesFilePaths: string[], dirPaths: string[], missingPaths: string[], timesOne: any, timesTwo: any) => void;
 
-  constructor(private fileCache: FileCache) {
+  constructor(private fileCache: FileCache, private srcDir: string) {
   }
 
   close() {
@@ -52,7 +53,7 @@ export class WatchMemorySystem {
     this.isListening = true;
     on(EventType.WebpackFilesChanged, () => {
       this.changes = new Set<string>();
-      const filePaths = this.fileCache.getAll().filter(file => file.timestamp >= this.lastWatchEventTimestamp).map(file => file.path);
+      const filePaths = this.fileCache.getAll().filter(file => file.timestamp >= this.lastWatchEventTimestamp && file.path.startsWith(this.srcDir) && extname(file.path) === '.ts').map(file => file.path);
       Logger.debug('filePaths: ', filePaths);
       this.lastWatchEventTimestamp = Date.now();
       this.processChanges(filePaths);

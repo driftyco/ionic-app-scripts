@@ -15,7 +15,7 @@ github.authenticate({ type: 'oauth', token: process.env.GH_TOKEN });
 var changelogContent = execSync(changelogCommand).toString();
 
 github.releases.createRelease({
-  owner: 'driftyco',
+  owner: 'ionic-team',
   repo: 'ionic-app-scripts',
   target_commitish: 'master',
   tag_name: 'v' + packageJson.version,

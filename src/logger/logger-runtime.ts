@@ -142,6 +142,6 @@ export function generateRuntimeStackDiagnostics(rootDir: string, stack: string) 
   }
 
   return diagnostics;
-};
+}
 
 const WEBPACK_FILE_REGEX = /\(webpack:\/\/\/(.*?)\)/;

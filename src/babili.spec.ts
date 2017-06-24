@@ -1,7 +1,5 @@
 import * as babili from './babili';
-import * as configUtil from './util/config';
 import * as crossSpawn from 'cross-spawn';
-import { EventEmitter } from 'events';
 
 describe('babili function', () => {
 

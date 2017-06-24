@@ -11,7 +11,7 @@ import {
   NamedImports,
   Node,
   NodeArray,
-  ObjectLiteralElement,
+  ObjectLiteralElement, // tslint:disable-line: no-unused-variable
   ObjectLiteralExpression,
   PropertyAssignment,
   ArrayLiteralExpression,
@@ -23,7 +23,6 @@ import {
 } from 'typescript';
 
 import { rangeReplace, stringSplice } from './helpers';
-import { Logger } from '../logger/logger';
 
 export function getTypescriptSourceFile(filePath: string, fileContent: string, languageVersion: ScriptTarget = ScriptTarget.Latest, setParentNodes: boolean = false): SourceFile {
   return createSourceFile(filePath, fileContent, languageVersion, setParentNodes);
@@ -138,7 +137,7 @@ export function replaceNamedImport(filePath: string, fileContent: string, namedI
     return namedImport.elements.forEach((element: ImportSpecifier) => {
       if (element.name.text === namedImportOriginal) {
         modifiedContent = replaceNode(filePath, modifiedContent, element, namedImportReplacement);
-      };
+      }
     });
   });
 
@@ -243,7 +242,7 @@ export function appendNgModuleDeclaration(filePath: string, fileContent: string,
     if (declarations.length === 0) {
       return appendEmpty(fileContent, declarations['end'], declaration);
     } else {
-      return appendAfter(fileContent, declarations[declarations.length - 1], `, ${declaration}`);
+      return appendAfter(fileContent, declarations[declarations.length - 1], `,\n    ${declaration}`);
     }
   } else {
     const properties = (findObjectLiteralElementByName(obj.properties, 'declarations') as PropertyAssignment);

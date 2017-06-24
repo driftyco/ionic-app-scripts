@@ -66,5 +66,34 @@ describe('Webpack Task', () => {
         expect(writeFileSpy.calls.all()[5].args[1]).toEqual(fileSixPath + 'content');
       });
     });
+
+    it('should preprend ionic core info', () => {
+      const appDir = join('some', 'fake', 'dir', 'myApp');
+      const buildDir = join(appDir, 'www', 'build');
+
+      const context = {
+        fileCache: new FileCache(),
+        buildDir: buildDir,
+        outputJsFileName: 'main.js'
+      };
+
+      const fileOnePath = join(buildDir, 'main.js');
+      const fileTwoPath = join(buildDir, 'main.js.map');
+
+      context.fileCache.set(fileOnePath, { path: fileOnePath, content: fileOnePath + 'content'});
+      context.fileCache.set(fileTwoPath, { path: fileTwoPath, content: fileTwoPath + 'content'});
+
+      const writeFileSpy = spyOn(helpers, helpers.writeFileAsync.name).and.returnValue(Promise.resolve());
+
+      const promise = webpack.writeBundleFilesToDisk(context);
+
+      return promise.then(() => {
+        expect(writeFileSpy).toHaveBeenCalledTimes(2);
+
+        expect(writeFileSpy.calls.all()[0].args[0]).toEqual(fileOnePath);
+
+        expect(writeFileSpy.calls.all()[1].args[0]).toEqual(fileTwoPath);
+      });
+    });
   });
 });

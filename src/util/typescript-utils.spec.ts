@@ -360,7 +360,8 @@ import { RootPageModule } from '../pages/root-page/root-page.module';
     RootPageModule
   ],
   bootstrap: [IonicApp],
-  providers: [AwesomeProvider, CoolProvider]
+  providers: [AwesomeProvider,
+    CoolProvider]
 })
 export class AppModule {}
 `;

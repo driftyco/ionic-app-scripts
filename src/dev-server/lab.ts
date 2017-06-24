@@ -10,7 +10,7 @@ export let LabAppView = (req: any, res: any) => {
 };
 
 export let ApiCordovaProject = (req: any, res: any) => {
-  let cordovaContext = buildCordovaConfig((err: any) => {
+  buildCordovaConfig((err: any) => {
     res.status(400).json({ status: 'error', message: 'Unable to load config.xml' });
   }, (config: CordovaProject) => {
     res.json(config);

@@ -5,7 +5,6 @@ import { babili } from './babili';
 import { cleancss } from './cleancss';
 import { closure, isClosureSupported } from './closure';
 import { Logger } from './logger/logger';
-import { transpileBundle } from './transpile';
 import { uglifyjs } from './uglifyjs';
 
 
@@ -48,10 +47,7 @@ export function minifyJs(context: BuildContext): Promise<void> {
 
 function runUglify(context: BuildContext) {
   // uglify cannot handle ES2015, so convert it to ES5 before minifying (if needed)
-  const promise = getBooleanPropertyValue(Constants.ENV_BUILD_TO_ES5) === true ? transpileBundle(context) : Promise.resolve();
-  return promise.then(() => {
-    return uglifyjs(context);
-  });
+  return uglifyjs(context);
 }
 
 export function minifyCss(context: BuildContext) {

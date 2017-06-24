@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { dirname, extname, join } from 'path';
+import { dirname, join } from 'path';
 
 import * as webpackApi from 'webpack';
 
@@ -113,8 +113,9 @@ function webpackBuildComplete(stats: any, context: BuildContext, webpackConfig: 
 
 export function writeBundleFilesToDisk(context: BuildContext) {
   const bundledFilesToWrite = context.fileCache.getAll().filter(file => {
-    return dirname(file.path) === context.buildDir && (file.path.endsWith('.js') || file.path.endsWith('.js.map'));
+    return dirname(file.path).indexOf(context.buildDir) >= 0 && (file.path.endsWith('.js') || file.path.endsWith('.js.map'));
   });
+  context.bundledFilePaths = bundledFilesToWrite.map(bundledFile => bundledFile.path);
   const promises = bundledFilesToWrite.map(bundledFileToWrite => writeFileAsync(bundledFileToWrite.path, bundledFileToWrite.content));
   return Promise.all(promises);
 }
@@ -125,7 +126,16 @@ export function runWebpackFullBuild(config: WebpackConfig) {
       if (err) {
         reject(new BuildError(err));
       } else {
-        resolve(stats);
+        const info = stats.toJson();
+
+        if (stats.hasErrors()) {
+          reject(new BuildError(info.errors));
+        } else if (stats.hasWarnings()) {
+          Logger.debug(info.warnings);
+          resolve(stats);
+        } else {
+          resolve(stats);
+        }
       }
     };
     const compiler = webpackApi(config);

@@ -1,8 +1,9 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { dirname, extname, join, parse, resolve } from 'path';
 
+import * as Constants from './util/constants';
 import { BuildContext, BuildState, ChangedFile, File } from './util/interfaces';
-import { changeExtension } from './util/helpers';
+import { changeExtension, getStringPropertyValue } from './util/helpers';
 import { Logger } from './logger/logger';
 import { invalidateCache } from './rollup';
 
@@ -59,7 +60,8 @@ export function templateUpdate(changedFiles: ChangedFile[], context: BuildContex
 }
 
 function updateCorrespondingJsFile(context: BuildContext, newTemplateContent: string, existingHtmlTemplatePath: string) {
-  const javascriptFiles = context.fileCache.getAll().filter((file: File) => dirname(file.path) === dirname(existingHtmlTemplatePath) && extname(file.path) === '.js');
+  const moduleFileExtension = changeExtension(getStringPropertyValue(Constants.ENV_NG_MODULE_FILE_NAME_SUFFIX), '.js');
+  const javascriptFiles = context.fileCache.getAll().filter((file: File) => dirname(file.path) === dirname(existingHtmlTemplatePath) && extname(file.path) === '.js' && !file.path.endsWith(moduleFileExtension));
   for (const javascriptFile of javascriptFiles) {
     const newContent = replaceExistingJsTemplate(javascriptFile.content, newTemplateContent, existingHtmlTemplatePath);
     if (newContent && newContent !== javascriptFile.content) {

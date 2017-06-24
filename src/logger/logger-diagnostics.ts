@@ -312,11 +312,11 @@ function cssConsoleSyntaxHighlight(text: string, errorCharStart: number) {
 function prepareLines(orgLines: PrintLine[], code: 'text'|'html') {
   const lines: PrintLine[] = JSON.parse(JSON.stringify(orgLines));
 
-  for (var i = 0; i < 100; i++) {
+  for (let i = 0; i < 100; i++) {
     if (!eachLineHasLeadingWhitespace(lines, code)) {
       return lines;
     }
-    for (var i = 0; i < lines.length; i++) {
+    for (let i = 0; i < lines.length; i++) {
       (<any>lines[i])[code] = (<any>lines[i])[code].substr(1);
       lines[i].errorCharStart--;
       if (!(<any>lines[i])[code].length) {

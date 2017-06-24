@@ -53,15 +53,15 @@ export function runSassDiagnostics(context: BuildContext, sassError: SassError) 
           } catch (e) {}
         }
 
-        for (var i = errorLine.errorCharStart; i >= 0; i--) {
+        for (let i = errorLine.errorCharStart; i >= 0; i--) {
           if (STOP_CHARS.indexOf(errorLine.text.charAt(i)) > -1) {
             break;
           }
           errorLine.errorCharStart = i;
         }
 
-        for (var i = errorLine.errorCharStart; i <= errorLine.text.length; i++) {
-          if (STOP_CHARS.indexOf(errorLine.text.charAt(i)) > -1) {
+        for (let j = errorLine.errorCharStart; j <= errorLine.text.length; j++) {
+          if (STOP_CHARS.indexOf(errorLine.text.charAt(j)) > -1) {
             break;
           }
           errorLine.errorLength++;

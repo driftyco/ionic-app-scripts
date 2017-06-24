@@ -13,6 +13,7 @@ import * as network from './util/network';
 describe('test serve', () => {
   let configResults: ServeConfig;
   let context: BuildContext;
+  let openSpy: jasmine.Spy;
 
   beforeEach(() => {
     context = {
@@ -36,14 +37,15 @@ describe('test serve', () => {
       notificationPort: 53703,
       useServerLogs: false,
       useProxy: true,
-      notifyOnConsoleLog: false
+      notifyOnConsoleLog: false,
+      devapp: false
     };
     spyOn(network, 'findClosestOpenPorts').and.callFake((host: string, ports: number[]) => Promise.resolve(ports));
     spyOn(notificationServer, 'createNotificationServer');
     spyOn(liveReloadServer, 'createLiveReloadServer');
     spyOn(httpServer, 'createHttpServer');
     spyOn(watch, 'watch').and.returnValue(Promise.resolve());
-    spyOn(open, 'default');
+    openSpy = spyOn(open, 'default');
   });
 
   it('should work with no args on a happy path', () => {
@@ -52,7 +54,8 @@ describe('test serve', () => {
       expect(notificationServer.createNotificationServer).toHaveBeenCalledWith(configResults);
       expect(liveReloadServer.createLiveReloadServer).toHaveBeenCalledWith(configResults);
       expect(httpServer.createHttpServer).toHaveBeenCalledWith(configResults);
-      expect(open.default).toHaveBeenCalledWith('http://localhost:8100', null);
+      expect(openSpy.calls.mostRecent().args[0]).toEqual('http://localhost:8100');
+      expect(openSpy.calls.mostRecent().args[1]).toEqual(null);
     });
   });
 
@@ -65,7 +68,8 @@ describe('test serve', () => {
       expect(notificationServer.createNotificationServer).toHaveBeenCalledWith(configResults);
       expect(liveReloadServer.createLiveReloadServer).toHaveBeenCalledWith(configResults);
       expect(httpServer.createHttpServer).toHaveBeenCalledWith(configResults);
-      expect(open.default).toHaveBeenCalledWith('http://localhost:8100?ionicplatform=android', null);
+      expect(openSpy.calls.mostRecent().args[0]).toEqual('http://localhost:8100?ionicplatform=android');
+      expect(openSpy.calls.mostRecent().args[1]).toEqual(null);
     });
   });
 
@@ -103,7 +107,8 @@ describe('test serve', () => {
       expect(notificationServer.createNotificationServer).toHaveBeenCalledWith(configResults);
       expect(liveReloadServer.createLiveReloadServer).toHaveBeenCalledWith(configResults);
       expect(httpServer.createHttpServer).toHaveBeenCalledWith(configResults);
-      expect(open.default).toHaveBeenCalledWith('http://127.0.0.1:8101/ionic-lab', 'safari');
+      expect(openSpy.calls.mostRecent().args[0]).toEqual('http://127.0.0.1:8101/ionic-lab');
+      expect(openSpy.calls.mostRecent().args[1]).toEqual('safari');
     });
   });
 });

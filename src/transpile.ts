@@ -8,7 +8,7 @@ import { EventEmitter } from 'events';
 import { fork, ChildProcess } from 'child_process';
 import { inlineTemplate } from './template';
 import { Logger } from './logger/logger';
-import { readFileSync, writeFileSync, readdirSync } from 'fs';
+import { readFileSync } from 'fs';
 import { runTypeScriptDiagnostics } from './logger/logger-typescript';
 import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
 import * as path from 'path';
@@ -88,7 +88,7 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
       tsConfig.options.sourceMap = false;
 
     } else {
-       // build the ts source maps if the bundler is going to use source maps
+      // build the ts source maps if the bundler is going to use source maps
       tsConfig.options.sourceMap = buildJsSourceMaps(context);
     }
 
@@ -113,8 +113,8 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
     cachedProgram = program;
 
     const tsDiagnostics = program.getSyntacticDiagnostics()
-                          .concat(program.getSemanticDiagnostics())
-                          .concat(program.getOptionsDiagnostics());
+      .concat(program.getSemanticDiagnostics())
+      .concat(program.getOptionsDiagnostics());
 
     const diagnostics = runTypeScriptDiagnostics(context, tsDiagnostics);
 
@@ -300,13 +300,11 @@ function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, 
   }
 }
 
-export function transpileBundle(context: BuildContext, target: ts.ScriptTarget = ts.ScriptTarget.ES5) {
-  return Promise.resolve()
-    .then(() => {
-      return transpileBundleImpl(context, target);
-    });
+export async function getTsConfigAsync(context: BuildContext, tsConfigPath?: string): Promise<TsConfig> {
+  return await getTsConfig(context, tsConfigPath);
 }
 
+<<<<<<< HEAD
 function transpileBundleImpl(context: BuildContext, target: ts.ScriptTarget) {
   const logger = new Logger('transpile bundle');
   try {
@@ -337,6 +335,8 @@ export async function getTsConfigAsync(context: BuildContext, tsConfigPath?: str
   return await getTsConfig(context, tsConfigPath);
 }
 
+=======
+>>>>>>> upstream/master
 export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsConfig {
   let config: TsConfig = null;
   tsConfigPath = tsConfigPath || getTsConfigPath(context);
@@ -353,9 +353,9 @@ export function getTsConfig(context: BuildContext, tsConfigPath?: string): TsCon
 
   } else {
     const parsedConfig = ts.parseJsonConfigFileContent(
-                                tsConfigFile.config,
-                                ts.sys, context.rootDir,
-                                {}, tsConfigPath);
+      tsConfigFile.config,
+      ts.sys, context.rootDir,
+      {}, tsConfigPath);
 
     const diagnostics = runTypeScriptDiagnostics(context, parsedConfig.errors);
 
@@ -385,15 +385,11 @@ export function transpileTsString(context: BuildContext, filePath: string, strin
     reportDiagnostics: true,
   };
 
+  transpileOptions.compilerOptions.allowJs = true;
   transpileOptions.compilerOptions.sourceMap = true;
 
-  // let's manually transpile just this one ts file
-  // since it is an update, it's in memory already
-  const sourceText = context.fileCache.get(filePath).content;
-
   // transpile this one module
-  const transpileOutput = ts.transpileModule(sourceText, transpileOptions);
-  return transpileOutput;
+  return ts.transpileModule(stringToTranspile, transpileOptions);
 }
 
 

@@ -1,4 +1,5 @@
 import { join, isAbsolute, normalize, sep } from 'path';
+
 import * as rollupBundler from 'rollup';
 
 import { Logger } from './logger/logger';
@@ -94,11 +95,14 @@ export function rollupWorker(context: BuildContext, configFile: string): Promise
         const promises: Promise<any>[] = [];
         promises.push(writeFileAsync(rollupConfig.dest, bundleOutput.code));
         context.fileCache.set(rollupConfig.dest, { path: rollupConfig.dest, content: bundleOutput.code});
+        const filePaths = [rollupConfig.dest];
         if (bundleOutput.map) {
           const sourceMapContent = bundleOutput.map.toString();
           promises.push(writeFileAsync(rollupConfig.dest + '.map', sourceMapContent));
           context.fileCache.set(rollupConfig.dest + '.map', { path: rollupConfig.dest + '.map', content: sourceMapContent});
+          filePaths.push(rollupConfig.dest + '.map');
         }
+        context.bundledFilePaths = filePaths;
         return Promise.all(promises);
       })
       .then(() => {
@@ -190,14 +194,14 @@ export interface RollupConfig {
   dest?: string;
   cache?: RollupBundle;
   onwarn?: Function;
-};
+}
 
 export interface RollupBundle {
   // https://github.com/rollup/rollup/wiki/JavaScript-API
   write?: Function;
   modules: RollupModule[];
   generate: (config: RollupConfig) => RollupBundleOutput;
-};
+}
 
 export interface RollupBundleOutput {
   code: string;
@@ -207,7 +211,7 @@ export interface RollupBundleOutput {
 
 export interface RollupModule {
   id: string;
-};
+}
 
 export interface RollupWarning {
   code: string;
@@ -215,10 +219,10 @@ export interface RollupWarning {
   url: string;
   pos: number;
   loc: RollupLocationInfo;
-};
+}
 
 export interface RollupLocationInfo {
   file: string;
   line: number;
   column: number;
-};
+}

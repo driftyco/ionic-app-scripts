@@ -8,7 +8,6 @@ export interface Promisify {
 }
 /**
  * @example: const rReadFile = promisify<Buffer, string>(fs.readFile);
- * 
  */
 export const promisify: Promisify = function(func: any) {
   return (...args: any[]) => {

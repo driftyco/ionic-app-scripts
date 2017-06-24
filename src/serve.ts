@@ -8,6 +8,7 @@ import open from './util/open';
 import { createNotificationServer } from './dev-server/notification-server';
 import { createHttpServer } from './dev-server/http-server';
 import { createLiveReloadServer } from './dev-server/live-reload';
+import { createBonjourService } from './dev-server/bonjour';
 import { ServeConfig, IONIC_LAB_URL } from './dev-server/serve-config';
 import { findClosestOpenPorts } from './util/network';
 
@@ -45,7 +46,8 @@ export function serve(context: BuildContext) {
         notificationPort: notificationPortFound,
         useServerLogs: useServerLogs(context),
         useProxy: useProxy(context),
-        notifyOnConsoleLog: sendClientConsoleLogs(context)
+        notifyOnConsoleLog: sendClientConsoleLogs(context),
+        devapp: useBonjour(context)
       };
 
       createNotificationServer(config);
@@ -55,6 +57,7 @@ export function serve(context: BuildContext) {
       return watch(context);
     })
     .then(() => {
+      createBonjourService(config);
       onReady(config, context);
       return config;
     }, (err: BuildError) => {
@@ -65,6 +68,7 @@ export function serve(context: BuildContext) {
         throw err;
       } else {
         onReady(config, context);
+        return config;
       }
     });
 }
@@ -76,7 +80,12 @@ function onReady(config: ServeConfig, context: BuildContext) {
       .concat(browserOption(context) ? [browserOption(context)] : [])
       .concat(platformOption(context) ? ['?ionicplatform=', platformOption(context)] : []);
 
-    open(openOptions.join(''), browserToLaunch(context));
+    open(openOptions.join(''), browserToLaunch(context), (error: Error) => {
+      if (error) {
+        const errorMessage = error && error.message ? error.message : error.toString();
+        Logger.warn(`Failed to open the browser: ${errorMessage}`);
+      }
+    });
   }
   Logger.info(`dev server running: ${config.hostBaseUrl}/`, 'green', true);
   Logger.newLine();
@@ -132,6 +141,10 @@ function browserToLaunch(context: BuildContext): string {
 
 function browserOption(context: BuildContext): string {
   return getConfigValue(context, '--browseroption', '-o', 'IONIC_BROWSEROPTION', 'ionic_browseroption', null);
+}
+
+function useBonjour(context: BuildContext): boolean {
+  return hasConfigValue(context, '--devapp', '-D', 'devapp', false);
 }
 
 function launchLab(context: BuildContext): boolean {

@@ -1,44 +1,43 @@
+import { IRuleFailurePositionJson, RuleFailure } from 'tslint';
+import { splitLineBreaks } from '../util/helpers';
 import { BuildContext, Diagnostic, PrintLine } from '../util/interfaces';
 import { Logger } from './logger';
-import { splitLineBreaks } from '../util/helpers';
+
+
+const STOP_CHARS = [' ', '=', ',', '.', '\t', '{', '}', '(', ')', '"', '\'', '`', '?', ':', ';', '+', '-', '*', '/', '<', '>', '&', '[', ']', '|'];
 
 
 export function runTsLintDiagnostics(context: BuildContext, failures: RuleFailure[]) {
-  return failures.map(failure => {
-    return loadDiagnostic(context, failure);
-  });
+  return failures.map(failure => loadDiagnostic(context, failure));
 }
 
-function getPositonData(positionObject: any) {
-  return {
-    position: positionObject.position,
-    line: positionObject.lineAndCharacter ? positionObject.lineAndCharacter.line : 0,
-    character: positionObject.lineAndCharacter ? positionObject.lineAndCharacter.character : 0,
-  };
-}
 
-function loadDiagnostic(context: BuildContext, f: RuleFailure) {
-  const start: RuleFailurePosition = getPositonData(f.startPosition);
-  const end: RuleFailurePosition = getPositonData(f.endPosition);
+export function loadDiagnostic(context: BuildContext, failure: RuleFailure) {
+  const start: IRuleFailurePositionJson = failure.getStartPosition()
+    .toJson();
+  const end: IRuleFailurePositionJson = failure.getEndPosition()
+    .toJson();
+  const fileName = failure.getFileName();
+  const sourceFile = failure.getRawLines();
 
   const d: Diagnostic = {
     level: 'warn',
     type: 'tslint',
     language: 'typescript',
-    absFileName: f.fileName,
-    relFileName: Logger.formatFileName(context.rootDir, f.fileName),
-    header: Logger.formatHeader('tslint', f.fileName, context.rootDir, start.line + 1, end.line + 1),
-    code: f.ruleName,
-    messageText: f.failure,
+    absFileName: fileName,
+    relFileName: Logger.formatFileName(context.rootDir, fileName),
+    header: Logger.formatHeader('tslint', fileName, context.rootDir, start.line + 1, end.line + 1),
+    code: failure.getRuleName(),
+    messageText: failure.getFailure(),
     lines: []
   };
 
-  if (f.sourceFile && f.sourceFile.text) {
-    const srcLines = splitLineBreaks(f.sourceFile.text);
+  if (sourceFile) {
+    const srcLines = splitLineBreaks(sourceFile);
 
-    for (var i = start.line; i <= end.line; i++) {
+    for (let i = start.line; i <= end.line; i++) {
       if (srcLines[i].trim().length) {
-        var errorLine: PrintLine = {
+        const errorLine: PrintLine = {
           lineIndex: i,
           lineNumber: i + 1,
           text: srcLines[i],
@@ -46,7 +45,7 @@ function loadDiagnostic(context: BuildContext, f: RuleFailure) {
           errorCharStart: (i === start.line) ? start.character : (i === end.line) ? end.character : -1,
           errorLength: 0,
         };
-        for (var j = errorLine.errorCharStart; j < errorLine.text.length; j++) {
+        for (let j = errorLine.errorCharStart; j < errorLine.text.length; j++) {
           if (STOP_CHARS.indexOf(errorLine.text.charAt(j)) > -1) {
             break;
           }
@@ -88,24 +87,4 @@ function loadDiagnostic(context: BuildContext, f: RuleFailure) {
   }
 
   return d;
-}
-
-
-const STOP_CHARS = [' ', '=', ',', '.', '\t', '{', '}', '(', ')', '"', '\'', '`', '?', ':', ';', '+', '-', '*', '/', '<', '>', '&', '[', ']', '|'];
-
-
-export interface RuleFailure {
-  sourceFile: any;
-  failure: string;
-  ruleName: string;
-  fix: any;
-  fileName: string;
-  startPosition: any;
-  endPosition: any;
-}
-
-export interface RuleFailurePosition {
-  character: number;
-  line: number;
-  position: number;
 }

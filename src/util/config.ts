@@ -24,7 +24,10 @@ import * as Constants from './constants';
 export function generateContext(context?: BuildContext): BuildContext {
   if (!context) {
     context = {};
-    context.fileCache = new FileCache();
+  }
+
+  if (!context.fileCache) {
+     context.fileCache = new FileCache();
   }
 
   context.isProd = [
@@ -115,6 +118,24 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_VAR_IONIC_ANGULAR_DIR, context.ionicAngularDir);
   Logger.debug(`ionicAngularDir set to ${context.ionicAngularDir}`);
 
+  const angularDir = resolve(getConfigValue(context, '--angularDir', null, Constants.ENV_VAR_AT_ANGULAR_DIR, Constants.ENV_VAR_AT_ANGULAR_DIR.toLowerCase(), join(context.nodeModulesDir, Constants.AT_ANGULAR)));
+  setProcessEnvVar(Constants.ENV_VAR_AT_ANGULAR_DIR, angularDir);
+  Logger.debug(`angularDir set to ${angularDir}`);
+
+  const defaultCoreCompilerFilePath = join(context.ionicAngularDir, 'compiler');
+  context.coreCompilerFilePath = resolve(context.coreCompilerFilePath || getConfigValue(context, '--coreCompilerFilePath', null, Constants.ENV_VAR_CORE_COMPILER_FILE_PATH, Constants.ENV_VAR_CORE_COMPILER_FILE_PATH.toLowerCase(), defaultCoreCompilerFilePath));
+  setProcessEnvVar(Constants.ENV_VAR_CORE_COMPILER_FILE_PATH, context.coreCompilerFilePath);
+  Logger.debug(`coreCompilerFilePath set to ${context.coreCompilerFilePath}`);
+
+  const defaultCoreDir = context.ionicAngularDir;
+  context.coreDir = resolve(context.coreDir || getConfigValue(context, '--coreDir', null, Constants.ENV_VAR_CORE_DIR, Constants.ENV_VAR_CORE_DIR.toLowerCase(), defaultCoreDir));
+  setProcessEnvVar(Constants.ENV_VAR_CORE_DIR, context.coreDir);
+  Logger.debug(`coreDir set to ${context.coreDir}`);
+
+  const rxjsDir = resolve(getConfigValue(context, '--rxjsDir', null, Constants.ENV_VAR_RXJS_DIR, Constants.ENV_VAR_RXJS_DIR.toLowerCase(), join(context.nodeModulesDir, Constants.RXJS)));
+  setProcessEnvVar(Constants.ENV_VAR_RXJS_DIR, rxjsDir);
+  Logger.debug(`rxjsDir set to ${rxjsDir}`);
+
   const ionicAngularTemplatesDir = join(context.ionicAngularDir, 'templates');
   setProcessEnvVar(Constants.ENV_VAR_IONIC_ANGULAR_TEMPLATE_DIR, ionicAngularTemplatesDir);
   Logger.debug(`ionicAngularTemplatesDir set to ${ionicAngularTemplatesDir}`);
@@ -175,13 +196,13 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_CLOSURE_JAR, closureCompilerJarPath);
   Logger.debug(`closureCompilerJarPath set to ${closureCompilerJarPath}`);
 
-  const outputJsFileName = getConfigValue(context, '--outputJsFileName', null, Constants.ENV_OUTPUT_JS_FILE_NAME, Constants.ENV_OUTPUT_JS_FILE_NAME.toLowerCase(), 'main.js');
-  setProcessEnvVar(Constants.ENV_OUTPUT_JS_FILE_NAME, outputJsFileName);
-  Logger.debug(`outputJsFileName set to ${outputJsFileName}`);
+  context.outputJsFileName = getConfigValue(context, '--outputJsFileName', null, Constants.ENV_OUTPUT_JS_FILE_NAME, Constants.ENV_OUTPUT_JS_FILE_NAME.toLowerCase(), 'main.js');
+  setProcessEnvVar(Constants.ENV_OUTPUT_JS_FILE_NAME, context.outputJsFileName);
+  Logger.debug(`outputJsFileName set to ${context.outputJsFileName}`);
 
-  const outputCssFileName = getConfigValue(context, '--outputCssFileName', null, Constants.ENV_OUTPUT_CSS_FILE_NAME, Constants.ENV_OUTPUT_CSS_FILE_NAME.toLowerCase(), 'main.css');
-  setProcessEnvVar(Constants.ENV_OUTPUT_CSS_FILE_NAME, outputCssFileName);
-  Logger.debug(`outputCssFileName set to ${outputCssFileName}`);
+  context.outputCssFileName = getConfigValue(context, '--outputCssFileName', null, Constants.ENV_OUTPUT_CSS_FILE_NAME, Constants.ENV_OUTPUT_CSS_FILE_NAME.toLowerCase(), 'main.css');
+  setProcessEnvVar(Constants.ENV_OUTPUT_CSS_FILE_NAME, context.outputCssFileName);
+  Logger.debug(`outputCssFileName set to ${context.outputCssFileName}`);
 
   const webpackFactoryPath = join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'ionic-webpack-factory.js');
   setProcessEnvVar(Constants.ENV_WEBPACK_FACTORY, webpackFactoryPath);
@@ -190,6 +211,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   const webpackLoaderPath = join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'loader.js');
   setProcessEnvVar(Constants.ENV_WEBPACK_LOADER, webpackLoaderPath);
   Logger.debug(`webpackLoaderPath set to ${webpackLoaderPath}`);
+
+  const webpackTranspileLoaderPath = join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'transpile-loader.js');
+  setProcessEnvVar(Constants.ENV_WEBPACK_TRANSPILE_LOADER, webpackTranspileLoaderPath);
+  Logger.debug(`webpackTranspileLoaderPath set to ${webpackTranspileLoaderPath}`);
 
   const optimizationLoaderPath = join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'optimization-loader.js');
   setProcessEnvVar(Constants.ENV_OPTIMIZATION_LOADER, optimizationLoaderPath);
@@ -210,6 +235,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   const printWebpackDependencyTree = getConfigValue(context, '--printWebpackDependencyTree', null, Constants.ENV_PRINT_WEBPACK_DEPENDENCY_TREE, Constants.ENV_PRINT_WEBPACK_DEPENDENCY_TREE.toLowerCase(), null);
   setProcessEnvVar(Constants.ENV_PRINT_WEBPACK_DEPENDENCY_TREE, printWebpackDependencyTree);
   Logger.debug(`printWebpackDependencyTree set to ${printWebpackDependencyTree}`);
+
+  const typeCheckOnLint = getConfigValue(context, '--typeCheckOnLint', null, Constants.ENV_TYPE_CHECK_ON_LINT, Constants.ENV_TYPE_CHECK_ON_LINT.toLowerCase(), null);
+  setProcessEnvVar(Constants.ENV_TYPE_CHECK_ON_LINT, typeCheckOnLint);
+  Logger.debug(`typeCheckOnLint set to ${typeCheckOnLint}`);
 
   const bailOnLintError = getConfigValue(context, '--bailOnLintError', null, Constants.ENV_BAIL_ON_LINT_ERROR, Constants.ENV_BAIL_ON_LINT_ERROR.toLowerCase(), null);
   setProcessEnvVar(Constants.ENV_BAIL_ON_LINT_ERROR, bailOnLintError);
@@ -235,51 +264,64 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_ACTION_SHEET_CONTROLLER_CLASSNAME, 'ActionSheetController');
   setProcessEnvVar(Constants.ENV_ACTION_SHEET_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'action-sheet', 'action-sheet-controller.js'));
   setProcessEnvVar(Constants.ENV_ACTION_SHEET_VIEW_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'action-sheet', 'action-sheet.js'));
+  setProcessEnvVar(Constants.ENV_ACTION_SHEET_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'action-sheet', 'action-sheet-component.js'));
   setProcessEnvVar(Constants.ENV_ACTION_SHEET_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'action-sheet', 'action-sheet-component.ngfactory.js'));
 
   setProcessEnvVar(Constants.ENV_ALERT_CONTROLLER_CLASSNAME, 'AlertController');
   setProcessEnvVar(Constants.ENV_ALERT_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'alert', 'alert-controller.js'));
   setProcessEnvVar(Constants.ENV_ALERT_VIEW_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'alert', 'alert.js'));
+  setProcessEnvVar(Constants.ENV_ALERT_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'alert', 'alert-component.js'));
   setProcessEnvVar(Constants.ENV_ALERT_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'alert', 'alert-component.ngfactory.js'));
+
+  setProcessEnvVar(Constants.ENV_APP_ROOT_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'app', 'app-root.js'));
 
   setProcessEnvVar(Constants.ENV_LOADING_CONTROLLER_CLASSNAME, 'LoadingController');
   setProcessEnvVar(Constants.ENV_LOADING_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'loading', 'loading-controller.js'));
   setProcessEnvVar(Constants.ENV_LOADING_VIEW_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'loading', 'loading.js'));
+  setProcessEnvVar(Constants.ENV_LOADING_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'loading', 'loading-component.js'));
   setProcessEnvVar(Constants.ENV_LOADING_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'loading', 'loading-component.ngfactory.js'));
 
   setProcessEnvVar(Constants.ENV_MODAL_CONTROLLER_CLASSNAME, 'ModalController');
   setProcessEnvVar(Constants.ENV_MODAL_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'modal', 'modal-controller.js'));
   setProcessEnvVar(Constants.ENV_MODAL_VIEW_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'modal', 'modal.js'));
+  setProcessEnvVar(Constants.ENV_MODAL_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'modal', 'modal-component.js'));
   setProcessEnvVar(Constants.ENV_MODAL_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'modal', 'modal-component.ngfactory.js'));
 
   setProcessEnvVar(Constants.ENV_PICKER_CONTROLLER_CLASSNAME, 'PickerController');
   setProcessEnvVar(Constants.ENV_PICKER_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'picker', 'picker-controller.js'));
   setProcessEnvVar(Constants.ENV_PICKER_VIEW_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'picker', 'picker.js'));
+  setProcessEnvVar(Constants.ENV_PICKER_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'picker', 'picker-component.js'));
   setProcessEnvVar(Constants.ENV_PICKER_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'picker', 'picker-component.ngfactory.js'));
 
   setProcessEnvVar(Constants.ENV_POPOVER_CONTROLLER_CLASSNAME, 'PopoverController');
   setProcessEnvVar(Constants.ENV_POPOVER_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'popover', 'popover-controller.js'));
   setProcessEnvVar(Constants.ENV_POPOVER_VIEW_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'popover', 'popover.js'));
+  setProcessEnvVar(Constants.ENV_POPOVER_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'popover', 'popover-component.js'));
   setProcessEnvVar(Constants.ENV_POPOVER_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'popover', 'popover-component.ngfactory.js'));
+
+  setProcessEnvVar(Constants.ENV_SELECT_POPOVER_CLASSNAME, 'SelectPopover');
+  setProcessEnvVar(Constants.ENV_SELECT_POPOVER_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'select', 'select-popover-component.js'));
+  setProcessEnvVar(Constants.ENV_SELECT_POPOVER_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'select', 'select-popover-component.ngfactory.js'));
 
   setProcessEnvVar(Constants.ENV_TOAST_CONTROLLER_CLASSNAME, 'ToastController');
   setProcessEnvVar(Constants.ENV_TOAST_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'toast', 'toast-controller.js'));
   setProcessEnvVar(Constants.ENV_TOAST_VIEW_CONTROLLER_PATH, join(context.ionicAngularDir, 'components', 'toast', 'toast.js'));
+  setProcessEnvVar(Constants.ENV_TOAST_COMPONENT_PATH, join(context.ionicAngularDir, 'components', 'toast', 'toast-component.js'));
   setProcessEnvVar(Constants.ENV_TOAST_COMPONENT_FACTORY_PATH, join(context.ionicAngularDir, 'components', 'toast', 'toast-component.ngfactory.js'));
 
-  /* Experimental Flags */
   const parseDeepLinks = getConfigValue(context, '--parseDeepLinks', null, Constants.ENV_PARSE_DEEPLINKS, Constants.ENV_PARSE_DEEPLINKS.toLowerCase(), 'true');
   setProcessEnvVar(Constants.ENV_PARSE_DEEPLINKS, parseDeepLinks);
   Logger.debug(`parseDeepLinks set to ${parseDeepLinks}`);
 
-  const experimentalManualTreeshaking = getConfigValue(context, '--experimentalManualTreeshaking', null, Constants.ENV_EXPERIMENTAL_MANUAL_TREESHAKING, Constants.ENV_EXPERIMENTAL_MANUAL_TREESHAKING.toLowerCase(), null);
-  setProcessEnvVar(Constants.ENV_EXPERIMENTAL_MANUAL_TREESHAKING, experimentalManualTreeshaking);
-  Logger.debug(`experimentalManualTreeshaking set to ${experimentalManualTreeshaking}`);
+  const purgeDecorators = getConfigValue(context, '--purgeDecorators', null, Constants.ENV_PURGE_DECORATORS, Constants.ENV_PURGE_DECORATORS.toLowerCase(), 'true');
+  setProcessEnvVar(Constants.ENV_PURGE_DECORATORS, purgeDecorators);
+  Logger.debug(`purgeDecorators set to ${purgeDecorators}`);
 
-  const experimentalPurgeDecorators = getConfigValue(context, '--experimentalPurgeDecorators', null, Constants.ENV_EXPERIMENTAL_PURGE_DECORATORS, Constants.ENV_EXPERIMENTAL_PURGE_DECORATORS.toLowerCase(), null);
-  setProcessEnvVar(Constants.ENV_EXPERIMENTAL_PURGE_DECORATORS, experimentalPurgeDecorators);
-  Logger.debug(`experimentalPurgeDecorators set to ${experimentalPurgeDecorators}`);
+  const manualTreeshaking = getConfigValue(context, '--manualTreeshaking', null, Constants.ENV_MANUAL_TREESHAKING, Constants.ENV_MANUAL_TREESHAKING.toLowerCase(), 'true');
+  setProcessEnvVar(Constants.ENV_MANUAL_TREESHAKING, manualTreeshaking);
+  Logger.debug(`manualTreeshaking set to ${manualTreeshaking}`);
 
+  /* Experimental Flags */
   const useExperimentalClosure = getConfigValue(context, '--useExperimentalClosure', null, Constants.ENV_USE_EXPERIMENTAL_CLOSURE, Constants.ENV_USE_EXPERIMENTAL_CLOSURE.toLowerCase(), null);
   setProcessEnvVar(Constants.ENV_USE_EXPERIMENTAL_CLOSURE, useExperimentalClosure);
   Logger.debug(`useExperimentalClosure set to ${useExperimentalClosure}`);
@@ -290,6 +332,7 @@ export function generateContext(context?: BuildContext): BuildContext {
 
   // default stand-alone builds to default to es5
   // if closure is being used, don't worry about this as it already automatically converts to ES5
+
   const buildToEs5 = getConfigValue(context, '--buildToEs5', null, Constants.ENV_BUILD_TO_ES5, Constants.ENV_BUILD_TO_ES5.toLowerCase(), useExperimentalClosure ? null : 'true');
   setProcessEnvVar(Constants.ENV_BUILD_TO_ES5, buildToEs5);
   Logger.debug(`buildToEs5 set to ${buildToEs5}`);

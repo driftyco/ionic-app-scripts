@@ -17,6 +17,7 @@ export interface ServeConfig {
   useServerLogs: boolean;
   notifyOnConsoleLog: boolean;
   useProxy: boolean;
+  devapp: boolean;
 }
 export const LOGGER_DIR = '__ion-dev-server';
 export const IONIC_LAB_URL = '/ionic-lab';

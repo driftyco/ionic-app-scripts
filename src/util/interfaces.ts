@@ -17,8 +17,13 @@ export interface BuildContext {
   wwwDir?: string;
   wwwIndex?: string;
   buildDir?: string;
+  outputJsFileName?: string;
+  outputCssFileName?: string;
   nodeModulesDir?: string;
   ionicAngularDir?: string;
+  coreCompilerFilePath?: string;
+  coreDir?: string;
+  bundledFilePaths?: string[];
   moduleFiles?: string[];
   appNgModulePath?: string;
   isProd?: boolean;
@@ -31,6 +36,7 @@ export interface BuildContext {
   fileCache?: FileCache;
   inlineTemplates?: boolean;
   webpackWatch?: any;
+  ionicGlobal?: any;
 
   sassState?: BuildState;
   transpileState?: BuildState;
@@ -138,7 +144,7 @@ export interface FileSystem {
   readJson(path: string, callback: Function): any;
   readlink(path: string, callback: Function): any;
   purge(what: any): void;
-};
+}
 
 
 export interface VirtualFileSystem {
@@ -149,7 +155,7 @@ export interface VirtualFileSystem {
   getFileNamesInDirectory(directoryPath: string): string[];
   getAllFileStats():  { [filePath: string]: VirtualFileStats };
   getAllDirStats():  { [filePath: string]: VirtualDirStats };
-};
+}
 
 export interface DeepLinkDecoratorAndClass {
   name: string;
@@ -158,21 +164,21 @@ export interface DeepLinkDecoratorAndClass {
   priority: string;
   rawString: string;
   className: string;
-};
+}
 
 export interface DeepLinkPathInfo {
   absolutePath: string;
   userlandModulePath: string;
   className: string;
-};
+}
 
 export interface DeepLinkConfigEntry extends DeepLinkDecoratorAndClass, DeepLinkPathInfo {
-};
+}
 
 export interface AppNgModuleInfo {
   absolutePath: string;
   className: string;
-};
+}
 
 export interface CodegenOptions {
   angularCompilerOptions: AngularCompilerOptions;
@@ -180,22 +186,50 @@ export interface CodegenOptions {
   program: Program;
   compilerHost: CompilerHost;
   compilerOptions: CompilerOptions;
-};
+}
 
 export interface TreeShakeCalcResults {
   updatedDependencyMap: Map<string, Set<string>>;
   purgedModules: Map<string, Set<string>>;
-};
+}
 
 export interface WebpackStats {
   modules: WebpackModule[];
-};
+}
 
 export interface WebpackModule {
   identifier: string;
   reasons: WebpackDependency[];
-};
+}
 
 export interface WebpackDependency {
   moduleIdentifier: string;
-};
+}
+
+export interface MagicString {
+  overwrite(startIndex: number, endIndex: number, newContent: string): void;
+  toString(): string;
+  prependLeft(index: number, contentToPrepend: string): string;
+}
+
+
+export interface CoreCompiler {
+  bundle: {
+    (config: {
+      srcDir: string;
+      destDir: string;
+      packages: Packages;
+      debug?: boolean;
+    }): Promise<any>;
+  };
+}
+
+
+export interface Packages {
+  path?: any;
+  fs?: any;
+  typescript?: any;
+  nodeSass?: any;
+  rollup?: any;
+  uglify?: any;
+}

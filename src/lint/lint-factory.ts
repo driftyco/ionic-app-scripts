@@ -1,24 +1,81 @@
-import { createProgram as lintCreateProgram, findConfiguration, getFileNames as lintGetFileNames } from 'tslint';
-import * as Linter from 'tslint';
-import { Program } from 'typescript';
+import { Configuration, Linter, LintResult } from 'tslint';
+import { Program, getPreEmitDiagnostics, Diagnostic } from 'typescript';
+import { BuildContext } from '../util/interfaces';
+import { isObject } from 'util';
 
-export function getLinter(filePath: string, fileContent: string, program: Program) {
-  const configuration = findConfiguration(null, filePath);
 
-    const linter = new Linter(filePath, fileContent, {
-      configuration: configuration,
-      formatter: null,
-      formattersDirectory: null,
-      rulesDirectory: null,
-    }, program);
-
-    return linter;
+export interface LinterOptions {
+  typeCheck?: boolean;
 }
 
-export function createProgram(configFilePath: string, sourceDir: string) {
-  return lintCreateProgram(configFilePath, sourceDir);
+
+/**
+ * Run linter on a file
+ * @param {BuildContext} context
+ * @param {string} tsLintConfig
+ * @param {string} tsConfig
+ * @param {string} filePath
+ * @param {string} fileContents
+ * @param {LinterOptions} linterOptions
+ * @return {LintResult}
+ */
+export function lint(context: BuildContext, tsConfig: string, tsLintConfig: string | null, filePath: string, fileContents: string, linterOptions?: LinterOptions): LintResult {
+  const linter = getLinter(context, tsConfig);
+  const configuration = Configuration.findConfiguration(tsLintConfig, filePath);
+  linter.lint(filePath, fileContents, Object.assign(configuration.results, isObject(linterOptions) ? {linterOptions} : {}));
+  return linter.getResult();
 }
 
-export function getFileNames(program: Program) {
-  return lintGetFileNames(program);
+
+/**
+ * Type check a TS program
+ * @param {BuildContext} context
+ * @param {string} tsConfig
+ * @param {LinterOptions} linterOptions
+ * @return {Promise<Diagnostic[]>}
+ */
+export function typeCheck(context: BuildContext, tsConfig: string, linterOptions?: LinterOptions): Promise<Diagnostic[]> {
+  if (isObject(linterOptions) && linterOptions.typeCheck) {
+    const program = createProgram(context, tsConfig);
+    return Promise.resolve(getPreEmitDiagnostics(program));
+  }
+  return Promise.resolve([]);
+}
+
+
+/**
+ * Create a TS program based on the BuildContext {srcDir} or TS config file path (if provided)
+ * @param {BuildContext} context
+ * @param {string} tsConfig
+ * @return {Program}
+ */
+export function createProgram(context: BuildContext, tsConfig: string): Program {
+  return Linter.createProgram(tsConfig, context.rootDir);
+}
+
+
+/**
+ * Get all files that are sourced in TS config
+ * @param {BuildContext} context
+ * @param {string} tsConfig
+ * @return {Array<string>}
+ */
+export function getFileNames(context: BuildContext, tsConfig: string): string[] {
+  const program = createProgram(context, tsConfig);
+  return Linter.getFileNames(program);
+}
+
+
+/**
+ * Get linter
+ * @param {BuildContext} context
+ * @param {string} tsConfig
+ * @return {Linter}
+ */
+export function getLinter(context: BuildContext, tsConfig: string): Linter {
+  const program = createProgram(context, tsConfig);
+
+  return new Linter({
+    fix: false
+  }, program);
 }

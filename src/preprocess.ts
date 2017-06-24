@@ -8,6 +8,8 @@ import { getBooleanPropertyValue } from './util/helpers';
 import { BuildContext, ChangedFile } from './util/interfaces';
 import { optimization } from './optimization';
 import { deepLinking, deepLinkingUpdate } from './deep-linking';
+import { bundleCoreComponents } from './core/bundle-components';
+
 
 export function preprocess(context: BuildContext) {
   const logger = new Logger(`preprocess`);
@@ -22,8 +24,10 @@ export function preprocess(context: BuildContext) {
 }
 
 function preprocessWorker(context: BuildContext) {
+  const bundlePromise = bundleCoreComponents(context);
   const deepLinksPromise = getBooleanPropertyValue(Constants.ENV_PARSE_DEEPLINKS) ? deepLinking(context) : Promise.resolve();
-  return deepLinksPromise
+
+  return Promise.all([bundlePromise, deepLinksPromise])
     .then(() => {
       if (context.optimizeJs) {
         return optimization(context, null);
@@ -51,8 +55,15 @@ export function writeFilesToDisk(context: BuildContext) {
 }
 
 export function preprocessUpdate(changedFiles: ChangedFile[], context: BuildContext) {
-  if (getBooleanPropertyValue(Constants.ENV_PARSE_DEEPLINKS)) {
-    return deepLinkingUpdate(changedFiles, context);
+  const promises: Promise<any>[] = [];
+
+  if (changedFiles.some(cf => cf.ext === '.scss')) {
+    promises.push(bundleCoreComponents(context));
   }
-  return Promise.resolve();
+
+  if (getBooleanPropertyValue(Constants.ENV_PARSE_DEEPLINKS)) {
+    promises.push(deepLinkingUpdate(changedFiles, context));
+  }
+
+  return Promise.all(promises);
 }

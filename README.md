@@ -1,6 +1,8 @@
+[![npm version](https://img.shields.io/npm/v/@ionic/app-scripts.svg)](https://www.npmjs.com/package/@ionic/app-scripts)
+[![Circle CI](https://circleci.com/gh/ionic-team/ionic-app-scripts.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/ionic-team/ionic-app-scripts)
 # Ionic App Scripts
 
-Helper scripts to get [Ionic apps](http://ionicframework.com/) up and running quickly (minus the config overload).
+Helper scripts to get [Ionic apps](https://ionicframework.com/) up and running quickly (minus the config overload).
 
 To get the latest `@ionic/app-scripts`, please run:
 
@@ -30,7 +32,7 @@ Out of the box, Ionic starters have been preconfigured with great defaults for b
 
 Just the bullet list above is a little overwhelming, and each task requires quite a bit of development time just to get started. Ionic App Script's intention is to make it easier to complete common tasks so developers can focus on building their app, rather than building build scripts.
 
-Note that the [Ionic Framework's](https://github.com/driftyco/ionic) source is made up of modules and can be packaged by any bundler or build process. However, this project's goal is provide simple scripts to make building Ionic apps easier, while also allowing developers to further configure their build process.
+Note that the [Ionic Framework's](https://github.com/ionic-team/ionic) source is made up of modules and can be packaged by any bundler or build process. However, this project's goal is provide simple scripts to make building Ionic apps easier, while also allowing developers to further configure their build process.
 
 
 ### npm Scripts
@@ -55,7 +57,7 @@ npm run build
 
 In many cases, the defaults which Ionic provides cover most of the scenarios required by developers; however, Ionic App Scripts does provide multiple ways to configure and override the defaults for each of the various tasks. Note that Ionic will always apply its defaults for any property that was not provided by custom configuration.
 
-[Default Config Files](https://github.com/driftyco/ionic-app-scripts/tree/master/config)
+[Default Config Files](https://github.com/ionic-team/ionic-app-scripts/tree/master/config)
 
 ### package.json Config
 
@@ -127,13 +129,14 @@ npm run build --rollup ./config/rollup.config.js
 | output js file | `ionic_output_js_file_name`  | `--outputJsFileName` | `main.js` | name of js file generated in `buildDir` |
 | output css file | `ionic_output_css_file_name`  | `--outputCssFileName` | `main.css` | name of css file generated in `buildDir` |
 | bail on lint error | `ionic_bail_on_lint_error`  | `--bailOnLintError` | `null` | Set to `true` to make stand-alone lint commands fail with non-zero status code |
+| enable type checking during lint | `ionic_type_check_on_lint`  | `--typeCheckOnLint` | `null` | Set to `true` to enable [type checking](https://palantir.github.io/tslint/usage/type-checking) during lint |
 | write AoT files to disk | `ionic_aot_write_to_disk` | `--aotWriteToDisk` | `null` | Set to `true` to write files to disk for debugging |
 | print dependency tree | `ionic_print_original_dependency_tree` | `--printOriginalDependencyTree` | `null` | Set to `true` to print out the original dependency tree calculated during the optimize step |
 | print modified dependency tree | `ionic_print_modified_dependency_tree` | `--printModifiedDependencyTree` | `null` | Set to `true` to print out the modified dependency tree after purging unused modules |
 | print webpack dependency tree | `ionic_print_webpack_dependency_tree` | `--printWebpackDependencyTree` | `null` | Set to `true` to print out a dependency tree after running Webpack |
 | parse deeplink config | `ionic_parse_deeplinks` | `--parseDeepLinks` | `true` | Parses and extracts data from the `@IonicPage` decorator |
-| experimental manual tree shaking | `ionic_experimental_manual_treeshaking` | `--experimentalManualTreeshaking` | `null` | Set to `true` to purge unused Ionic components/code (Experimental) |
-| experimental purge decorators | `ionic_experimental_purge_decorators` | `--experimentalPurgeDecorators` | `null` | Set to `true` to purge unneeded decorators to improve tree shakeability of code (Experimental) |
+| manual tree shaking | `ionic_manual_treeshaking` | `--manualTreeshaking` | `true` | Set to `true` to purge unused Ionic components/code |
+| purge decorators | `ionic_purge_decorators` | `--purgeDecorators` | `true` | Set to `true` to purge unneeded decorators to improve tree shakeability of code |
 | experimental closure compiler | `ionic_use_experimental_closure` | `--useExperimentalClosure` | `null` | Set to `true` to use closure compiler to minify the final bundle |
 | experimental babili | `ionic_use_experimental_babili` | `--useExperimentalBabili` | `null` | Set to `true` to use babili to minify es2015 code |
 | convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for for production deployments |
@@ -172,13 +175,14 @@ These environment variables are automatically set to [Node's `process.env`](http
 | `IONIC_WEBPACK_FACTORY`    | The absolute path to Ionic's `webpack-factory` script                |
 | `IONIC_WEBPACK_LOADER`     | The absolute path to Ionic's custom webpack loader                   |
 | `IONIC_BAIL_ON_LINT_ERROR`     | Boolean determining whether to exit with a non-zero status code on error |
+| `IONIC_TYPE_CHECK_ON_LINT` | Boolean determining whether to type check code during lint or not |
 | `IONIC_AOT_WRITE_TO_DISK` | `--aotWriteToDisk` | `null` | Set to `true` to write files to disk for debugging |
 | `IONIC_PRINT_ORIGINAL_DEPENDENCY_TREE` | boolean to print out the original dependency tree calculated during the optimize step |
 | `IONIC_PRINT_MODIFIED_DEPENDENCY_TREE` | boolean to print out the modified dependency tree after purging unused modules |
 | `IONIC_PRINT_WEBPACK_DEPENDENCY_TREE` | boolean to print out a dependency tree after running Webpack |
 | `IONIC_PARSE_DEEPLINKS` | boolean to enable parsing the Ionic 3.x deep links API for lazy loading |
-| `IONIC_EXPERIMENTAL_MANUAL_TREESHAKING` | boolean to enable purging unused Ionic components/code (Experimental) |
-| `IONIC_EXPERIMENTAL_PURGE_DECORATORS` | boolean to enable purging unneeded decorators from source code (Experimental) |
+| `IONIC_MANUAL_TREESHAKING` | boolean to enable purging unused Ionic components/code |
+| `IONIC_PURGE_DECORATORS` | boolean to enable purging unneeded decorators from source code |
 | `IONIC_USE_EXPERIMENTAL_CLOSURE` | boolean to enable use of closure compiler to minify the final bundle |
 | `IONIC_USE_EXPERIMENTAL_BABILI` | boolean to enable use of babili to minify es2015 code |
 | `IONIC_BUILD_TO_ES5` | boolean to enable converting bundle to ES5 for for production deployments |
@@ -187,7 +191,7 @@ These environment variables are automatically set to [Node's `process.env`](http
 
 The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` and `serve` tasks produce `dev` builds (a build that does not include Ahead of Time (AoT) compilation or minification). To force a `prod` build you should use the `--prod` command line flag.
 
-Please take a look at the bottom of the [default Rollup config file](https://github.com/driftyco/ionic-app-scripts/blob/master/config/rollup.config.js) to see how the `IONIC_ENV` environment variable is being used to conditionally change config values for production builds.
+Please take a look at the bottom of the [default Rollup config file](https://github.com/ionic-team/ionic-app-scripts/blob/master/config/rollup.config.js) to see how the `IONIC_ENV` environment variable is being used to conditionally change config values for production builds.
 
 
 ## All Available Tasks
@@ -228,24 +232,23 @@ Example NPM Script:
 ```
 npm run lint --bailOnLintError true
 ```
-3. Set `ionic_experimental_manual_treeshaking` and `ionic_experimental_purge_decorators` to true in the `package.json` to potentially dramatically shrink an app's bundle size.
 
 ## The Stack
 
-- [Ionic Framework](http://ionicframework.com/)
+- [Ionic Framework](https://ionicframework.com/)
 - [TypeScript Compiler](https://www.typescriptlang.org/)
 - [Angular Compiler (NGC)](https://github.com/angular/angular/tree/master/modules/%40angular/compiler-cli)
-- [Rollup Module Bundler](http://rollupjs.org/)
+- [Rollup Module Bundler](https://rollupjs.org/)
 - Ionic Component Sass
 - [Node Sass](https://www.npmjs.com/package/node-sass)
 - [Autoprefixer](https://github.com/postcss/autoprefixer)
-- [UglifyJS](http://lisperator.net/uglifyjs/)
+- [UglifyJS](https://lisperator.net/uglifyjs/)
 - [CleanCss](https://github.com/jakubpawlowicz/clean-css)
-- [TSLint](http://palantir.github.io/tslint/)
+- [TSLint](https://palantir.github.io/tslint/)
 
 ## Contributing
 
-We welcome any PRs, issues, and feedback! Please be respectful and follow the [Code of Conduct](https://github.com/driftyco/ionic/blob/master/CODE_OF_CONDUCT.md).
+We welcome any PRs, issues, and feedback! Please be respectful and follow the [Code of Conduct](https://github.com/ionic-team/ionic/blob/master/CODE_OF_CONDUCT.md).
 
 ### Publish a release
 
@@ -260,4 +263,4 @@ Execute the following steps to publish a release:
 7. Run `npm version patch` to tick the version and generate a git tag
 8. Run `npm run github-release` to create the github release entry
 9. Run `npm publish` to publish the package to npm
-10. git push origin master - push changes to master
+10. `git push origin master` - push changes to master

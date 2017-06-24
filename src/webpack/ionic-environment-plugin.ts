@@ -1,9 +1,12 @@
-import { getParsedDeepLinkConfig } from '../util/helpers';
+import { join } from 'path';
+import * as Constants from '../util/constants';
+import { getParsedDeepLinkConfig, getStringPropertyValue } from '../util/helpers';
 import { BuildContext , DeepLinkConfigEntry} from '../util/interfaces';
 import { Logger } from '../logger/logger';
 import { getInstance } from '../util/hybrid-file-system-factory';
-import { createResolveDependenciesFromContextMap } from './util';
 import { WatchMemorySystem } from './watch-memory-system';
+
+import * as ContextElementDependency from 'webpack/lib/dependencies/ContextElementDependency';
 
 export class IonicEnvironmentPlugin {
   constructor(private context: BuildContext) {
@@ -12,16 +15,33 @@ export class IonicEnvironmentPlugin {
   apply(compiler: any) {
 
     compiler.plugin('context-module-factory', (contextModuleFactory: any) => {
-      const deepLinkConfig = getParsedDeepLinkConfig();
-      const webpackDeepLinkModuleDictionary = convertDeepLinkConfigToWebpackFormat(deepLinkConfig);
       contextModuleFactory.plugin('after-resolve', (result: any, callback: Function) => {
         if (!result) {
           return callback();
         }
+
+        const deepLinkConfig = getParsedDeepLinkConfig();
+        const webpackDeepLinkModuleDictionary = convertDeepLinkConfigToWebpackFormat(deepLinkConfig);
+        const ionicAngularDir = getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR);
+        const ngModuleLoaderDirectory = join(ionicAngularDir, 'util');
+        if (!result.resource.endsWith(ngModuleLoaderDirectory)) {
+          return callback(null, result);
+        }
+
         result.resource = this.context.srcDir;
         result.recursive = true;
         result.dependencies.forEach((dependency: any) => dependency.critical = false);
-        result.resolveDependencies = createResolveDependenciesFromContextMap((_: any, cb: any) => cb(null, webpackDeepLinkModuleDictionary));
+        result.resolveDependencies = (p1: any, p2: any, p3: any, p4: RegExp, cb: any ) => {
+          const dependencies = Object.keys(webpackDeepLinkModuleDictionary)
+                                  .map((key) => {
+                                    const value = webpackDeepLinkModuleDictionary[key];
+                                    if (value) {
+                                      return new ContextElementDependency(value, key);
+                                    }
+                                    return null;
+                                  }).filter(dependency => !!dependency);
+          cb(null, dependencies);
+        };
         return callback(null, result);
       });
     });
@@ -32,7 +52,7 @@ export class IonicEnvironmentPlugin {
       hybridFileSystem.setFileSystem(compiler.inputFileSystem);
       compiler.inputFileSystem = hybridFileSystem;
       compiler.outputFileSystem = hybridFileSystem;
-      compiler.watchFileSystem = new WatchMemorySystem(this.context.fileCache);
+      compiler.watchFileSystem = new WatchMemorySystem(this.context.fileCache, this.context.srcDir);
 
       // do a bunch of webpack specific stuff here, so cast to an any
       // populate the content of the file system with any virtual files

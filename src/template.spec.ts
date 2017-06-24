@@ -1,8 +1,10 @@
+import { join, resolve } from 'path';
+
+import * as mockFs from 'mock-fs';
+
 import { Logger } from './logger/logger';
 import { inlineTemplate, replaceTemplateUrl, updateTemplate } from './template';
 import { getTemplateMatch, getTemplateFormat, replaceExistingJsTemplate } from './template';
-import { resolve } from 'path';
-import * as mockFs from 'mock-fs';
 
 
 describe('template', () => {
@@ -12,55 +14,60 @@ describe('template', () => {
     it('should inline multiple external html files which are the same for multiple @Components in same .ts file', () => {
       const sourceText = '/*someprefix*/@Component({templateUrl: "some-file.html" });/*somebetween*/@Component({templateUrl: "some-file.html" })/*somesuffix*/';
 
-      const d = {
-        '/path/to/dir': {
-          'some-file.html': '<div>A</div>',
-          'some-file.scss': 'body { color: red; }',
-          'some-file.ts': sourceText,
-        },
+      const baseDir = join(process.cwd(), 'path', 'to', 'dir');
+
+      const d: any = { };
+
+      d[baseDir] = {
+        'some-file.html': '<div>A</div>',
+        'some-file.scss': 'body { color: red; }',
+        'some-file.ts': sourceText,
       };
       mockFs(d);
 
-      const results = inlineTemplate(sourceText, '/path/to/dir/some-file.ts');
+      const results = inlineTemplate(sourceText, join(baseDir, 'some-file.ts'));
 
-      expect(results).toEqual(`/*someprefix*/@Component({template:/*ion-inline-start:"/path/to/dir/some-file.html"*/'<div>A</div>'/*ion-inline-end:"/path/to/dir/some-file.html"*/ });/*somebetween*/@Component({template:/*ion-inline-start:"/path/to/dir/some-file.html"*/'<div>A</div>'/*ion-inline-end:"/path/to/dir/some-file.html"*/ })/*somesuffix*/`);
+      expect(results).toEqual(`/*someprefix*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file.html')}"*/'<div>A</div>'/*ion-inline-end:"${join(baseDir, 'some-file.html')}"*/ });/*somebetween*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file.html')}"*/'<div>A</div>'/*ion-inline-end:"${join(baseDir, 'some-file.html')}"*/ })/*somesuffix*/`);
       mockFs.restore();
     });
 
     it('should inline multiple external html files with multiple @Components in same .ts file', () => {
       const sourceText = '/*someprefix*/@Component({templateUrl: "some-file1.html" });/*somebetween*/@Component({templateUrl: "some-file2.html" })/*somesuffix*/';
 
-      const d = {
-        '/path/to/dir': {
-          'some-file1.html': '<div>A</div>',
-          'some-file2.html': '<div>B</div>',
-          'some-file.scss': 'body { color: red; }',
-          'some-file.ts': sourceText,
-        },
+      const baseDir = join(process.cwd(), 'path', 'to', 'dir');
+      const d: any = { };
+
+      d[baseDir] = {
+        'some-file1.html': '<div>A</div>',
+        'some-file2.html': '<div>B</div>',
+        'some-file.scss': 'body { color: red; }',
+        'some-file.ts': sourceText,
       };
       mockFs(d);
 
-      const results = inlineTemplate(sourceText, '/path/to/dir/some-file.ts');
+      const results = inlineTemplate(sourceText, join(baseDir, 'some-file.ts'));
 
-      expect(results).toEqual(`/*someprefix*/@Component({template:/*ion-inline-start:"/path/to/dir/some-file1.html"*/'<div>A</div>'/*ion-inline-end:"/path/to/dir/some-file1.html"*/ });/*somebetween*/@Component({template:/*ion-inline-start:"/path/to/dir/some-file2.html"*/'<div>B</div>'/*ion-inline-end:"/path/to/dir/some-file2.html"*/ })/*somesuffix*/`);
+      expect(results).toEqual(`/*someprefix*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file1.html')}"*/'<div>A</div>'/*ion-inline-end:"${join(baseDir, 'some-file1.html')}"*/ });/*somebetween*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file2.html')}"*/'<div>B</div>'/*ion-inline-end:"${join(baseDir, 'some-file2.html')}"*/ })/*somesuffix*/`);
       mockFs.restore();
     });
 
     it('should inline the external html file content', () => {
       const sourceText = '@Component({templateUrl: "some-file.html" })';
 
-      const d = {
-        '/path/to/dir': {
-          'some-file.html': '<div>hello</div>',
-          'some-file.scss': 'body { color: red; }',
-          'some-file.ts': sourceText,
-        },
+      const baseDir = join(process.cwd(), 'path', 'to', 'dir');
+
+      const d: any = { };
+
+      d[baseDir] = {
+        'some-file.html': '<div>hello</div>',
+        'some-file.scss': 'body { color: red; }',
+        'some-file.ts': sourceText,
       };
       mockFs(d);
 
-      const results = inlineTemplate(sourceText, '/path/to/dir/some-file.ts');
+      const results = inlineTemplate(sourceText, join(baseDir, 'some-file.ts'));
 
-      expect(results).toEqual(`@Component({template:/*ion-inline-start:"/path/to/dir/some-file.html"*/'<div>hello</div>'/*ion-inline-end:"/path/to/dir/some-file.html"*/ })`);
+      expect(results).toEqual(`@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file.html')}"*/'<div>hello</div>'/*ion-inline-end:"${join(baseDir, 'some-file.html')}"*/ })`);
       mockFs.restore();
     });
 
@@ -138,11 +145,11 @@ describe('template', () => {
           this is "multiline" 'content'
         </div>\r
       `;
-      const htmlFilePath = '/full/path/to/somepage.html';
+      const htmlFilePath = join(process.cwd(), 'full', 'path', 'to', 'somepage.html');
       const match = getTemplateMatch(str);
       const result = replaceTemplateUrl(match, htmlFilePath, templateContent);
 
-      const expected = `Component({template:/*ion-inline-start:"/full/path/to/somepage.html"*/'\\n        <div>\t\\n          this is "multiline" \\'content\\'\\n        </div>\\n\\n      '/*ion-inline-end:"/full/path/to/somepage.html"*/})`;
+      const expected = `Component({template:/*ion-inline-start:"${join(process.cwd(), 'full', 'path', 'to', 'somepage.html')}"*/'\\n        <div>\t\\n          this is "multiline" \\'content\\'\\n        </div>\\n\\n      '/*ion-inline-end:"${join(process.cwd(), 'full', 'path', 'to', 'somepage.html')}"*/})`;
 
       expect(result).toEqual(expected);
     });

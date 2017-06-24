@@ -276,7 +276,7 @@ export function copyConfigToWatchConfig(context: BuildContext): Watcher {
   };
 }
 
-interface CopySrcToDestResult {
+export interface CopySrcToDestResult {
   success: boolean;
   src: string;
   dest: string;
@@ -299,7 +299,7 @@ export interface CopyConfig {
 export interface CopyToFrom {
   absoluteSourcePath: string;
   absoluteDestPath: string;
-};
+}
 
 export interface CopyOptions {
   // https://www.npmjs.com/package/fs-extra
