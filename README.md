@@ -141,6 +141,7 @@ npm run build --rollup ./config/rollup.config.js
 | experimental babili | `ionic_use_experimental_babili` | `--useExperimentalBabili` | `null` | Set to `true` to use babili to minify es2015 code |
 | convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for for production deployments |
 | default watch timeout | `ionic_start_watch_timeout` | `--startWatchTimeout` | `3000` | Milliseconds controlling the default watch timeout |
+| enable linting | `enable_lint` | `--enableLint` | `true` | Set to `false` for skipping the linting after the build |
 
 
 
