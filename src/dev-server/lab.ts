@@ -16,3 +16,11 @@ export let ApiCordovaProject = (req: any, res: any) => {
     res.json(config);
   });
 };
+
+export let ApiPackageJson = (req: any, res: any) => {
+  res.sendFile(path.join(process.cwd(), 'package.json'), {
+    headers: {
+      'content-type': 'application/json'
+    }
+  })
+};

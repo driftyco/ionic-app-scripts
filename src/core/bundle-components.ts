@@ -20,6 +20,7 @@ export function bundleCoreComponents(context: BuildContext) {
   const config = {
     srcDir: context.coreDir,
     destDir: context.buildDir,
+    attrCase: 'lower',
     packages: {
       cleanCss: cleanCss,
       fs: fs,

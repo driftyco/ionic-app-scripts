@@ -1,8 +1,8 @@
 [![npm version](https://img.shields.io/npm/v/@ionic/app-scripts.svg)](https://www.npmjs.com/package/@ionic/app-scripts)
-[![Circle CI](https://circleci.com/gh/driftyco/ionic-app-scripts.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/driftyco/ionic-app-scripts)
+[![Circle CI](https://circleci.com/gh/ionic-team/ionic-app-scripts.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/ionic-team/ionic-app-scripts)
 # Ionic App Scripts
 
-Helper scripts to get [Ionic apps](http://ionicframework.com/) up and running quickly (minus the config overload).
+Helper scripts to get [Ionic apps](https://ionicframework.com/) up and running quickly (minus the config overload).
 
 To get the latest `@ionic/app-scripts`, please run:
 
@@ -32,7 +32,7 @@ Out of the box, Ionic starters have been preconfigured with great defaults for b
 
 Just the bullet list above is a little overwhelming, and each task requires quite a bit of development time just to get started. Ionic App Script's intention is to make it easier to complete common tasks so developers can focus on building their app, rather than building build scripts.
 
-Note that the [Ionic Framework's](https://github.com/driftyco/ionic) source is made up of modules and can be packaged by any bundler or build process. However, this project's goal is provide simple scripts to make building Ionic apps easier, while also allowing developers to further configure their build process.
+Note that the [Ionic Framework's](https://github.com/ionic-team/ionic) source is made up of modules and can be packaged by any bundler or build process. However, this project's goal is provide simple scripts to make building Ionic apps easier, while also allowing developers to further configure their build process.
 
 
 ### npm Scripts
@@ -57,7 +57,7 @@ npm run build
 
 In many cases, the defaults which Ionic provides cover most of the scenarios required by developers; however, Ionic App Scripts does provide multiple ways to configure and override the defaults for each of the various tasks. Note that Ionic will always apply its defaults for any property that was not provided by custom configuration.
 
-[Default Config Files](https://github.com/driftyco/ionic-app-scripts/tree/master/config)
+[Default Config Files](https://github.com/ionic-team/ionic-app-scripts/tree/master/config)
 
 ### package.json Config
 
@@ -142,6 +142,7 @@ npm run build --rollup ./config/rollup.config.js
 | convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for for production deployments |
 | default watch timeout | `ionic_start_watch_timeout` | `--startWatchTimeout` | `3000` | Milliseconds controlling the default watch timeout |
 | choose the polyfill  | `ionic_polyfill_name` | `--polyfillName` | `polyfills` | Change with polyfills.modern or polyfills.ng (all options)[https://github.com/driftyco/ionic/tree/master/scripts/polyfill] |
+| enable linting | `enable_lint` | `--enableLint` | `true` | Set to `false` for skipping the linting after the build |
 
 
 
@@ -192,7 +193,7 @@ These environment variables are automatically set to [Node's `process.env`](http
 
 The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` and `serve` tasks produce `dev` builds (a build that does not include Ahead of Time (AoT) compilation or minification). To force a `prod` build you should use the `--prod` command line flag.
 
-Please take a look at the bottom of the [default Rollup config file](https://github.com/driftyco/ionic-app-scripts/blob/master/config/rollup.config.js) to see how the `IONIC_ENV` environment variable is being used to conditionally change config values for production builds.
+Please take a look at the bottom of the [default Rollup config file](https://github.com/ionic-team/ionic-app-scripts/blob/master/config/rollup.config.js) to see how the `IONIC_ENV` environment variable is being used to conditionally change config values for production builds.
 
 
 ## All Available Tasks
@@ -236,20 +237,22 @@ npm run lint --bailOnLintError true
 
 ## The Stack
 
-- [Ionic Framework](http://ionicframework.com/)
+- [Ionic Framework](https://ionicframework.com/)
 - [TypeScript Compiler](https://www.typescriptlang.org/)
 - [Angular Compiler (NGC)](https://github.com/angular/angular/tree/master/modules/%40angular/compiler-cli)
-- [Rollup Module Bundler](http://rollupjs.org/)
+- [Rollup Module Bundler](https://rollupjs.org/)
 - Ionic Component Sass
 - [Node Sass](https://www.npmjs.com/package/node-sass)
 - [Autoprefixer](https://github.com/postcss/autoprefixer)
-- [UglifyJS](http://lisperator.net/uglifyjs/)
+- [UglifyJS](https://lisperator.net/uglifyjs/)
 - [CleanCss](https://github.com/jakubpawlowicz/clean-css)
-- [TSLint](http://palantir.github.io/tslint/)
+- [TSLint](https://palantir.github.io/tslint/)
 
 ## Contributing
 
-We welcome any PRs, issues, and feedback! Please be respectful and follow the [Code of Conduct](https://github.com/driftyco/ionic/blob/master/CODE_OF_CONDUCT.md).
+We welcome any PRs, issues, and feedback! Please be respectful and follow the [Code of Conduct](https://github.com/ionic-team/ionic/blob/master/CODE_OF_CONDUCT.md).
+
+We use Node 6, and NPM 5 for contributing.
 
 ### Publish a release
 

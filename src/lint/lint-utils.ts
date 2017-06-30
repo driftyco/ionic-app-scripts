@@ -1,8 +1,15 @@
 import * as fs from 'fs';
-import { LintResult, RuleFailure } from 'tslint';
-import { Diagnostic } from 'typescript';
+import { Linter, LintResult, RuleFailure } from 'tslint';
+import { Diagnostic, Program } from 'typescript';
 import { BuildError } from '../util/errors';
-import { lint, LinterOptions, typeCheck } from './lint-factory';
+import {
+  createLinter,
+  getLintResult,
+  getTsLintConfig,
+  lint,
+  LinterOptions,
+  typeCheck
+} from './lint-factory';
 import { readFileAsync } from '../util/helpers';
 import { BuildContext } from '../util/interfaces';
 import { Logger } from '../logger/logger';
@@ -14,24 +21,30 @@ import { runTsLintDiagnostics } from '../logger/logger-tslint';
 /**
  * Lint files
  * @param {BuildContext} context
- * @param {string} tsConfig - Path to TS config file
- * @param {string|null} tsLintConfig - TSLint config file path
+ * @param {Program} program
+ * @param {string} tsLintConfig - TSLint config file path
  * @param {Array<string>} filePaths
  * @param {LinterOptions} linterOptions
  */
-export function lintFiles(context: BuildContext, tsConfig: string, tsLintConfig: string | null, filePaths: string[], linterOptions?: LinterOptions): Promise<void> {
-  return typeCheck(context, tsConfig, linterOptions)
+export function lintFiles(context: BuildContext, program: Program, tsLintConfig: string, filePaths: string[], linterOptions?: LinterOptions): Promise<void> {
+  const linter = createLinter(context, program);
+  const config = getTsLintConfig(tsLintConfig, linterOptions);
+
+  return typeCheck(context, program, linterOptions)
     .then(diagnostics => processTypeCheckDiagnostics(context, diagnostics))
-    .then(() => Promise.all(filePaths.map(filePath => lintFile(context, tsConfig, tsLintConfig, filePath, linterOptions)))
-    .then((lintResults: LintResult[]) => processLintResults(context, lintResults)));
+    .then(() => Promise.all(filePaths.map(filePath => lintFile(linter, config, filePath)))
+    .then(() => getLintResult(linter))
+    // NOTE: We only need to process the lint result after we ran the linter on all the files,
+    // otherwise we'll end up with duplicated messages if we process the result after each file gets linted.
+    .then((result: LintResult) => processLintResult(context, result)));
 }
 
-export function lintFile(context: BuildContext, tsConfig: string, tsLintConfig: string | null, filePath: string, linterOptions?: LinterOptions): Promise<LintResult> {
+export function lintFile(linter: Linter, config: any, filePath: string): Promise<void> {
   if (isMpegFile(filePath)) {
     return Promise.reject(`${filePath} is not a valid TypeScript file`);
   }
   return readFileAsync(filePath)
-    .then((fileContents: string) => lint(context, tsConfig, tsLintConfig, filePath, fileContents, linterOptions));
+    .then((fileContents: string) => lint(linter, config, filePath, fileContents));
 }
 
 
@@ -56,21 +69,18 @@ export function processTypeCheckDiagnostics(context: BuildContext, tsDiagnostics
  * Process lint results
  * NOTE: This will throw a BuildError if there were any warnings or errors in any of the lint results.
  * @param {BuildContext} context
- * @param {Array<LintResult>} results
+ * @param {LintResult} result
  */
-export function processLintResults(context: BuildContext, results: LintResult[]) {
-  const filesThatDidNotPass: string[] = [];
+export function processLintResult(context: BuildContext, result: LintResult) {
+  const files: string[] = [];
 
-  for (const result of results) {
-    // Only process result if there are no errors or warnings
-    if (result.errorCount !== 0 || result.warningCount !== 0) {
-      const diagnostics = runTsLintDiagnostics(context, result.failures);
-      printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
-      filesThatDidNotPass.push(...getFileNames(context, result.failures));
-    }
+  // Only process the lint result if there are errors or warnings (there's no point otherwise)
+  if (result.errorCount !== 0 || result.warningCount !== 0) {
+    const diagnostics = runTsLintDiagnostics(context, result.failures);
+    printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
+    files.push(...getFileNames(context, result.failures));
   }
 
-  const files = removeDuplicateFileNames(filesThatDidNotPass);
   if (files.length > 0) {
     const errorMessage = generateErrorMessageForFiles(files);
     throw new BuildError(errorMessage);
@@ -88,15 +98,8 @@ export function getFileNames(context: BuildContext, failures: RuleFailure[]): st
     .replace(/^\//g, ''));
 }
 
-// TODO: We can just use new Set() to filter duplicate entries
 export function removeDuplicateFileNames(fileNames: string[]) {
-  const result = [];
-  for (const fileName of fileNames) {
-    if (result.indexOf(fileName) === -1) {
-      result.push(fileName);
-    }
-  }
-  return result;
+  return Array.from(new Set(fileNames));
 }
 
 function isMpegFile(file: string) {

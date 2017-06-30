@@ -2,7 +2,7 @@ import { access } from 'fs';
 import { join } from 'path';
 
 import { lintFiles } from './lint/lint-utils';
-import { getFileNames } from './lint/lint-factory';
+import { createProgram, getFileNames } from './lint/lint-factory';
 import { Logger } from './logger/logger';
 import { getUserConfigFile } from './util/config';
 import { ENV_BAIL_ON_LINT_ERROR, ENV_TYPE_CHECK_ON_LINT } from './util/constants';
@@ -64,16 +64,18 @@ export function lintUpdate(changedFiles: ChangedFile[], context: BuildContext, t
 }
 
 export function lintUpdateWorker(context: BuildContext, {tsConfig, tsLintConfig, filePaths, typeCheck}: LintWorkerConfig) {
+  const program = createProgram(context, tsConfig);
   return getLintConfig(context, tsLintConfig)
-    .then(tsLintConfig => lintFiles(context, tsConfig, tsLintConfig, filePaths, {typeCheck}))
+    .then(tsLintConfig => lintFiles(context, program, tsLintConfig, filePaths, {typeCheck}))
     // Don't throw if linting failed
     .catch(() => {});
 }
 
 
 function lintApp(context: BuildContext, {tsConfig, tsLintConfig, typeCheck}: LintWorkerConfig) {
-  const files = getFileNames(context, tsConfig);
-  return lintFiles(context, tsConfig, tsLintConfig, files, {typeCheck});
+  const program = createProgram(context, tsConfig);
+  const files = getFileNames(context, program);
+  return lintFiles(context, program, tsLintConfig, files, {typeCheck});
 }
 
 

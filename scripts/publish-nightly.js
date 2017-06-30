@@ -38,24 +38,28 @@ function createTimestamp() {
           ('0' + (d.getUTCMinutes())).slice(-2); // MM
 }
 
-function publishToNpm() {
-  var command = `npm publish --tag=nightly ${process.cwd()}`;
+function publishToNpm(tagName) {
+  var command = `npm publish --tag=${tagName} ${process.cwd()}`;
   execSync(command);
 }
 
 
 function mainFunction() {
   try {
-    console.log('Building Nightly ... BEGIN');
+    let tagName = 'nightly';
+    if (process.argv.length >= 3) {
+      tagName = process.argv[2];
+    }
+    console.log(`Building ${tagName} ... BEGIN`);
     console.log('Backing up the original package.json');
     backupOriginalPackageJson();
     console.log('Creating the nightly version of package.json');
     createNightlyVersionInPackageJson();
     console.log('Publishing to npm');
-    publishToNpm();
+    publishToNpm(tagName);
     console.log('Restoring original package.json');
     revertPackageJson();
-    console.log('Building Nightly ... DONE');
+    console.log(`Building ${tagName}... DONE`);
   }
   catch (ex) {
     console.log(`Something went wrong with publishing the nightly. This process modifies the package.json, so restore it before committing code! - ${ex.message}`);

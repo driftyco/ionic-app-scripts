@@ -410,7 +410,7 @@ $TAB_CONTENT
     const suppliedName = 'settings view';
 
     it('should return a succesful promise', () => {
-			// set up spies
+      // set up spies
       spyOn(helpers, helpers.readFileAsync.name).and.returnValue(Promise.resolve('file content'));
       spyOn(fs, 'readdirSync').and.returnValue([
         join(process.cwd(), 'path', 'to', 'nowhere'),
@@ -420,7 +420,7 @@ $TAB_CONTENT
       spyOn(TypeScriptUtils, TypeScriptUtils.insertNamedImportIfNeeded.name).and.returnValue('file content');
       spyOn(TypeScriptUtils, TypeScriptUtils.appendNgModuleDeclaration.name).and.returnValue('sliced string');
 
-			// what we want to test
+      // what we want to test
       const promise = util.tabsModuleManipulation([['/src/pages/cool-tab-one/cool-tab-one.module.ts']], { name: suppliedName, className: className, fileName: fileName }, [{ name: suppliedName, className: className, fileName: fileName }]);
 
       // test

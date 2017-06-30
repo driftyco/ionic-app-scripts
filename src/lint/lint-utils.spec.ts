@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import { LintResult } from 'tslint';
 import { DiagnosticCategory } from 'typescript';
 import * as helpers from '../util/helpers';
 import * as loggerDiagnostics from '../logger/logger-diagnostics';
@@ -13,13 +12,11 @@ describe('lint utils', () => {
   describe('lintFile()', () => {
     it('should return lint details', () => {
       const filePath = 'test.ts';
-      const tsConfigPath = '';
       const fileContent = `
         export const foo = 'bar';
       `;
-      const context: any = {};
-      const linterOptions = {
-        typeCheck: true
+      const context: any = {
+        rootDir: ''
       };
       const mockLintResult: any = {
         errorCount: 0,
@@ -31,6 +28,8 @@ describe('lint utils', () => {
       };
 
       spyOn(linter, linter.lint.name).and.returnValue(mockLintResult);
+      spyOn(linter, linter.createProgram.name).and.returnValue({});
+      spyOn(linter, linter.createLinter.name).and.returnValue({});
 
       // Mock the file read
       spyOn(helpers, helpers.readFileAsync.name).and.returnValue(Promise.resolve(fileContent));
@@ -38,11 +37,14 @@ describe('lint utils', () => {
       spyOn(fs, 'readSync').and.returnValue(null);
       spyOn(fs, 'closeSync').and.returnValue(null);
 
-      return utils.lintFile(context, tsConfigPath, null, filePath, linterOptions)
-        .then((result: LintResult) => {
-          expect(result).toEqual(mockLintResult);
+      const mockProgram = linter.createProgram(context, '');
+      const mockLinter = linter.createLinter(context, mockProgram);
+      const mockConfig = {};
+
+      return utils.lintFile(mockLinter, mockConfig, filePath)
+        .then(() => {
           expect(linter.lint)
-            .toHaveBeenCalledWith(context, tsConfigPath, null, filePath, fileContent, linterOptions);
+            .toHaveBeenCalledWith(mockLinter, mockConfig, filePath, fileContent);
         });
     });
   });
@@ -78,44 +80,40 @@ describe('lint utils', () => {
     });
   });
 
-  describe('processLintResults()', () => {
+  describe('processLintResult()', () => {
     it('should not throw an error when there are no files with errors or warnings', () => {
-      utils.processLintResults({}, [
-        {
+      utils.processLintResult({}, {
           errorCount: 0,
           warningCount: 0,
           failures: [],
           fixes: [],
           format: '',
           output: ''
-        }
-      ]);
+        });
     });
 
     it('should throw an error when one or more file has failures', () => {
       const knownError = new Error('Should never get here');
-      const results: any[] = [
-        {
-          errorCount: 1,
-          warningCount: 0,
-          failures: [
-            {
-              getFileName() {
-                return 'test.ts';
-              }
+      const result: any = {
+        errorCount: 1,
+        warningCount: 0,
+        failures: [
+          {
+            getFileName() {
+              return 'test.ts';
             }
-          ],
-          fixes: [],
-          format: '',
-          output: ''
-        }
-      ];
+          }
+        ],
+        fixes: [],
+        format: '',
+        output: ''
+      };
 
       spyOn(tsLintLogger, tsLintLogger.runTsLintDiagnostics.name).and.returnValue(null);
       spyOn(loggerDiagnostics, loggerDiagnostics.printDiagnostics.name).and.returnValue(null);
 
       try {
-        utils.processLintResults({}, results);
+        utils.processLintResult({}, result);
         throw knownError;
       } catch (ex) {
         expect(loggerDiagnostics.printDiagnostics).toHaveBeenCalledTimes(1);

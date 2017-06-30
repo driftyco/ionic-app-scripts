@@ -8,7 +8,6 @@ import open from './util/open';
 import { createNotificationServer } from './dev-server/notification-server';
 import { createHttpServer } from './dev-server/http-server';
 import { createLiveReloadServer } from './dev-server/live-reload';
-import { createBonjourService } from './dev-server/bonjour';
 import { ServeConfig, IONIC_LAB_URL } from './dev-server/serve-config';
 import { findClosestOpenPorts } from './util/network';
 
@@ -47,7 +46,7 @@ export function serve(context: BuildContext) {
         useServerLogs: useServerLogs(context),
         useProxy: useProxy(context),
         notifyOnConsoleLog: sendClientConsoleLogs(context),
-        bonjour: useBonjour(context)
+        devapp: false
       };
 
       createNotificationServer(config);
@@ -57,7 +56,6 @@ export function serve(context: BuildContext) {
       return watch(context);
     })
     .then(() => {
-      createBonjourService(config);
       onReady(config, context);
       return config;
     }, (err: BuildError) => {
@@ -141,10 +139,6 @@ function browserToLaunch(context: BuildContext): string {
 
 function browserOption(context: BuildContext): string {
   return getConfigValue(context, '--browseroption', '-o', 'IONIC_BROWSEROPTION', 'ionic_browseroption', null);
-}
-
-function useBonjour(context: BuildContext): boolean {
-  return hasConfigValue(context, '--bonjour', '-B', 'bonjour', false);
 }
 
 function launchLab(context: BuildContext): boolean {

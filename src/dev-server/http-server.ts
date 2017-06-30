@@ -18,7 +18,7 @@ import * as Constants from '../util/constants';
 import { getBooleanPropertyValue } from '../util/helpers';
 import { getProjectJson, IonicProject } from '../util/ionic-project';
 
-import { LabAppView, ApiCordovaProject } from './lab';
+import { LabAppView, ApiCordovaProject, ApiPackageJson } from './lab';
 
 
 /**
@@ -40,6 +40,7 @@ export function createHttpServer(config: ServeConfig): express.Application {
   app.use(IONIC_LAB_URL + '/static', express.static(path.join(__dirname, '..', '..', 'lab', 'static')));
   app.get(IONIC_LAB_URL, LabAppView);
   app.get(IONIC_LAB_URL + '/api/v1/cordova', ApiCordovaProject );
+  app.get(IONIC_LAB_URL + '/api/v1/app-config', ApiPackageJson);
 
   app.get('/cordova.js', servePlatformResource, serveMockCordovaJS);
   app.get('/cordova_plugins.js', servePlatformResource);

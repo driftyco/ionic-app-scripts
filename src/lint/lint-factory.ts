@@ -8,21 +8,28 @@ export interface LinterOptions {
   typeCheck?: boolean;
 }
 
+export interface LinterConfig {
+  [key: string]: any;
+}
+
 
 /**
- * Run linter on a file
- * @param {BuildContext} context
- * @param {string} tsLintConfig
- * @param {string} tsConfig
+ * Lint a file according to config
+ * @param {Linter} linter
+ * @param {LinterConfig} config
  * @param {string} filePath
  * @param {string} fileContents
- * @param {LinterOptions} linterOptions
+ */
+export function lint(linter: Linter, config: LinterConfig, filePath: string, fileContents: string): void {
+  linter.lint(filePath, fileContents, config as any);
+}
+
+/**
+ * Get the linter result
+ * @param {Linter} linter
  * @return {LintResult}
  */
-export function lint(context: BuildContext, tsConfig: string, tsLintConfig: string | null, filePath: string, fileContents: string, linterOptions?: LinterOptions): LintResult {
-  const linter = getLinter(context, tsConfig);
-  const configuration = Configuration.findConfiguration(tsLintConfig, filePath);
-  linter.lint(filePath, fileContents, Object.assign(configuration.results, isObject(linterOptions) ? {linterOptions} : {}));
+export function getLintResult(linter: Linter): LintResult {
   return linter.getResult();
 }
 
@@ -30,13 +37,12 @@ export function lint(context: BuildContext, tsConfig: string, tsLintConfig: stri
 /**
  * Type check a TS program
  * @param {BuildContext} context
- * @param {string} tsConfig
+ * @param {Program} program
  * @param {LinterOptions} linterOptions
  * @return {Promise<Diagnostic[]>}
  */
-export function typeCheck(context: BuildContext, tsConfig: string, linterOptions?: LinterOptions): Promise<Diagnostic[]> {
+export function typeCheck(context: BuildContext, program: Program, linterOptions?: LinterOptions): Promise<Diagnostic[]> {
   if (isObject(linterOptions) && linterOptions.typeCheck) {
-    const program = createProgram(context, tsConfig);
     return Promise.resolve(getPreEmitDiagnostics(program));
   }
   return Promise.resolve([]);
@@ -44,7 +50,7 @@ export function typeCheck(context: BuildContext, tsConfig: string, linterOptions
 
 
 /**
- * Create a TS program based on the BuildContext {srcDir} or TS config file path (if provided)
+ * Create a TS program based on the BuildContext {rootDir} or TS config file path (if provided)
  * @param {BuildContext} context
  * @param {string} tsConfig
  * @return {Program}
@@ -57,24 +63,33 @@ export function createProgram(context: BuildContext, tsConfig: string): Program 
 /**
  * Get all files that are sourced in TS config
  * @param {BuildContext} context
- * @param {string} tsConfig
+ * @param {Program} program
  * @return {Array<string>}
  */
-export function getFileNames(context: BuildContext, tsConfig: string): string[] {
-  const program = createProgram(context, tsConfig);
+export function getFileNames(context: BuildContext, program: Program): string[] {
   return Linter.getFileNames(program);
 }
 
 
 /**
- * Get linter
- * @param {BuildContext} context
- * @param {string} tsConfig
+ * Get lint configuration
+ * @param {string} tsLintConfig
+ * @param {LinterOptions} linterOptions
  * @return {Linter}
  */
-export function getLinter(context: BuildContext, tsConfig: string): Linter {
-  const program = createProgram(context, tsConfig);
+export function getTsLintConfig(tsLintConfig: string, linterOptions?: LinterOptions): LinterConfig {
+  const config = Configuration.loadConfigurationFromPath(tsLintConfig);
+  Object.assign(config, isObject(linterOptions) ? {linterOptions} : {});
+  return config;
+}
 
+/**
+ * Create a TS linter
+ * @param {BuildContext} context
+ * @param {Program} program
+ * @return {Linter}
+ */
+export function createLinter(context: BuildContext, program: Program): Linter {
   return new Linter({
     fix: false
   }, program);

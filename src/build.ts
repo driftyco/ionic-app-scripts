@@ -53,14 +53,14 @@ function validateRequiredFilesExist(context: BuildContext) {
     if (error.code === 'ENOENT' && error.path === process.env[Constants.ENV_APP_ENTRY_POINT]) {
       error = new BuildError(`${error.path} was not found. The "main.dev.ts" and "main.prod.ts" files have been deprecated. Please create a new file "main.ts" containing the content of "main.dev.ts", and then delete the deprecated files.
                             For more information, please see the default Ionic project main.ts file here:
-                            https://github.com/driftyco/ionic2-app-base/tree/master/src/app/main.ts`);
+                            https://github.com/ionic-team/ionic2-app-base/tree/master/src/app/main.ts`);
       error.isFatal = true;
       throw error;
     }
     if (error.code === 'ENOENT' && error.path === process.env[Constants.ENV_TS_CONFIG]) {
       error = new BuildError([`${error.path} was not found. The "tsconfig.json" file is missing. This file is required.`,
         'For more information please see the default Ionic project tsconfig.json file here:',
-        'https://github.com/driftyco/ionic2-app-base/blob/master/tsconfig.json'].join('\n'));
+        'https://github.com/ionic-team/ionic2-app-base/blob/master/tsconfig.json'].join('\n'));
       error.isFatal = true;
       throw error;
     }
@@ -78,7 +78,7 @@ function validateTsConfigSettings(tsConfigFileContents: TsConfig) {
       if (!isValid) {
         const error = new BuildError(['The "tsconfig.json" file must have compilerOptions.sourceMap set to true.',
           'For more information please see the default Ionic project tsconfig.json file here:',
-          'https://github.com/driftyco/ionic2-app-base/blob/master/tsconfig.json'].join('\n'));
+          'https://github.com/ionic-team/ionic2-app-base/blob/master/tsconfig.json'].join('\n'));
         error.isFatal = true;
         return reject(error);
       }
