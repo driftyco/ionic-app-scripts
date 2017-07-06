@@ -8,25 +8,25 @@ describe('Webpack Task', () => {
   describe('writeBundleFilesToDisk', () => {
     it('should write all build artifacts to disk except css', () => {
       const appDir = join('some', 'fake', 'dir', 'myApp');
-      const buildDir = join(appDir, 'www', 'build');
+      const wwwDir = join(appDir, 'www', );
 
       const context = {
         fileCache: new FileCache(),
-        buildDir: buildDir
+        wwwDir
       };
 
-      const fileOnePath = join(buildDir, 'main.js');
-      const fileTwoPath = join(buildDir, 'main.js.map');
-      const fileThreePath = join(buildDir, '0.main.js');
-      const fileFourPath = join(buildDir, '0.main.js.map');
-      const fileFivePath = join(buildDir, '1.main.js');
-      const fileSixPath = join(buildDir, '1.main.js.map');
+      const fileOnePath = join(wwwDir, 'main.js');
+      const fileTwoPath = join(wwwDir, 'main.js.map');
+      const fileThreePath = join(wwwDir, '0.main.js');
+      const fileFourPath = join(wwwDir, '0.main.js.map');
+      const fileFivePath = join(wwwDir, '1.main.js');
+      const fileSixPath = join(wwwDir, '1.main.js.map');
       const fileSevenPath = join(appDir, 'pages', 'page-one.ts');
       const fileEightPath = join(appDir, 'pages', 'page-one.js');
-      const fileNinePath = join(buildDir, 'main.css');
-      const fileTenPath = join(buildDir, 'main.css.map');
-      const fileElevenPath = join(buildDir, 'secondary.css');
-      const fileTwelvePath = join(buildDir, 'secondary.css.map');
+      const fileNinePath = join(wwwDir, 'main.css');
+      const fileTenPath = join(wwwDir, 'main.css.map');
+      const fileElevenPath = join(wwwDir, 'secondary.css');
+      const fileTwelvePath = join(wwwDir, 'secondary.css.map');
 
       context.fileCache.set(fileOnePath, { path: fileOnePath, content: fileOnePath + 'content'});
       context.fileCache.set(fileTwoPath, { path: fileTwoPath, content: fileTwoPath + 'content'});
@@ -69,16 +69,16 @@ describe('Webpack Task', () => {
 
     it('should preprend ionic core info', () => {
       const appDir = join('some', 'fake', 'dir', 'myApp');
-      const buildDir = join(appDir, 'www', 'build');
+      const wwwDir = join(appDir, 'www');
 
       const context = {
         fileCache: new FileCache(),
-        buildDir: buildDir,
+        wwwDir,
         outputJsFileName: 'main.js'
       };
 
-      const fileOnePath = join(buildDir, 'main.js');
-      const fileTwoPath = join(buildDir, 'main.js.map');
+      const fileOnePath = join(wwwDir, 'main.js');
+      const fileTwoPath = join(wwwDir, 'main.js.map');
 
       context.fileCache.set(fileOnePath, { path: fileOnePath, content: fileOnePath + 'content'});
       context.fileCache.set(fileTwoPath, { path: fileTwoPath, content: fileTwoPath + 'content'});
