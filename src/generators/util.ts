@@ -12,7 +12,7 @@ import { ensureSuffix, removeSuffix } from '../util/helpers';
 import { appendNgModuleDeclaration, insertNamedImportIfNeeded } from '../util/typescript-utils';
 
 export function hydrateRequest(context: BuildContext, request: GeneratorRequest) {
-  const hydrated = Object.assign({ includeNgModule: true }, request) as HydratedGeneratorRequest;
+  const hydrated = Object.assign({ includeNgModule: false }, request) as HydratedGeneratorRequest;
   const suffix = getSuffixFromGeneratorType(context, request.type);
 
   hydrated.className = ensureSuffix(pascalCase(request.name), upperCaseFirst(suffix));
