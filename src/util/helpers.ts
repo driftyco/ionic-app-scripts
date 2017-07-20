@@ -260,6 +260,13 @@ export function changeExtension(filePath: string, newExtension: string) {
   return join(dir, newFileName);
 }
 
+export function changeModuleName(filePath: string, newModuleName: string) {
+  const dir = dirname(filePath);
+  const extension = extname(filePath);
+  const newFileName = newModuleName + extension;
+  return join(dir, newFileName);
+}
+
 export function escapeHtml(unsafe: string) {
   return unsafe
          .replace(/&/g, '&amp;')

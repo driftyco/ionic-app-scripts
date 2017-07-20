@@ -164,6 +164,7 @@ export interface VirtualFileSystem {
 
 export interface DeepLinkDecoratorAndClass {
   name: string;
+  moduleName: string;
   segment: string;
   defaultHistory: string[];
   priority: string;
