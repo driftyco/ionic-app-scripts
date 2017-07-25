@@ -2,7 +2,7 @@
 ## [2.0.2](https://github.com/ionic-team/ionic-app-scripts/compare/v2.0.1...v2.0.2) (2017-07-13)
 
 ## Upgrading
-Make sure you fllow the instructions below for upgrading from `1.x` to `2.x`. In the `2.0.2` release, we had to make a small change to the `optimization` config. If you override this config, please review the [change](https://github.com/ionic-team/ionic-app-scripts/commit/785e044) and update your config accordingly.
+Make sure you follow the instructions below for upgrading from `1.x` to `2.x`. In the `2.0.2` release, we had to make a small change to the `optimization` config. If you override this config, please review the [change](https://github.com/ionic-team/ionic-app-scripts/commit/785e044) and update your config accordingly.
 
 ### Bug Fixes
 
