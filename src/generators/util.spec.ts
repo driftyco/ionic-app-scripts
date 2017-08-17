@@ -30,12 +30,8 @@ describe('util', () => {
         'ionic-angular',
         'templates'
       );
-      spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue(
-        templateDir
-      );
-
       // act
-      const hydratedRequest = util.hydrateRequest(context, request);
+      const hydratedRequest = util.hydrateRequest(context, request, templateDir);
 
       // assert
       expect(hydratedRequest).toEqual({

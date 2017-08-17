@@ -11,7 +11,7 @@ import { globAll, GlobResult } from '../util/glob-util';
 import { changeExtension, ensureSuffix, removeSuffix } from '../util/helpers';
 import { appendNgModuleDeclaration, appendNgModuleExports, appendNgModuleProvider, insertNamedImportIfNeeded } from '../util/typescript-utils';
 
-export function hydrateRequest(context: BuildContext, request: GeneratorRequest) {
+export function hydrateRequest(context: BuildContext, request: GeneratorRequest, templateDir: string = getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_TEMPLATE_DIR)) {
   const hydrated = request as HydratedGeneratorRequest;
   const suffix = getSuffixFromGeneratorType(context, request.type);
 
@@ -33,7 +33,7 @@ export function hydrateRequest(context: BuildContext, request: GeneratorRequest)
     hydrated.importStatement = `import { NavController, NavParams } from 'ionic-angular';`;
 
   }
-  hydrated.dirToRead = join(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_TEMPLATE_DIR), request.type);
+  hydrated.dirToRead = join(templateDir, request.type);
 
   const baseDir = getDirToWriteToByType(context, request.type);
   hydrated.dirToWrite = join(baseDir, hydrated.fileName);
