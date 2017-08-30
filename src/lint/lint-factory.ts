@@ -1,5 +1,6 @@
 import { Configuration, Linter, LintResult } from 'tslint';
 import { Program, getPreEmitDiagnostics, Diagnostic } from 'typescript';
+import * as glob from 'glob';
 import { BuildContext } from '../util/interfaces';
 import { isObject } from 'util';
 
@@ -64,10 +65,18 @@ export function createProgram(context: BuildContext, tsConfig: string): Program 
  * Get all files that are sourced in TS config
  * @param {BuildContext} context
  * @param {Program} program
+ * @param {Array<string>} excludePatterns
  * @return {Array<string>}
  */
-export function getFileNames(context: BuildContext, program: Program): string[] {
-  return Linter.getFileNames(program);
+export function getFileNames(context: BuildContext, program: Program, excludePatterns?: string[]): string[] {
+  let files: string[] = Linter.getFileNames(program);
+  if (excludePatterns) {
+    const globOptions = { ignore: excludePatterns, nodir: true };
+    files = files
+      .map((file: string) => glob.sync(file, globOptions))
+      .reduce((a: string[], b: string[]) => a.concat(b), []);
+  }
+  return files;
 }
 
 
