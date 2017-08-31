@@ -84,9 +84,8 @@ function serveIndex(req: express.Request, res: express.Response)  {
   fs.readFile(indexFileName, (err, indexHtml) => {
     if (config.useLiveReload) {
       indexHtml = injectLiveReloadScript(indexHtml, req.hostname, config.liveReloadPort);
+      indexHtml = injectNotificationScript(config.rootDir, indexHtml, config.notifyOnConsoleLog, config.notificationPort);
     }
-
-    indexHtml = injectNotificationScript(config.rootDir, indexHtml, config.notifyOnConsoleLog, config.notificationPort);
 
     indexHtml = injectDiagnosticsHtml(config.buildDir, indexHtml);
 
