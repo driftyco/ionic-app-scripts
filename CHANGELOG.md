@@ -1,8 +1,78 @@
+<a name="2.1.4"></a>
+## [2.1.4](https://github.com/ionic-team/ionic-app-scripts/compare/v2.1.3...v2.1.4) (2017-08-16)
+
+
+### Bug Fixes
+
+* make --lab respect --nobrowser ([8db3be5](https://github.com/ionic-team/ionic-app-scripts/commit/8db3be5))
+* **serve:** allow multiple arguments in console.log ([5c00970](https://github.com/ionic-team/ionic-app-scripts/commit/5c00970))
+* **serve:** fix --consolelogs/--serverlogs usage with Cordova console plugin ([8e64407](https://github.com/ionic-team/ionic-app-scripts/commit/8e64407))
+* **serve:** fix 'launchBrowser' of undefined ([8f71e35](https://github.com/ionic-team/ionic-app-scripts/commit/8f71e35))
+
+
+### Features
+
+* **sourcemaps:** copy for prod and dev ([a1ccc17](https://github.com/ionic-team/ionic-app-scripts/commit/a1ccc17))
+* **sourcemaps:** preserve prod sourcemaps out of code dir ([ee3e41b](https://github.com/ionic-team/ionic-app-scripts/commit/ee3e41b))
+
+
+
+<a name="2.1.3"></a>
+## [2.1.3](https://github.com/ionic-team/ionic-app-scripts/compare/v2.1.2...v2.1.3) (2017-07-27)
+
+
+### Bug Fixes
+
+* **lab:** remove es6 features from lab ([41a1335](https://github.com/ionic-team/ionic-app-scripts/commit/41a1335))
+
+
+
+<a name="2.1.2"></a>
+## [2.1.2](https://github.com/ionic-team/ionic-app-scripts/compare/v2.1.1...v2.1.2) (2017-07-27)
+
+
+### Bug Fixes
+
+* **generators:** handle old cli ([6fd622c](https://github.com/ionic-team/ionic-app-scripts/commit/6fd622c))
+
+
+
+<a name="2.1.1"></a>
+## [2.1.1](https://github.com/ionic-team/ionic-app-scripts/compare/v2.1.0...v2.1.1) (2017-07-27)
+
+
+### Bug Fixes
+
+* **generator:** write file sync ([b0bcb05](https://github.com/ionic-team/ionic-app-scripts/commit/b0bcb05))
+* **generators:** add exception for providers ([db9c793](https://github.com/ionic-team/ionic-app-scripts/commit/db9c793))
+
+
+### Features
+
+* **webpack:** update to latest webpack ([67907b6](https://github.com/ionic-team/ionic-app-scripts/commit/67907b6))
+
+
+
+<a name="2.1.0"></a>
+# [2.1.0](https://github.com/ionic-team/ionic-app-scripts/compare/v2.0.2...v2.1.0) (2017-07-25)
+
+
+### Bug Fixes
+
+* **generators:** handle no ngModule in tabs ([653d9f2](https://github.com/ionic-team/ionic-app-scripts/commit/653d9f2))
+
+
+### Features
+
+* **generators:** refactor generators ([beaf0d3](https://github.com/ionic-team/ionic-app-scripts/commit/beaf0d3))
+
+
+
 <a name="2.0.2"></a>
 ## [2.0.2](https://github.com/ionic-team/ionic-app-scripts/compare/v2.0.1...v2.0.2) (2017-07-13)
 
 ## Upgrading
-Make sure you fllow the instructions below for upgrading from `1.x` to `2.x`. In the `2.0.2` release, we had to make a small change to the `optimization` config. If you override this config, please review the [change](https://github.com/ionic-team/ionic-app-scripts/commit/785e044) and update your config accordingly.
+Make sure you follow the instructions below for upgrading from `1.x` to `2.x`. In the `2.0.2` release, we had to make a small change to the `optimization` config. If you override this config, please review the [change](https://github.com/ionic-team/ionic-app-scripts/commit/785e044) and update your config accordingly.
 
 ### Bug Fixes
 

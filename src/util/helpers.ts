@@ -410,6 +410,14 @@ export function sentenceCase(input: string) {
   return upperCaseFirst(noCase);
 }
 
+export function snakeCase(input: string) {
+  return removeCaseFromString(input, '_');
+}
+
+export function constantCase(input: string) {
+  return snakeCase(input).toUpperCase();
+}
+
 export function camelCase(input: string) {
   input = removeCaseFromString(input);
   input = input.replace(/ (?=\d)/g, '_');

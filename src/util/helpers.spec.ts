@@ -359,4 +359,19 @@ describe('helpers', () => {
     });
   });
 
+  describe('snakeCase', () => {
+    it('should convert the phrase to use underscores', () => {
+      expect(helpers.snakeCase('taco bell')).toEqual('taco_bell');
+    });
+  });
+
+  describe('constantCase', () => {
+    it('should capitalize and separate words by underscore', () => {
+      expect(helpers.constantCase('taco bell')).toEqual('TACO_BELL');
+    });
+
+    it('should convert camel case to correct case', () => {
+      expect(helpers.constantCase('TacoBell')).toEqual('TACO_BELL');
+    });
+  });
 });

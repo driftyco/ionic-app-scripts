@@ -65,14 +65,17 @@ export function serve(context: BuildContext) {
       if (err && err.isFatal) {
         throw err;
       } else {
-        onReady(config, context);
+        if (config) {
+          onReady(config, context);
+        }
+
         return config;
       }
     });
 }
 
 function onReady(config: ServeConfig, context: BuildContext) {
-  if (config.launchBrowser || config.launchLab) {
+  if (config.launchBrowser) {
     const openOptions: string[] = [config.hostBaseUrl]
       .concat(launchLab(context) ? [IONIC_LAB_URL] : [])
       .concat(browserOption(context) ? [browserOption(context)] : [])

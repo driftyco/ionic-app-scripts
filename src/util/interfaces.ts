@@ -26,6 +26,9 @@ export interface BuildContext {
   bundledFilePaths?: string[];
   moduleFiles?: string[];
   appNgModulePath?: string;
+  componentsNgModulePath?: string;
+  pipesNgModulePath?: string;
+  directivesNgModulePath?: string;
   isProd?: boolean;
   isWatch?: boolean;
   runAot?: boolean;
@@ -37,6 +40,7 @@ export interface BuildContext {
   inlineTemplates?: boolean;
   webpackWatch?: any;
   ionicGlobal?: any;
+  sourcemapDir?: string;
 
   sassState?: BuildState;
   transpileState?: BuildState;

@@ -90,6 +90,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_VAR_BUILD_DIR, context.buildDir);
   Logger.debug(`buildDir set to ${context.buildDir}`);
 
+  context.sourcemapDir = resolve(context.sourcemapDir || getConfigValue(context, '--sourcemapDir', null, Constants.ENV_VAR_SOURCEMAP_DIR, Constants.ENV_VAR_SOURCEMAP_DIR.toLowerCase(), Constants.SOURCEMAP_DIR));
+  setProcessEnvVar(Constants.ENV_VAR_SOURCEMAP_DIR, context.sourcemapDir);
+  Logger.debug(`sourcemapDir set to ${context.sourcemapDir}`);
+
   context.pagesDir = resolve(context.pagesDir || getConfigValue(context, '--pagesDir', null, Constants.ENV_VAR_PAGES_DIR, Constants.ENV_VAR_PAGES_DIR.toLowerCase(), join(context.srcDir, 'pages')));
   setProcessEnvVar(Constants.ENV_VAR_PAGES_DIR, context.pagesDir);
   Logger.debug(`pagesDir set to ${context.pagesDir}`);
@@ -164,6 +168,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_VAR_SOURCE_MAP_TYPE, sourceMapTypeValue);
   Logger.debug(`sourceMapType set to ${sourceMapTypeValue}`);
 
+  const moveSourceMaps = getConfigValue(context, '--moveSourceMaps', null, Constants.ENV_VAR_MOVE_SOURCE_MAPS, Constants.ENV_VAR_MOVE_SOURCE_MAPS.toLowerCase(), 'true');
+  setProcessEnvVar(Constants.ENV_VAR_MOVE_SOURCE_MAPS, moveSourceMaps);
+  Logger.debug(`moveSourceMaps set to ${moveSourceMaps}`);
+
   const tsConfigPathValue = resolve(getConfigValue(context, '--tsconfig', null, Constants.ENV_TS_CONFIG, Constants.ENV_TS_CONFIG.toLowerCase(), join(context.rootDir, 'tsconfig.json')));
   setProcessEnvVar(Constants.ENV_TS_CONFIG, tsConfigPathValue);
   Logger.debug(`tsconfig set to ${tsConfigPathValue}`);
@@ -179,6 +187,19 @@ export function generateContext(context?: BuildContext): BuildContext {
   context.appNgModulePath = resolve(getConfigValue(context, '--appNgModulePath', null, Constants.ENV_APP_NG_MODULE_PATH, Constants.ENV_APP_NG_MODULE_PATH.toLowerCase(), join(context.srcDir, 'app', 'app.module.ts')));
   setProcessEnvVar(Constants.ENV_APP_NG_MODULE_PATH, context.appNgModulePath);
   Logger.debug(`appNgModulePath set to ${context.appNgModulePath}`);
+
+
+  context.componentsNgModulePath = resolve(getConfigValue(context, '--componentsNgModulePath', null, Constants.ENV_COMPONENTS_NG_MODULE_PATH, Constants.ENV_COMPONENTS_NG_MODULE_PATH.toLowerCase(), join(context.srcDir, 'components', 'components.module.ts')));
+  setProcessEnvVar(Constants.ENV_COMPONENTS_NG_MODULE_PATH, context.componentsNgModulePath);
+  Logger.debug(`componentsNgModulePath set to ${context.componentsNgModulePath}`);
+
+  context.pipesNgModulePath = resolve(getConfigValue(context, '--pipesNgModulePath', null, Constants.ENV_PIPES_NG_MODULE_PATH, Constants.ENV_PIPES_NG_MODULE_PATH.toLowerCase(), join(context.srcDir, 'PIPES', 'pipes.module.ts')));
+  setProcessEnvVar(Constants.ENV_PIPES_NG_MODULE_PATH, context.pipesNgModulePath);
+  Logger.debug(`pipesNgModulePath set to ${context.pipesNgModulePath}`);
+
+  context.directivesNgModulePath = resolve(getConfigValue(context, '--directivesNgModulePath', null, Constants.ENV_DIRECTIVES_NG_MODULE_PATH, Constants.ENV_DIRECTIVES_NG_MODULE_PATH.toLowerCase(), join(context.srcDir, 'directives', 'directives.module.ts')));
+  setProcessEnvVar(Constants.ENV_DIRECTIVES_NG_MODULE_PATH, context.directivesNgModulePath);
+  Logger.debug(`directivesNgModulePath set to ${context.directivesNgModulePath}`);
 
   const appNgModuleClass = getConfigValue(context, '--appNgModuleClass', null, Constants.ENV_APP_NG_MODULE_CLASS, Constants.ENV_APP_NG_MODULE_CLASS.toLowerCase(), 'AppModule');
   setProcessEnvVar(Constants.ENV_APP_NG_MODULE_CLASS, appNgModuleClass);

@@ -312,7 +312,7 @@ import { RootPageModule } from \'../pages/root-page/root-page.module\';
 export class AppModule {}
 `;
 
-  const result = tsUtils.appendNgModuleDeclaration(knownPath, knownContent, 'CoolProvider', 'provider');
+  const result = tsUtils.appendNgModuleProvider(knownPath, knownContent, 'CoolProvider');
   expect(result).toEqual(expectedContent);
 });
 
@@ -366,7 +366,8 @@ import { RootPageModule } from '../pages/root-page/root-page.module';
 export class AppModule {}
 `;
 
-  const result = tsUtils.appendNgModuleDeclaration(knownPath, knownContent, 'CoolProvider', 'provider');
+
+  const result = tsUtils.appendNgModuleProvider(knownPath, knownContent, 'CoolProvider');
   expect(result).toEqual(expectedContent);
   });
 });

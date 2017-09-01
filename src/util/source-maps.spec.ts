@@ -5,17 +5,6 @@ import * as helpers from './helpers';
 
 describe('source maps', () => {
   describe('purgeSourceMapsIfNeeded', () => {
-    it('should return a resolved promise when purging source maps isnt needed', () => {
-      // arrange
-      let env: any = {};
-      env[Constants.ENV_VAR_GENERATE_SOURCE_MAP] = 'true';
-      process.env = env;
-      // act
-      const resultPromise = sourceMaps.purgeSourceMapsIfNeeded(null);
-      // assert
-      return resultPromise;
-    });
-
     it('should return a promise call unlink on all files with a .map extensin', () => {
       // arrange
       let env: any = {};

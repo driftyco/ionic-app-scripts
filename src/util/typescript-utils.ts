@@ -87,14 +87,14 @@ export function insertNamedImportIfNeeded(filePath: string, fileContent: string,
   const allImports = findNodes(sourceFile, sourceFile, SyntaxKind.ImportDeclaration);
   const maybeImports = allImports.filter((node: ImportDeclaration) => {
     return node.moduleSpecifier.kind === SyntaxKind.StringLiteral
-            && (node.moduleSpecifier as StringLiteral).text === fromModule;
+      && (node.moduleSpecifier as StringLiteral).text === fromModule;
   }).filter((node: ImportDeclaration) => {
     // Remove import statements that are either `import 'XYZ'` or `import * as X from 'XYZ'`.
-        const clause = node.importClause as ImportClause;
-        if (!clause || clause.name || !clause.namedBindings) {
-          return false;
-        }
-        return clause.namedBindings.kind === SyntaxKind.NamedImports;
+    const clause = node.importClause as ImportClause;
+    if (!clause || clause.name || !clause.namedBindings) {
+      return false;
+    }
+    return clause.namedBindings.kind === SyntaxKind.NamedImports;
   }).map((node: ImportDeclaration) => {
     return (node.importClause as ImportClause).namedBindings as NamedImports;
   });
@@ -117,7 +117,7 @@ export function insertNamedImportIfNeeded(filePath: string, fileContent: string,
   } else {
     // Find the last import and insert after.
     fileContent = appendAfter(fileContent, allImports[allImports.length - 1],
-        `\nimport { ${namedImport} } from '${fromModule}';`);
+      `\nimport { ${namedImport} } from '${fromModule}';`);
   }
 
   return fileContent;
@@ -149,7 +149,7 @@ export function replaceImportModuleSpecifier(filePath: string, fileContent: stri
   const allImports = findNodes(sourceFile, sourceFile, SyntaxKind.ImportDeclaration);
   let modifiedContent = fileContent;
   allImports.forEach((node: ImportDeclaration) => {
-    if (node.moduleSpecifier.kind === SyntaxKind.StringLiteral && (node.moduleSpecifier as StringLiteral).text === moduleSpecifierOriginal ) {
+    if (node.moduleSpecifier.kind === SyntaxKind.StringLiteral && (node.moduleSpecifier as StringLiteral).text === moduleSpecifierOriginal) {
       modifiedContent = replaceNode(filePath, modifiedContent, node.moduleSpecifier, `'${moduleSpecifierReplacement}'`);
     }
   });
@@ -232,23 +232,45 @@ export function findObjectLiteralElementByName(properties: NodeArray<ObjectLiter
   })[0];
 }
 
-export function appendNgModuleDeclaration(filePath: string, fileContent: string, declaration: string, type?: string): string {
+export function appendNgModuleDeclaration(filePath: string, fileContent: string, declaration: string, ): string {
   const sourceFile = getTypescriptSourceFile(filePath, fileContent, ScriptTarget.Latest, false);
   const decorator = getNgModuleDecorator(path.basename(filePath), sourceFile);
   const obj = getNgModuleObjectLiteralArg(decorator);
-  if (type === 'provider') {
-    const properties = (findObjectLiteralElementByName(obj.properties, 'providers') as PropertyAssignment);
-    const declarations = (properties.initializer as ArrayLiteralExpression).elements;
-    if (declarations.length === 0) {
-      return appendEmpty(fileContent, declarations['end'], declaration);
-    } else {
-      return appendAfter(fileContent, declarations[declarations.length - 1], `,\n    ${declaration}`);
-    }
+  const properties = (findObjectLiteralElementByName(obj.properties, 'declarations') as PropertyAssignment);
+  const declarations = (properties.initializer as ArrayLiteralExpression).elements;
+  if (declarations.length === 0) {
+    return appendEmpty(fileContent, declarations['end'], declaration);
   } else {
-    const properties = (findObjectLiteralElementByName(obj.properties, 'declarations') as PropertyAssignment);
-    const declarations = (properties.initializer as ArrayLiteralExpression).elements;
     return appendAfter(fileContent, declarations[declarations.length - 1], `,\n    ${declaration}`);
   }
+}
+
+export function appendNgModuleProvider(filePath: string, fileContent: string, declaration: string): string {
+  const sourceFile = getTypescriptSourceFile(filePath, fileContent, ScriptTarget.Latest, false);
+  const decorator = getNgModuleDecorator(path.basename(filePath), sourceFile);
+  const obj = getNgModuleObjectLiteralArg(decorator);
+  const properties = (findObjectLiteralElementByName(obj.properties, 'providers') as PropertyAssignment);
+  const providers = (properties.initializer as ArrayLiteralExpression).elements;
+  if (providers.length === 0) {
+    return appendEmpty(fileContent, providers['end'], declaration);
+  } else {
+    return appendAfter(fileContent, providers[providers.length - 1], `,\n    ${declaration}`);
+  }
+
+}
+
+export function appendNgModuleExports(filePath: string, fileContent: string, declaration: string): string {
+  const sourceFile = getTypescriptSourceFile(filePath, fileContent, ScriptTarget.Latest, false);
+  const decorator = getNgModuleDecorator(path.basename(filePath), sourceFile);
+  const obj = getNgModuleObjectLiteralArg(decorator);
+  const properties = (findObjectLiteralElementByName(obj.properties, 'exports') as PropertyAssignment);
+  const exportsProp = (properties.initializer as ArrayLiteralExpression).elements;
+  if (exportsProp.length === 0) {
+    return appendEmpty(fileContent, exportsProp['end'], declaration);
+  } else {
+    return appendAfter(fileContent, exportsProp[exportsProp.length - 1], `,\n    ${declaration}`);
+  }
+
 }
 
 const NG_MODULE_DECORATOR_TEXT = 'NgModule';
