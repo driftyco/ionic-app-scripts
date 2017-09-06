@@ -31,6 +31,7 @@
   },
   "main": "dist/index.js",
   "dependencies": {
+    "@ionic/discover": "^0.2.1",
     "autoprefixer": "7.1.1",
     "babili": "0.1.2",
     "chalk": "1.1.3",

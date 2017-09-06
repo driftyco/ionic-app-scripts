@@ -7,6 +7,7 @@ import { watch } from './watch';
 import open from './util/open';
 import { createNotificationServer } from './dev-server/notification-server';
 import { createHttpServer } from './dev-server/http-server';
+import { createDevAppService } from './dev-server/bonjour';
 import { createLiveReloadServer } from './dev-server/live-reload';
 import { ServeConfig, IONIC_LAB_URL } from './dev-server/serve-config';
 import { findClosestOpenPorts } from './util/network';
@@ -46,7 +47,7 @@ export function serve(context: BuildContext) {
         useServerLogs: useServerLogs(context),
         useProxy: useProxy(context),
         notifyOnConsoleLog: sendClientConsoleLogs(context),
-        devapp: false
+        devapp: useDevApp(context)
       };
 
       createNotificationServer(config);
@@ -56,6 +57,7 @@ export function serve(context: BuildContext) {
       return watch(context);
     })
     .then(() => {
+      createDevAppService(config);
       onReady(config, context);
       return config;
     }, (err: BuildError) => {
@@ -142,6 +144,10 @@ function browserToLaunch(context: BuildContext): string {
 
 function browserOption(context: BuildContext): string {
   return getConfigValue(context, '--browseroption', '-o', 'IONIC_BROWSEROPTION', 'ionic_browseroption', null);
+}
+
+function useDevApp(context: BuildContext): boolean {
+  return hasConfigValue(context, '--devapp', '-D', 'devapp', true);
 }
 
 function launchLab(context: BuildContext): boolean {
