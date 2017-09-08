@@ -93,7 +93,7 @@ npm run build --rollup ./config/rollup.config.js
 
 | Config File | package.json Config | Cmd-line Flag         |
 |-------------|---------------------|-----------------------|
-| Babili      | `ionic_use_experimental_babili`  | `--babili`            |
+| Babili      | `ionic_babili`      | `--babili` or `-b`    |
 | CleanCss    | `ionic_cleancss`    | `--cleancss` or `-e`  |
 | Copy        | `ionic_copy`        | `--copy` or `-y`      |
 | Closure     | `ionic_closure`     | `--closure` or `-l`   |
