@@ -11,7 +11,10 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['.js', '.ts']
+    extensions: ['.js', '.ts'],
+    alias: {
+      '@app/env': path.resolve('src/environments/environment' + (process.env.IONIC_ENV === 'prod' ? '' : '.' + process.env.IONIC_ENV) + '.ts')
+    }
   },
 
   module: {

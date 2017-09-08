@@ -21,7 +21,10 @@ module.exports = {
 
   resolve: {
     extensions: ['.ts', '.js', '.json'],
-    modules: [path.resolve('node_modules')]
+    modules: [path.resolve('node_modules')],
+    alias: {
+      '@app/env': path.resolve('src/environments/environment' + (process.env.IONIC_ENV === 'prod' ? '' : '.' + process.env.IONIC_ENV) + '.ts')
+    }
   },
 
   module: {
