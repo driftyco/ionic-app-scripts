@@ -139,7 +139,7 @@ npm run build --rollup ./config/rollup.config.js
 | purge decorators | `ionic_purge_decorators` | `--purgeDecorators` | `true` | Set to `true` to purge unneeded decorators to improve tree shakeability of code |
 | experimental closure compiler | `ionic_use_experimental_closure` | `--useExperimentalClosure` | `null` | Set to `true` to use closure compiler to minify the final bundle |
 | experimental babili | `ionic_use_experimental_babili` | `--useExperimentalBabili` | `null` | Set to `true` to use babili to minify es2015 code |
-| convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for for production deployments |
+| convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for production deployments |
 | default watch timeout | `ionic_start_watch_timeout` | `--startWatchTimeout` | `3000` | Milliseconds controlling the default watch timeout |
 | choose the polyfill  | `ionic_polyfill_name` | `--polyfillName` | `polyfills` | Change with polyfills.modern or polyfills.ng (all options)[https://github.com/driftyco/ionic/tree/master/scripts/polyfill] |
 | enable linting | `ionic_enable_lint` | `--enableLint` | `true` | Set to `false` for skipping the linting after the build |
