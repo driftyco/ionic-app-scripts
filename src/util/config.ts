@@ -217,7 +217,7 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_CLOSURE_JAR, closureCompilerJarPath);
   Logger.debug(`closureCompilerJarPath set to ${closureCompilerJarPath}`);
 
-  context.outputJsFileName = getConfigValue(context, '--outputJsFileName', null, Constants.ENV_OUTPUT_JS_FILE_NAME, Constants.ENV_OUTPUT_JS_FILE_NAME.toLowerCase(), 'main.js');
+  context.outputJsFileName = getConfigValue(context, '--outputJsFileName', null, Constants.ENV_OUTPUT_JS_FILE_NAME, Constants.ENV_OUTPUT_JS_FILE_NAME.toLowerCase(), '[name].js');
   setProcessEnvVar(Constants.ENV_OUTPUT_JS_FILE_NAME, context.outputJsFileName);
   Logger.debug(`outputJsFileName set to ${context.outputJsFileName}`);
 

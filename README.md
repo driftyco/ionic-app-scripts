@@ -126,7 +126,7 @@ npm run build --rollup ./config/rollup.config.js
 | app ng module path | `ionic_app_ng_module_path`  | `--appNgModulePath` | `{{srcDir}}/app/app.module.ts` | absolute path to app's primary `NgModule` |
 | app ng module class | `ionic_app_ng_module_class`  | `--appNgModuleClass` | `AppModule` | Exported class name for app's primary `NgModule` |
 | clean before copy | `ionic_clean_before_copy`  | `--cleanBeforeCopy` | `false` | clean out existing files before copy task runs |
-| output js file | `ionic_output_js_file_name`  | `--outputJsFileName` | `main.js` | name of js file generated in `buildDir` |
+| output js file | `ionic_output_js_file_name`  | `--outputJsFileName` | `[name].js` | name of js file generated in `buildDir` |
 | output css file | `ionic_output_css_file_name`  | `--outputCssFileName` | `main.css` | name of css file generated in `buildDir` |
 | bail on lint error | `ionic_bail_on_lint_error`  | `--bailOnLintError` | `null` | Set to `true` to make stand-alone lint commands fail with non-zero status code |
 | enable type checking during lint | `ionic_type_check_on_lint`  | `--typeCheckOnLint` | `null` | Set to `true` to enable [type checking](https://palantir.github.io/tslint/usage/type-checking) during lint |
