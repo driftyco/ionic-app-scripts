@@ -1,4 +1,4 @@
-import * as Uglify from 'uglify-js';
+import * as Uglify from 'uglify-es';
 
 import { Logger } from './logger/logger';
 import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
