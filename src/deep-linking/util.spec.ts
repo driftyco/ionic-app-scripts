@@ -59,6 +59,7 @@ import { IonicPage, NavController } from 'ionic-angular';
 
 @IonicPage({
   name: 'someName',
+  moduleName: 'someModuleName',
   segment: 'someSegmentBro',
   defaultHistory: ['page-one', 'page-two'],
   priority: 'high'
@@ -100,8 +101,9 @@ export class HomePage {
 
       const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
 
-      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile, knownPath);
       expect(result.name).toEqual('someName');
+      expect(result.moduleName).toEqual('someModuleName');
       expect(result.segment).toEqual('someSegmentBro');
       expect(result.defaultHistory[0]).toEqual('page-one');
       expect(result.defaultHistory[1]).toEqual('page-two');
@@ -158,7 +160,7 @@ export class HomePage {
 
       const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
 
-      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile, knownPath);
       expect(result.name).toEqual('HomePage');
       expect(result.segment).toEqual('someSegmentBro');
       expect(result.defaultHistory[0]).toEqual('page-one');
@@ -215,7 +217,7 @@ export class HomePage {
 
       const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
 
-      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile, knownPath);
       expect(result.name).toEqual('HomePage');
       expect(result.segment).toEqual('path');
       expect(result.defaultHistory[0]).toEqual('page-one');
@@ -271,7 +273,7 @@ export class HomePage {
 
       const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
 
-      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile, knownPath);
       expect(result.name).toEqual('HomePage');
       expect(result.segment).toEqual('about');
       expect(result.defaultHistory).toBeTruthy();
@@ -326,7 +328,7 @@ export class HomePage {
 
       const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
 
-      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile, knownPath);
       expect(result.name).toEqual('HomePage');
       expect(result.segment).toEqual('path');
       expect(result.defaultHistory).toBeTruthy();
@@ -380,7 +382,7 @@ export class HomePage {
 
       const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
 
-      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile, knownPath);
       expect(result.name).toEqual('HomePage');
       expect(result.segment).toEqual('path');
       expect(result.defaultHistory).toBeTruthy();
@@ -441,7 +443,7 @@ export class HomePage {
 
       try {
 
-        util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+        util.getDeepLinkDecoratorContentForSourceFile(sourceFile, knownPath);
         throw new Error(knownErrorMsg);
       } catch (ex) {
         expect(ex.message).not.toEqual(knownErrorMsg);
@@ -490,7 +492,7 @@ export class HomePage {
       const knownPath = join(process.cwd(), 'some', 'fake', 'path');
 
       const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
-      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile, knownPath);
       expect(result).toEqual(null);
     });
 
@@ -533,7 +535,7 @@ export function removeDecorators(fileName: string, source: string): string {
       const knownPath = join(process.cwd(), 'some', 'fake', 'path');
 
       const sourceFile = tsUtils.getTypescriptSourceFile(knownPath, knownContent);
-      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile);
+      const result = util.getDeepLinkDecoratorContentForSourceFile(sourceFile, knownPath);
       expect(result).toEqual(null);
     });
   });
@@ -546,7 +548,7 @@ export function removeDecorators(fileName: string, source: string): string {
 
       spyOn(helpers, helpers.getStringPropertyValue.name).and.returnValue('.module.ts');
 
-      const result = util.getNgModulePathFromCorrespondingPage(pagePath);
+      const result = util.getNgModulePathFromCorrespondingPage(pagePath, null);
       expect(result).toEqual(ngModulePath);
     });
   });
@@ -1542,6 +1544,7 @@ export class AppModule {}
     it('should convert to a flat string format', () => {
       const entry: DeepLinkConfigEntry = {
         name: 'HomePage',
+        moduleName: null,
         segment: null,
         defaultHistory: [],
         priority: 'low',
@@ -1558,6 +1561,7 @@ export class AppModule {}
     it('should handle defaultHistory entries and segment', () => {
       const entry: DeepLinkConfigEntry = {
         name: 'HomePage',
+        moduleName: null,
         segment: 'idkMan',
         defaultHistory: ['page-two', 'page-three', 'page-four'],
         priority: 'low',
@@ -1577,6 +1581,7 @@ export class AppModule {}
       const list: DeepLinkConfigEntry[] = [];
       list.push({
         name: 'HomePage',
+        moduleName: 'someModuleName',
         segment: 'idkMan',
         defaultHistory: ['page-two', 'page-three', 'page-four'],
         priority: 'low',
@@ -1587,6 +1592,7 @@ export class AppModule {}
       });
       list.push({
         name: 'PageTwo',
+        moduleName: null,
         segment: null,
         defaultHistory: [],
         priority: 'low',
@@ -1597,6 +1603,7 @@ export class AppModule {}
       });
       list.push({
         name: 'SettingsPage',
+        moduleName: null,
         segment: null,
         defaultHistory: [],
         priority: 'low',

@@ -32,10 +32,10 @@ export function readTsFiles(context: BuildContext, tsFilePaths: string[]) {
 export function generateAndWriteNgModules(fileCache: FileCache) {
   fileCache.getAll().forEach(file => {
     const sourceFile = getTypescriptSourceFile(file.path, file.content);
-    const deepLinkDecoratorData = getDeepLinkDecoratorContentForSourceFile(sourceFile);
+    const deepLinkDecoratorData = getDeepLinkDecoratorContentForSourceFile(sourceFile, file.path);
     if (deepLinkDecoratorData) {
       // we have a valid DeepLink decorator
-      const correspondingNgModulePath = getNgModulePathFromCorrespondingPage(file.path);
+      const correspondingNgModulePath = getNgModulePathFromCorrespondingPage(file.path, deepLinkDecoratorData.moduleName);
       const ngModuleFile = fileCache.get(correspondingNgModulePath);
       if (!ngModuleFile) {
         // the ngModule file does not exist, so go ahead and create a default one

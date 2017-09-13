@@ -17,7 +17,7 @@ import {
 import { Logger } from '../logger/logger';
 import * as Constants from '../util/constants';
 import { FileCache } from '../util/file-cache';
-import { changeExtension, getStringPropertyValue, replaceAll, toUnixPath } from '../util/helpers';
+import { changeExtension, changeModuleName, getStringPropertyValue, replaceAll, toUnixPath } from '../util/helpers';
 import { BuildContext, ChangedFile, DeepLinkConfigEntry, DeepLinkDecoratorAndClass, DeepLinkPathInfo, File } from '../util/interfaces';
 import {
   appendAfter,
@@ -38,11 +38,11 @@ export function getDeepLinkData(appNgModuleFilePath: string, fileCache: FileCach
   const deepLinkConfigEntries: DeepLinkConfigEntry[] = [];
   typescriptFiles.forEach(file => {
     const sourceFile = getTypescriptSourceFile(file.path, file.content);
-    const deepLinkDecoratorData = getDeepLinkDecoratorContentForSourceFile(sourceFile);
+    const deepLinkDecoratorData = getDeepLinkDecoratorContentForSourceFile(sourceFile, file.path);
 
     if (deepLinkDecoratorData) {
       // sweet, the page has a DeepLinkDecorator, which means it meets the criteria to process that bad boy
-      const pathInfo = getNgModuleDataFromPage(appNgModuleFilePath, file.path, deepLinkDecoratorData.className, fileCache, isAot);
+      const pathInfo = getNgModuleDataFromPage(appNgModuleFilePath, file.path, deepLinkDecoratorData.className, fileCache, isAot, deepLinkDecoratorData.moduleName);
       const deepLinkConfigEntry = Object.assign({}, deepLinkDecoratorData, pathInfo);
       deepLinkConfigEntries.push(deepLinkConfigEntry);
     }
@@ -56,8 +56,13 @@ export function filterTypescriptFilesForDeepLinks(fileCache: FileCache): File[] 
   return fileCache.getAll().filter(file => extname(file.path) === '.ts' && file.path.indexOf(moduleSuffix) === -1 && file.path.indexOf(deepLinksDir) >= 0);
 }
 
-export function getNgModulePathFromCorrespondingPage(filePath: string) {
+export function getNgModulePathFromCorrespondingPage(filePath: string, moduleName: string) {
   const newExtension = getStringPropertyValue(Constants.ENV_NG_MODULE_FILE_NAME_SUFFIX);
+
+  if (moduleName) {
+    filePath = changeModuleName(filePath, moduleName);
+  }
+
   return changeExtension(filePath, newExtension);
 }
 
@@ -65,9 +70,10 @@ export function getRelativePathToPageNgModuleFromAppNgModule(pathToAppNgModule: 
   return relative(dirname(pathToAppNgModule), pathToPageNgModule);
 }
 
-export function getNgModuleDataFromPage(appNgModuleFilePath: string, filePath: string, className: string, fileCache: FileCache, isAot: boolean): DeepLinkPathInfo {
-  const ngModulePath = getNgModulePathFromCorrespondingPage(filePath);
+export function getNgModuleDataFromPage(appNgModuleFilePath: string, filePath: string, className: string, fileCache: FileCache, isAot: boolean, moduleName?: string): DeepLinkPathInfo {
+  const ngModulePath = getNgModulePathFromCorrespondingPage(filePath, moduleName);
   let ngModuleFile = fileCache.get(ngModulePath);
+
   if (!ngModuleFile) {
     throw new Error(`${filePath} has a @IonicPage decorator, but it does not have a corresponding "NgModule" at ${ngModulePath}`);
   }
@@ -86,7 +92,7 @@ export function getNgModuleDataFromPage(appNgModuleFilePath: string, filePath: s
   };
 }
 
-export function getDeepLinkDecoratorContentForSourceFile(sourceFile: SourceFile): DeepLinkDecoratorAndClass {
+export function getDeepLinkDecoratorContentForSourceFile(sourceFile: SourceFile, filePath: string): DeepLinkDecoratorAndClass {
   const classDeclarations = getClassDeclarations(sourceFile);
   const defaultSegment = basename(changeExtension(sourceFile.fileName, ''));
   const list: DeepLinkDecoratorAndClass[] = [];
@@ -106,13 +112,18 @@ export function getDeepLinkDecoratorContentForSourceFile(sourceFile: SourceFile)
             propertyList = deepLinkObject.properties as any as Node[]; // TODO this typing got jacked up
           }
 
+          const extension = extname(filePath);
+          const extensionlessfileName = basename(filePath, extension);
+
           const deepLinkName = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, className, DEEPLINK_DECORATOR_NAME_ATTRIBUTE);
+          const deepLinkModuleName = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, extensionlessfileName, DEEPLINK_DECORATOR_MODULE_NAME_ATTRIBUTE);
           const deepLinkSegment = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, defaultSegment, DEEPLINK_DECORATOR_SEGMENT_ATTRIBUTE);
           const deepLinkPriority = getStringValueFromDeepLinkDecorator(sourceFile, propertyList, 'low', DEEPLINK_DECORATOR_PRIORITY_ATTRIBUTE);
           const deepLinkDefaultHistory = getArrayValueFromDeepLinkDecorator(sourceFile, propertyList, [], DEEPLINK_DECORATOR_DEFAULT_HISTORY_ATTRIBUTE);
           const rawStringContent = getNodeStringContent(sourceFile, decorator.expression);
           list.push({
             name: deepLinkName,
+            moduleName: deepLinkModuleName,
             segment: deepLinkSegment,
             priority: deepLinkPriority,
             defaultHistory: deepLinkDefaultHistory,
@@ -378,6 +389,7 @@ export class ${className}Module {}
 const DEEPLINK_DECORATOR_TEXT = 'IonicPage';
 const DEEPLINK_DECORATOR_NAME_ATTRIBUTE = 'name';
 const DEEPLINK_DECORATOR_SEGMENT_ATTRIBUTE = 'segment';
+const DEEPLINK_DECORATOR_MODULE_NAME_ATTRIBUTE = 'moduleName';
 const DEEPLINK_DECORATOR_PRIORITY_ATTRIBUTE = 'priority';
 const DEEPLINK_DECORATOR_DEFAULT_HISTORY_ATTRIBUTE = 'defaultHistory';
 
