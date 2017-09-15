@@ -63,6 +63,7 @@ function setupProxies(app: express.Application) {
         }
 
         opts.rejectUnauthorized = !(proxy.rejectUnauthorized === false);
+        opts.cookieRewrite = proxy.cookieRewrite;
 
         app.use(proxy.path, proxyMiddleware(opts));
         Logger.info('Proxy added:' + proxy.path + ' => ' + url.format(opts));

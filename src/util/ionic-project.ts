@@ -10,7 +10,8 @@ export interface IonicProject {
     path: string,
     proxyUrl: string,
     proxyNoAgent: boolean,
-    rejectUnauthorized: boolean
+    rejectUnauthorized: boolean,
+    cookieRewrite: string | boolean,
   }[];
 }
 
