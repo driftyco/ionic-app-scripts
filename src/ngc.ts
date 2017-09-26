@@ -1,14 +1,17 @@
 import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
-import { buildOptimizer, purify } from '@angular-devkit/build-optimizer';
 
+import { AotCompiler } from './aot/aot-compiler';
+import {
+  convertDeepLinkConfigEntriesToString,
+  getUpdatedAppNgModuleContentWithDeepLinkConfig,
+  filterTypescriptFilesForDeepLinks,
+  purgeDeepLinkDecorator
+} from './deep-linking/util';
 import { Logger } from './logger/logger';
 import { getUserConfigFile} from './util/config';
 import * as Constants from './util/constants';
-import { changeExtension } from './util/helpers';
+import { changeExtension, getBooleanPropertyValue, getParsedDeepLinkConfig, getStringPropertyValue } from './util/helpers';
 import { BuildContext, TaskInfo } from './util/interfaces';
-import { AotCompiler } from './aot/aot-compiler';
-
-
 
 export function ngc(context: BuildContext, configFile?: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
@@ -25,7 +28,9 @@ export function ngc(context: BuildContext, configFile?: string) {
 }
 
 export function ngcWorker(context: BuildContext, configFile: string): Promise<any> {
-  return runNgc(context, configFile);
+  return transformTsForDeepLinking(context).then(() => {
+    return runNgc(context, configFile);
+  });
 }
 
 export function runNgc(context: BuildContext, configFile: string): Promise<any> {
@@ -36,6 +41,19 @@ export function runNgc(context: BuildContext, configFile: string): Promise<any> 
     appNgModulePath: process.env[Constants.ENV_APP_NG_MODULE_PATH]
   });
   return compiler.compile();
+}
+
+export function transformTsForDeepLinking(context: BuildContext) {
+  if (getBooleanPropertyValue(Constants.ENV_PARSE_DEEPLINKS)) {
+    const tsFiles = filterTypescriptFilesForDeepLinks(context.fileCache);
+    tsFiles.forEach(tsFile => {
+      tsFile.content = purgeDeepLinkDecorator(tsFile.content);
+    });
+    const tsFile = context.fileCache.get(getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH));
+    const deepLinkString = convertDeepLinkConfigEntriesToString(getParsedDeepLinkConfig());
+    tsFile.content = getUpdatedAppNgModuleContentWithDeepLinkConfig(tsFile.path, tsFile.content, deepLinkString);
+  }
+  return Promise.resolve();
 }
 
 const taskInfo: TaskInfo = {

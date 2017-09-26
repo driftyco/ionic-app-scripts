@@ -8,11 +8,6 @@ export function getIonicEnvironmentPlugin() {
   return new IonicEnvironmentPlugin(context, true);
 }
 
-export function getIonicOptimizationEnvironmentPlugin() {
-  const context = getContext();
-  return new IonicEnvironmentPlugin(context, false);
-}
-
 export function getSourceMapperFunction(): Function {
   return provideCorrectSourcePath;
 }

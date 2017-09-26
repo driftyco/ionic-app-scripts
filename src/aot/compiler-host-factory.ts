@@ -1,12 +1,12 @@
 import { CompilerOptions } from 'typescript';
-import { NgcCompilerHost } from './compiler-host';
+import { InMemoryCompilerHost } from './compiler-host';
 import { getInstance as getFileSystemInstance } from '../util/hybrid-file-system-factory';
 
-let instance: NgcCompilerHost = null;
+let instance: InMemoryCompilerHost = null;
 
-export function getInstance(options: CompilerOptions) {
+export function getInMemoryCompilerHostInstance(options: CompilerOptions) {
   if (!instance) {
-    instance = new NgcCompilerHost(options, getFileSystemInstance(false));
+    instance = new InMemoryCompilerHost(options, getFileSystemInstance(false));
   }
   return instance;
 }

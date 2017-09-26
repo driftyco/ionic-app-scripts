@@ -105,10 +105,10 @@ export class IonicEnvironmentPlugin {
 }
 
 
-export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: DeepLinkConfigEntry[]) {
+export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: Map<string, DeepLinkConfigEntry>) {
   const dictionary: { [index: string]: string} = { };
   if (!parsedDeepLinkConfigs) {
-    parsedDeepLinkConfigs = [];
+    parsedDeepLinkConfigs = new Map<string, DeepLinkConfigEntry>();
   }
   parsedDeepLinkConfigs.forEach(parsedDeepLinkConfig => {
     if (parsedDeepLinkConfig.userlandModulePath && parsedDeepLinkConfig.absolutePath) {

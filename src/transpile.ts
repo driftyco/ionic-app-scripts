@@ -1,19 +1,34 @@
-import * as Constants from './util/constants';
-import { FileCache } from './util/file-cache';
-import { BuildContext, BuildState, ChangedFile } from './util/interfaces';
-import { BuildError } from './util/errors';
-import { buildJsSourceMaps } from './bundle';
-import { changeExtension } from './util/helpers';
-import { EventEmitter } from 'events';
 import { fork, ChildProcess } from 'child_process';
-import { inlineTemplate } from './template';
-import { Logger } from './logger/logger';
+import { EventEmitter } from 'events';
 import { readFileSync } from 'fs';
-import { runTypeScriptDiagnostics } from './logger/logger-typescript';
-import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
 import * as path from 'path';
+
 import * as ts from 'typescript';
 
+import { getInMemoryCompilerHostInstance } from './aot/compiler-host-factory';
+import { buildJsSourceMaps } from './bundle';
+import {
+  getInjectDeepLinkConfigTypescriptTransform,
+  purgeDeepLinkDecoratorTSTransform }
+from './deep-linking/util';
+
+import {
+  convertDeepLinkConfigEntriesToString,
+  getUpdatedAppNgModuleContentWithDeepLinkConfig,
+  filterTypescriptFilesForDeepLinks,
+  isDeepLinkingFile,
+  purgeDeepLinkDecorator
+} from './deep-linking/util';
+
+import { Logger } from './logger/logger';
+import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
+import { runTypeScriptDiagnostics } from './logger/logger-typescript';
+import { inlineTemplate } from './template';
+import * as Constants from './util/constants';
+import { BuildError } from './util/errors';
+import { FileCache } from './util/file-cache';
+import { changeExtension, getBooleanPropertyValue, getParsedDeepLinkConfig, getStringPropertyValue } from './util/helpers';
+import { BuildContext, BuildState, ChangedFile, File } from './util/interfaces';
 
 export function transpile(context: BuildContext) {
 
@@ -22,7 +37,8 @@ export function transpile(context: BuildContext) {
     writeInMemory: true,
     sourceMaps: true,
     cache: true,
-    inlineTemplate: context.inlineTemplates
+    inlineTemplate: context.inlineTemplates,
+    useTransforms: true
   };
 
   const logger = new Logger('transpile');
@@ -45,7 +61,8 @@ export function transpileUpdate(changedFiles: ChangedFile[], context: BuildConte
     writeInMemory: true,
     sourceMaps: true,
     cache: false,
-    inlineTemplate: context.inlineTemplates
+    inlineTemplate: context.inlineTemplates,
+    useTransforms: true
   };
 
   const logger = new Logger('transpile update');
@@ -99,12 +116,35 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
     tsConfig.options.declaration = undefined;
 
     // let's start a new tsFiles object to cache all the transpiled files in
-    const host = ts.createCompilerHost(tsConfig.options);
+    const host = getInMemoryCompilerHostInstance(tsConfig.options);
+
+    if (workerConfig.useTransforms && getBooleanPropertyValue(Constants.ENV_PARSE_DEEPLINKS)) {
+      // beforeArray.push(purgeDeepLinkDecoratorTSTransform());
+      // beforeArray.push(getInjectDeepLinkConfigTypescriptTransform());
+
+      // temporarily copy the files to a new location
+      copyOriginalSourceFiles(context.fileCache);
+
+      // okay, purge the deep link files NOT using a transform
+      const deepLinkFiles = filterTypescriptFilesForDeepLinks(context.fileCache);
+
+      deepLinkFiles.forEach(file => {
+        file.content = purgeDeepLinkDecorator(file.content);
+      });
+
+      const file = context.fileCache.get(getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH));
+      const deepLinkString = convertDeepLinkConfigEntriesToString(getParsedDeepLinkConfig());
+      file.content = getUpdatedAppNgModuleContentWithDeepLinkConfig(file.path, file.content, deepLinkString);
+    }
 
     const program = ts.createProgram(tsFileNames, tsConfig.options, host, cachedProgram);
+
+    resetSourceFiles(context.fileCache);
+
+    const beforeArray: ts.TransformerFactory<ts.SourceFile>[] = [];
+
     program.emit(undefined, (path: string, data: string, writeByteOrderMark: boolean, onError: Function, sourceFiles: ts.SourceFile[]) => {
       if (workerConfig.writeInMemory) {
-        writeSourceFiles(context.fileCache, sourceFiles);
         writeTranspiledFilesCallback(context.fileCache, path, data, workerConfig.inlineTemplate);
       }
     });
@@ -159,18 +199,21 @@ function transpileUpdateWorker(event: string, filePath: string, context: BuildCo
     // build the ts source maps if the bundler is going to use source maps
     cachedTsConfig.options.sourceMap = buildJsSourceMaps(context);
 
+    const beforeArray: ts.TransformerFactory<ts.SourceFile>[] = [];
+
     const transpileOptions: ts.TranspileOptions = {
       compilerOptions: cachedTsConfig.options,
       fileName: filePath,
-      reportDiagnostics: true
+      reportDiagnostics: true,
     };
 
     // let's manually transpile just this one ts file
     // since it is an update, it's in memory already
     const sourceText = context.fileCache.get(filePath).content;
+    const textToTranspile = workerConfig.useTransforms && getBooleanPropertyValue(Constants.ENV_PARSE_DEEPLINKS) ? transformSource(filePath, sourceText) : sourceText;
 
     // transpile this one module
-    const transpileOutput = ts.transpileModule(sourceText, transpileOptions);
+    const transpileOutput = ts.transpileModule(textToTranspile, transpileOptions);
 
     const diagnostics = runTypeScriptDiagnostics(context, transpileOutput.diagnostics);
 
@@ -264,13 +307,6 @@ function cleanFileNames(context: BuildContext, fileNames: string[]) {
   return fileNames;
 }
 
-function writeSourceFiles(fileCache: FileCache, sourceFiles: ts.SourceFile[]) {
-  for (const sourceFile of sourceFiles) {
-    const fileName = path.normalize(path.resolve(sourceFile.fileName));
-    fileCache.set(fileName, { path: fileName, content: sourceFile.text });
-  }
-}
-
 function writeTranspiledFilesCallback(fileCache: FileCache, sourcePath: string, data: string, shouldInlineTemplate: boolean) {
   sourcePath = path.normalize(path.resolve(sourcePath));
 
@@ -360,6 +396,42 @@ export function transpileTsString(context: BuildContext, filePath: string, strin
   return ts.transpileModule(stringToTranspile, transpileOptions);
 }
 
+export function transformSource(filePath: string, input: string) {
+  if (isDeepLinkingFile(filePath) ) {
+    input = purgeDeepLinkDecorator(input);
+  } else if (filePath === getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH)) {
+    const deepLinkString = convertDeepLinkConfigEntriesToString(getParsedDeepLinkConfig());
+    input = getUpdatedAppNgModuleContentWithDeepLinkConfig(filePath, input, deepLinkString);
+  }
+  return input;
+}
+
+export function copyOriginalSourceFiles(fileCache: FileCache) {
+  const deepLinkFiles = filterTypescriptFilesForDeepLinks(fileCache);
+  const appNgModule = fileCache.get(getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH));
+  deepLinkFiles.push(appNgModule);
+  deepLinkFiles.forEach(deepLinkFile => {
+    fileCache.set(deepLinkFile.path + inMemoryFileCopySuffix, {
+      path: deepLinkFile.path + inMemoryFileCopySuffix,
+      content: deepLinkFile.content
+    });
+  });
+}
+
+export function resetSourceFiles(fileCache: FileCache) {
+  fileCache.getAll().forEach(file => {
+    if (path.extname(file.path) === `.ts${inMemoryFileCopySuffix}`) {
+      const originalExtension = changeExtension(file.path, '.ts');
+      fileCache.set(originalExtension, {
+        path: originalExtension,
+        content: file.content
+      });
+      fileCache.getRawStore().delete(file.path);
+    }
+  });
+}
+
+export const inMemoryFileCopySuffix = 'original';
 
 let cachedProgram: ts.Program = null;
 let cachedTsConfig: TsConfig = null;
@@ -380,4 +452,5 @@ export interface TranspileWorkerConfig {
   sourceMaps: boolean;
   cache: boolean;
   inlineTemplate: boolean;
+  useTransforms: boolean;
 }

@@ -9,8 +9,8 @@ import AngularCompilerOptions from '@angular/tsc-wrapped/src/options';
 
 import { HybridFileSystem } from '../util/hybrid-file-system';
 import { getInstance as getHybridFileSystem } from '../util/hybrid-file-system-factory';
-import { getInstance } from './compiler-host-factory';
-import { NgcCompilerHost } from './compiler-host';
+import { getInMemoryCompilerHostInstance } from './compiler-host-factory';
+import { InMemoryCompilerHost } from './compiler-host';
 import { getFallbackMainContent, replaceBootstrap } from './utils';
 import { Logger } from '../logger/logger';
 import { printDiagnostics, clearDiagnostics, DiagnosticsType } from '../logger/logger-diagnostics';
@@ -26,7 +26,7 @@ export class AotCompiler {
   private tsConfig: ParsedTsConfig;
   private angularCompilerOptions: AngularCompilerOptions;
   private program: Program;
-  private compilerHost: NgcCompilerHost;
+  private compilerHost: InMemoryCompilerHost;
   private fileSystem: HybridFileSystem;
   private lazyLoadedModuleDictionary: any;
 
@@ -39,7 +39,7 @@ export class AotCompiler {
     });
 
     this.fileSystem = getHybridFileSystem(false);
-    this.compilerHost = getInstance(this.tsConfig.parsed.options);
+    this.compilerHost = getInMemoryCompilerHostInstance(this.tsConfig.parsed.options);
     this.program = createProgram(this.tsConfig.parsed.fileNames, this.tsConfig.parsed.options, this.compilerHost);
   }
 
@@ -68,16 +68,6 @@ export class AotCompiler {
       Logger.debug('[AotCompiler] compile: Creating and validating new TypeScript Program ...');
       this.program = errorCheckProgram(this.context, this.tsConfig, this.compilerHost, this.program);
       Logger.debug('[AotCompiler] compile: Creating and validating new TypeScript Program ... DONE');
-    })
-    .then(() => {
-
-      Logger.debug('[AotCompiler] compile: The following files are included in the program: ');
-      for ( const fileName of this.tsConfig.parsed.fileNames) {
-        Logger.debug(`[AotCompiler] compile: ${fileName}`);
-        const cleanedFileName = normalize(resolve(fileName));
-        const content = readFileSync(cleanedFileName).toString();
-        this.context.fileCache.set(cleanedFileName, { path: cleanedFileName, content: content});
-      }
     }).then(() => {
       Logger.debug('[AotCompiler] compile: Starting to process and modify entry point ...');
       const mainFile = this.context.fileCache.get(this.options.entryPoint);
@@ -114,7 +104,7 @@ export class AotCompiler {
   }
 }
 
-function errorCheckProgram(context: BuildContext, tsConfig: ParsedTsConfig, compilerHost: NgcCompilerHost, cachedProgram: Program) {
+function errorCheckProgram(context: BuildContext, tsConfig: ParsedTsConfig, compilerHost: InMemoryCompilerHost, cachedProgram: Program) {
   // Create a new Program, based on the old one. This will trigger a resolution of all
   // transitive modules, which include files that might just have been generated.
   const program = createProgram(tsConfig.parsed.fileNames, tsConfig.parsed.options, compilerHost, cachedProgram);
