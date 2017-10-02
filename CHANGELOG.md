@@ -8,10 +8,10 @@ The `webpack` config format changed from being a config that is exported to bein
 This release adds support for `ngo`, the Angular team's build optimizer tool. `ngo` is enabled by default on `--prod` builds. In the event that `ngo` is not working for your app or something goes wrong, it can be disabled by running the following build command.
 
 ```
-ionic build ios --aot --minifyJs --minifyCss
+ionic cordova build ios --aot --minifyjs --minifycss --optimizejs
 ```
 
-Using the `--aot` flag enables the `AoT Compiler`. `--minifyJs` and `--minifyCss` minify the outputted code.
+Using the `--aot` flag enables the `AoT Compiler`. `--minifyjs` and `--minifycss` minify the outputted code.
 
 ### Notes
 Version `3.0.0` deprecated support for Rollup, Closure Compiler, and Babili. The support for these was poor and they were not used by many developers. `uglifyjs` was replaced with the newer `uglifyes`, which supports ES2015.
