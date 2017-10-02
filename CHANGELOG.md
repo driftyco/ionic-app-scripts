@@ -8,7 +8,7 @@ The `webpack` config format changed from being a config that is exported to bein
 This release adds support for `ngo`, the Angular team's build optimizer tool. `ngo` is enabled by default on `--prod` builds. In the event that `ngo` is not working for your app or something goes wrong, it can be disabled by running the following build command.
 
 ```
-ionic build ios --aot --minifyJs --minifyCss
+ionic cordovoa build ios --aot --minifyJs --minifyCss
 ```
 
 Using the `--aot` flag enables the `AoT Compiler`. `--minifyJs` and `--minifyCss` minify the outputted code.
