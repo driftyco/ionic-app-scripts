@@ -6,7 +6,7 @@ import { Logger } from '../logger/logger';
 import { getInstance } from '../util/hybrid-file-system-factory';
 import { WatchMemorySystem } from './watch-memory-system';
 
-import * as ContextElementDependency from 'webpack/lib/dependencies/ContextElementDependency';
+const ContextElementDependency = require('webpack/lib/dependencies/ContextElementDependency');
 
 export class IonicEnvironmentPlugin {
   constructor(private context: BuildContext, private writeToDisk: boolean) {
@@ -105,10 +105,10 @@ export class IonicEnvironmentPlugin {
 }
 
 
-export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: DeepLinkConfigEntry[]) {
+export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: Map<string, DeepLinkConfigEntry>) {
   const dictionary: { [index: string]: string} = { };
   if (!parsedDeepLinkConfigs) {
-    parsedDeepLinkConfigs = [];
+    parsedDeepLinkConfigs = new Map<string, DeepLinkConfigEntry>();
   }
   parsedDeepLinkConfigs.forEach(parsedDeepLinkConfig => {
     if (parsedDeepLinkConfig.userlandModulePath && parsedDeepLinkConfig.absolutePath) {

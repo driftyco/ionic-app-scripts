@@ -17,6 +17,8 @@ export * from './util/interfaces';
 export * from './util/constants';
 export * from './generators';
 
+export { getDeepLinkData } from './deep-linking/util';
+
 import { generateContext } from './util/config';
 import { getAppScriptsVersion } from './util/helpers';
 import { Logger } from './logger/logger';

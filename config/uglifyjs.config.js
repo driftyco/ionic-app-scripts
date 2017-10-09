@@ -1,5 +1,5 @@
 
-// https://www.npmjs.com/package/uglify-js
+// https://www.npmjs.com/package/uglify-es
 
 module.exports = {
 

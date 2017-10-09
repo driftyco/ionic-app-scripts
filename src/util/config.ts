@@ -62,6 +62,21 @@ export function generateContext(context?: BuildContext): BuildContext {
     context.isWatch = hasArg('--watch');
   }
 
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_AOT, `${context.runAot}`);
+  Logger.debug(`${Constants.ENV_VAR_IONIC_AOT} set to ${context.runAot}`);
+
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_MINIFY_JS, `${context.runMinifyJs}`);
+  Logger.debug(`${Constants.ENV_VAR_IONIC_MINIFY_JS} set to ${context.runMinifyJs}`);
+
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_MINIFY_CSS, `${context.runMinifyCss}`);
+  Logger.debug(`${Constants.ENV_VAR_IONIC_MINIFY_CSS} set to ${context.runMinifyCss}`);
+
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_OPTIMIZE_JS, `${context.optimizeJs}`);
+  Logger.debug(`${Constants.ENV_VAR_IONIC_OPTIMIZE_JS} set to ${context.optimizeJs}`);
+
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_MINIFY_JS, `${context.runMinifyJs}`);
+  Logger.debug(`${Constants.ENV_VAR_IONIC_MINIFY_JS} set to ${context.runMinifyJs}`);
+
   context.rootDir = resolve(context.rootDir || getConfigValue(context, '--rootDir', null, Constants.ENV_VAR_ROOT_DIR, Constants.ENV_VAR_ROOT_DIR.toLowerCase(), processCwd));
   setProcessEnvVar(Constants.ENV_VAR_ROOT_DIR, context.rootDir);
   Logger.debug(`rootDir set to ${context.rootDir}`);
@@ -89,6 +104,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   context.buildDir = resolve(context.buildDir || getConfigValue(context, '--buildDir', null, Constants.ENV_VAR_BUILD_DIR, Constants.ENV_VAR_BUILD_DIR.toLowerCase(), join(context.wwwDir, Constants.BUILD_DIR)));
   setProcessEnvVar(Constants.ENV_VAR_BUILD_DIR, context.buildDir);
   Logger.debug(`buildDir set to ${context.buildDir}`);
+
+  const fontsDir = resolve(getConfigValue(context, '--fontsDir', null, Constants.ENV_VAR_FONTS_DIR, Constants.ENV_VAR_FONTS_DIR.toLowerCase(), join(context.wwwDir, 'assets', 'fonts')));
+  setProcessEnvVar(Constants.ENV_VAR_FONTS_DIR, fontsDir);
+  Logger.debug(`fontsDir set to ${fontsDir}`);
 
   context.sourcemapDir = resolve(context.sourcemapDir || getConfigValue(context, '--sourcemapDir', null, Constants.ENV_VAR_SOURCEMAP_DIR, Constants.ENV_VAR_SOURCEMAP_DIR.toLowerCase(), Constants.SOURCEMAP_DIR));
   setProcessEnvVar(Constants.ENV_VAR_SOURCEMAP_DIR, context.sourcemapDir);
@@ -193,7 +212,7 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_COMPONENTS_NG_MODULE_PATH, context.componentsNgModulePath);
   Logger.debug(`componentsNgModulePath set to ${context.componentsNgModulePath}`);
 
-  context.pipesNgModulePath = resolve(getConfigValue(context, '--pipesNgModulePath', null, Constants.ENV_PIPES_NG_MODULE_PATH, Constants.ENV_PIPES_NG_MODULE_PATH.toLowerCase(), join(context.srcDir, 'PIPES', 'pipes.module.ts')));
+  context.pipesNgModulePath = resolve(getConfigValue(context, '--pipesNgModulePath', null, Constants.ENV_PIPES_NG_MODULE_PATH, Constants.ENV_PIPES_NG_MODULE_PATH.toLowerCase(), join(context.srcDir, 'pipes', 'pipes.module.ts')));
   setProcessEnvVar(Constants.ENV_PIPES_NG_MODULE_PATH, context.pipesNgModulePath);
   Logger.debug(`pipesNgModulePath set to ${context.pipesNgModulePath}`);
 
@@ -213,10 +232,6 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_CLEAN_BEFORE_COPY, cleanBeforeCopy);
   Logger.debug(`cleanBeforeCopy set to ${cleanBeforeCopy}`);
 
-  const closureCompilerJarPath = join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'bin', 'closure-compiler.jar');
-  setProcessEnvVar(Constants.ENV_CLOSURE_JAR, closureCompilerJarPath);
-  Logger.debug(`closureCompilerJarPath set to ${closureCompilerJarPath}`);
-
   context.outputJsFileName = getConfigValue(context, '--outputJsFileName', null, Constants.ENV_OUTPUT_JS_FILE_NAME, Constants.ENV_OUTPUT_JS_FILE_NAME.toLowerCase(), 'main.js');
   setProcessEnvVar(Constants.ENV_OUTPUT_JS_FILE_NAME, context.outputJsFileName);
   Logger.debug(`outputJsFileName set to ${context.outputJsFileName}`);
@@ -233,6 +248,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_WEBPACK_LOADER, webpackLoaderPath);
   Logger.debug(`webpackLoaderPath set to ${webpackLoaderPath}`);
 
+  const cacheLoaderPath = join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'cache-loader.js');
+  setProcessEnvVar(Constants.ENV_CACHE_LOADER, cacheLoaderPath);
+  Logger.debug(`cacheLoaderPath set to ${cacheLoaderPath}`);
+
   const webpackTranspileLoaderPath = join(getProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR), 'dist', 'webpack', 'transpile-loader.js');
   setProcessEnvVar(Constants.ENV_WEBPACK_TRANSPILE_LOADER, webpackTranspileLoaderPath);
   Logger.debug(`webpackTranspileLoaderPath set to ${webpackTranspileLoaderPath}`);
@@ -245,18 +264,9 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_AOT_WRITE_TO_DISK, aotWriteToDisk);
   Logger.debug(`aotWriteToDisk set to ${aotWriteToDisk}`);
 
-  const printOriginalDependencyTree = getConfigValue(context, '--printOriginalDependencyTree', null, Constants.ENV_PRINT_ORIGINAL_DEPENDENCY_TREE, Constants.ENV_PRINT_ORIGINAL_DEPENDENCY_TREE.toLowerCase(), null);
-  setProcessEnvVar(Constants.ENV_PRINT_ORIGINAL_DEPENDENCY_TREE, printOriginalDependencyTree);
-  Logger.debug(`printOriginalDependencyTree set to ${printOriginalDependencyTree}`);
-
-  const printModifiedDependencyTree = getConfigValue(context, '--printModifiedDependencyTree', null, Constants.ENV_PRINT_MODIFIED_DEPENDENCY_TREE, Constants.ENV_PRINT_MODIFIED_DEPENDENCY_TREE.toLowerCase(), null);
-  setProcessEnvVar(Constants.ENV_PRINT_MODIFIED_DEPENDENCY_TREE, printModifiedDependencyTree);
-  Logger.debug(`printModifiedDependencyTree set to ${printModifiedDependencyTree}`);
-
   const printWebpackDependencyTree = getConfigValue(context, '--printWebpackDependencyTree', null, Constants.ENV_PRINT_WEBPACK_DEPENDENCY_TREE, Constants.ENV_PRINT_WEBPACK_DEPENDENCY_TREE.toLowerCase(), null);
   setProcessEnvVar(Constants.ENV_PRINT_WEBPACK_DEPENDENCY_TREE, printWebpackDependencyTree);
   Logger.debug(`printWebpackDependencyTree set to ${printWebpackDependencyTree}`);
-
   const typeCheckOnLint = getConfigValue(context, '--typeCheckOnLint', null, Constants.ENV_TYPE_CHECK_ON_LINT, Constants.ENV_TYPE_CHECK_ON_LINT.toLowerCase(), null);
   setProcessEnvVar(Constants.ENV_TYPE_CHECK_ON_LINT, typeCheckOnLint);
   Logger.debug(`typeCheckOnLint set to ${typeCheckOnLint}`);
@@ -284,6 +294,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   const polyfillName = getConfigValue(context, '--polyfillFileName', null, Constants.ENV_POLYFILL_FILE_NAME, Constants.ENV_POLYFILL_FILE_NAME.toLowerCase(), 'polyfills.js');
   setProcessEnvVar(Constants.ENV_POLYFILL_FILE_NAME, polyfillName);
   Logger.debug(`polyfillName set to ${polyfillName}`);
+
+  const purgeUnusedFonts = getConfigValue(context, '--purgeUnusedFonts', null, Constants.ENV_PURGE_UNUSED_FONTS, Constants.ENV_PURGE_UNUSED_FONTS.toLowerCase(), 'true');
+  setProcessEnvVar(Constants.ENV_PURGE_UNUSED_FONTS, purgeUnusedFonts);
+  Logger.debug(`purgeUnusedFonts set to ${purgeUnusedFonts}`);
 
   /* Provider Path Stuff */
   setProcessEnvVar(Constants.ENV_ACTION_SHEET_CONTROLLER_CLASSNAME, 'ActionSheetController');
@@ -338,27 +352,10 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_PARSE_DEEPLINKS, parseDeepLinks);
   Logger.debug(`parseDeepLinks set to ${parseDeepLinks}`);
 
-  const purgeDecorators = getConfigValue(context, '--purgeDecorators', null, Constants.ENV_PURGE_DECORATORS, Constants.ENV_PURGE_DECORATORS.toLowerCase(), 'true');
-  setProcessEnvVar(Constants.ENV_PURGE_DECORATORS, purgeDecorators);
-  Logger.debug(`purgeDecorators set to ${purgeDecorators}`);
-
-  const manualTreeshaking = getConfigValue(context, '--manualTreeshaking', null, Constants.ENV_MANUAL_TREESHAKING, Constants.ENV_MANUAL_TREESHAKING.toLowerCase(), 'true');
-  setProcessEnvVar(Constants.ENV_MANUAL_TREESHAKING, manualTreeshaking);
-  Logger.debug(`manualTreeshaking set to ${manualTreeshaking}`);
-
-  /* Experimental Flags */
-  const useExperimentalClosure = getConfigValue(context, '--useExperimentalClosure', null, Constants.ENV_USE_EXPERIMENTAL_CLOSURE, Constants.ENV_USE_EXPERIMENTAL_CLOSURE.toLowerCase(), null);
-  setProcessEnvVar(Constants.ENV_USE_EXPERIMENTAL_CLOSURE, useExperimentalClosure);
-  Logger.debug(`useExperimentalClosure set to ${useExperimentalClosure}`);
-
-  const useExperimentalBabili = getConfigValue(context, '--useExperimentalBabili', null, Constants.ENV_USE_EXPERIMENTAL_BABILI, Constants.ENV_USE_EXPERIMENTAL_BABILI.toLowerCase(), null);
-  setProcessEnvVar(Constants.ENV_USE_EXPERIMENTAL_BABILI, useExperimentalBabili);
-  Logger.debug(`useExperimentalBabili set to ${useExperimentalBabili}`);
-
   // default stand-alone builds to default to es5
   // if closure is being used, don't worry about this as it already automatically converts to ES5
 
-  const buildToEs5 = getConfigValue(context, '--buildToEs5', null, Constants.ENV_BUILD_TO_ES5, Constants.ENV_BUILD_TO_ES5.toLowerCase(), useExperimentalClosure ? null : 'true');
+  const buildToEs5 = getConfigValue(context, '--buildToEs5', null, Constants.ENV_BUILD_TO_ES5, Constants.ENV_BUILD_TO_ES5.toLowerCase(), 'true');
   setProcessEnvVar(Constants.ENV_BUILD_TO_ES5, buildToEs5);
   Logger.debug(`buildToEs5 set to ${buildToEs5}`);
 
@@ -434,59 +431,12 @@ export function fillConfigDefaults(userConfigFile: string, defaultConfigFile: st
 }
 
 export function bundlerStrategy(context: BuildContext): string {
-  // 1) User provided a rollup config via cmd line args
-  let val: any = getArgValue('--rollup', '-r');
-  if (val) {
-    return Constants.BUNDLER_ROLLUP;
-  }
-
-  // 2) User provided both a rollup config and webpack config in package.json config
-  val = getPackageJsonConfig(context, 'ionic_rollup');
-  const webpackVal = getPackageJsonConfig(context, 'ionic_webpack');
-  if (val && webpackVal) {
-    let bundler = getPackageJsonConfig(context, 'ionic_bundler');
-    if (isValidBundler(bundler)) {
-      return bundler;
-    }
-  }
-
-  // 3) User provided a rollup config env var
-  val = getProcessEnvVar('ionic_rollup');
-  if (val) {
-    return Constants.BUNDLER_ROLLUP;
-  }
-
-  // 4) User provided a rollup config in package.json config
-  val = getPackageJsonConfig(context, 'ionic_rollup');
-  if (val) {
-    return Constants.BUNDLER_ROLLUP;
-  }
-
-  // 5) User set bundler through full arg
-  val = getArgValue('--bundler', null);
-  if (isValidBundler(val)) {
-    return val;
-  }
-
-  // 6) User set bundler through package.json config
-  val = getPackageJsonConfig(context, 'ionic_bundler');
-  if (isValidBundler(val)) {
-    return val;
-  }
-
-  // 7) User set to use rollup at the bundler
-  val = getProcessEnvVar('ionic_bundler');
-  if (isValidBundler(val)) {
-    return val;
-  }
-
-  // 8) Default to use webpack
   return Constants.BUNDLER_WEBPACK;
 }
 
 
 function isValidBundler(bundler: any) {
-  return (bundler === Constants.BUNDLER_ROLLUP || bundler === Constants.BUNDLER_WEBPACK);
+  return bundler === Constants.BUNDLER_WEBPACK;
 }
 
 

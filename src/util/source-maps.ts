@@ -12,8 +12,8 @@ function copySourcemaps(context: BuildContext, shouldPurge: boolean) {
     const copyBeforePurge = getBooleanPropertyValue(Constants.ENV_VAR_MOVE_SOURCE_MAPS);
     for (const fullPath of fullPaths) {
       if (copyBeforePurge) {
-        mkdirpSync(context.sourcemapDir)
-        const relativeTo = relative(fullPath, context.sourcemapDir)
+        mkdirpSync(context.sourcemapDir);
+        const relativeTo = relative(fullPath, context.sourcemapDir);
         const fileName = basename(fullPath);
         if (fileName.indexOf('vendor.js') < 0) {
           promises.push(copyFileAsync(fullPath, join(context.sourcemapDir, fileName)));
@@ -21,7 +21,7 @@ function copySourcemaps(context: BuildContext, shouldPurge: boolean) {
       }
 
       if (shouldPurge) {
-        promises.push(unlinkAsync(fullPath))
+        promises.push(unlinkAsync(fullPath));
       }
     }
     return Promise.all(promises);

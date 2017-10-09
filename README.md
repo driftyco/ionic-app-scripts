@@ -93,13 +93,10 @@ npm run build --rollup ./config/rollup.config.js
 
 | Config File | package.json Config | Cmd-line Flag         |
 |-------------|---------------------|-----------------------|
-| Babili      | `ionic_use_experimental_babili`  | `--babili`            |
 | CleanCss    | `ionic_cleancss`    | `--cleancss` or `-e`  |
 | Copy        | `ionic_copy`        | `--copy` or `-y`      |
-| Closure     | `ionic_closure`     | `--closure` or `-l`   |
 | Generator   | `ionic_generator`   | `--generator` or `-g` |
 | NGC         | `ionic_ngc`         | `--ngc` or `-n`       |
-| Rollup      | `ionic_rollup`      | `--rollup` or `-r`    |
 | Sass        | `ionic_sass`        | `--sass` or `-s`      |
 | TSLint      | `ionic_tslint`      | `--tslint` or `-i`    |
 | UglifyJS    | `ionic_uglifyjs`    | `--uglifyjs` or `-u`  |
@@ -131,14 +128,8 @@ npm run build --rollup ./config/rollup.config.js
 | bail on lint error | `ionic_bail_on_lint_error`  | `--bailOnLintError` | `null` | Set to `true` to make stand-alone lint commands fail with non-zero status code |
 | enable type checking during lint | `ionic_type_check_on_lint`  | `--typeCheckOnLint` | `null` | Set to `true` to enable [type checking](https://palantir.github.io/tslint/usage/type-checking) during lint |
 | write AoT files to disk | `ionic_aot_write_to_disk` | `--aotWriteToDisk` | `null` | Set to `true` to write files to disk for debugging |
-| print dependency tree | `ionic_print_original_dependency_tree` | `--printOriginalDependencyTree` | `null` | Set to `true` to print out the original dependency tree calculated during the optimize step |
-| print modified dependency tree | `ionic_print_modified_dependency_tree` | `--printModifiedDependencyTree` | `null` | Set to `true` to print out the modified dependency tree after purging unused modules |
 | print webpack dependency tree | `ionic_print_webpack_dependency_tree` | `--printWebpackDependencyTree` | `null` | Set to `true` to print out a dependency tree after running Webpack |
 | parse deeplink config | `ionic_parse_deeplinks` | `--parseDeepLinks` | `true` | Parses and extracts data from the `@IonicPage` decorator |
-| manual tree shaking | `ionic_manual_treeshaking` | `--manualTreeshaking` | `true` | Set to `true` to purge unused Ionic components/code |
-| purge decorators | `ionic_purge_decorators` | `--purgeDecorators` | `true` | Set to `true` to purge unneeded decorators to improve tree shakeability of code |
-| experimental closure compiler | `ionic_use_experimental_closure` | `--useExperimentalClosure` | `null` | Set to `true` to use closure compiler to minify the final bundle |
-| experimental babili | `ionic_use_experimental_babili` | `--useExperimentalBabili` | `null` | Set to `true` to use babili to minify es2015 code |
 | convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for for production deployments |
 | default watch timeout | `ionic_start_watch_timeout` | `--startWatchTimeout` | `3000` | Milliseconds controlling the default watch timeout |
 | choose the polyfill  | `ionic_polyfill_name` | `--polyfillName` | `polyfills` | Change with polyfills.modern or polyfills.ng (all options)[https://github.com/driftyco/ionic/tree/master/scripts/polyfill] |
@@ -179,14 +170,8 @@ These environment variables are automatically set to [Node's `process.env`](http
 | `IONIC_BAIL_ON_LINT_ERROR`     | Boolean determining whether to exit with a non-zero status code on error |
 | `IONIC_TYPE_CHECK_ON_LINT` | Boolean determining whether to type check code during lint or not |
 | `IONIC_AOT_WRITE_TO_DISK` | `--aotWriteToDisk` | `null` | Set to `true` to write files to disk for debugging |
-| `IONIC_PRINT_ORIGINAL_DEPENDENCY_TREE` | boolean to print out the original dependency tree calculated during the optimize step |
-| `IONIC_PRINT_MODIFIED_DEPENDENCY_TREE` | boolean to print out the modified dependency tree after purging unused modules |
 | `IONIC_PRINT_WEBPACK_DEPENDENCY_TREE` | boolean to print out a dependency tree after running Webpack |
 | `IONIC_PARSE_DEEPLINKS` | boolean to enable parsing the Ionic 3.x deep links API for lazy loading |
-| `IONIC_MANUAL_TREESHAKING` | boolean to enable purging unused Ionic components/code |
-| `IONIC_PURGE_DECORATORS` | boolean to enable purging unneeded decorators from source code |
-| `IONIC_USE_EXPERIMENTAL_CLOSURE` | boolean to enable use of closure compiler to minify the final bundle |
-| `IONIC_USE_EXPERIMENTAL_BABILI` | boolean to enable use of babili to minify es2015 code |
 | `IONIC_BUILD_TO_ES5` | boolean to enable converting bundle to ES5 for for production deployments |
 | `IONIC_START_WATCH_TIMEOUT` | Milliseconds controlling the default watch timeout |
 
@@ -240,7 +225,7 @@ npm run lint --bailOnLintError true
 - [Ionic Framework](https://ionicframework.com/)
 - [TypeScript Compiler](https://www.typescriptlang.org/)
 - [Angular Compiler (NGC)](https://github.com/angular/angular/tree/master/modules/%40angular/compiler-cli)
-- [Rollup Module Bundler](https://rollupjs.org/)
+- [Webpack Module Bundler](https://webpack.js.org/)
 - Ionic Component Sass
 - [Node Sass](https://www.npmjs.com/package/node-sass)
 - [Autoprefixer](https://github.com/postcss/autoprefixer)

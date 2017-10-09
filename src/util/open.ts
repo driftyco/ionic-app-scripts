@@ -13,7 +13,7 @@ import * as childProcess from 'child_process';
  *      code of the process.
  */
 
-export default function (target: string, appName: string | Function, callback?: Function) {
+export default function (target: string, appName: string | Function, callback?: any) {
   var opener: string;
 
   if (typeof appName === 'function') {

@@ -12,7 +12,7 @@ import { CAMEL_CASE_UPPER_REGEXP } from './helpers/camel-case-upper-regexp';
 import { NON_WORD_REGEXP } from './helpers/non-word-regexp';
 
 let _context: BuildContext;
-let _parsedDeepLinkConfig: DeepLinkConfigEntry[];
+let _deepLinkConfigEntriesMap: Map<string, DeepLinkConfigEntry>;
 
 let cachedAppScriptsPackageJson: any;
 export function getAppScriptsPackageJson() {
@@ -219,15 +219,6 @@ export function readDirAsync(pathToDir: string) {
   });
 }
 
-export function createFileObject(filePath: string): File {
-  const content = readFileSync(filePath).toString();
-  return {
-    content: content,
-    path: filePath,
-    timestamp: Date.now()
-  };
-}
-
 export function setContext(context: BuildContext) {
   _context = context;
 }
@@ -236,12 +227,12 @@ export function getContext() {
   return _context;
 }
 
-export function setParsedDeepLinkConfig(parsedDeepLinkConfig: DeepLinkConfigEntry[]) {
-  _parsedDeepLinkConfig = parsedDeepLinkConfig;
+export function setParsedDeepLinkConfig(map: Map<string, DeepLinkConfigEntry>) {
+  _deepLinkConfigEntriesMap = map;
 }
 
-export function getParsedDeepLinkConfig(): DeepLinkConfigEntry[] {
-  return _parsedDeepLinkConfig;
+export function getParsedDeepLinkConfig(): Map<string, DeepLinkConfigEntry> {
+  return _deepLinkConfigEntriesMap;
 }
 
 export function transformSrcPathToTmpPath(originalPath: string, context: BuildContext) {
@@ -289,17 +280,17 @@ export function generateRandomHexString(numCharacters: number) {
   return randomBytes(Math.ceil(numCharacters / 2)).toString('hex').slice(0, numCharacters);
 }
 
-export function getStringPropertyValue(propertyName: string) {
+export function getStringPropertyValue(propertyName: string): string {
   const result = process.env[propertyName];
   return result;
 }
 
-export function getIntPropertyValue(propertyName: string) {
+export function getIntPropertyValue(propertyName: string): number {
   const result = process.env[propertyName];
   return parseInt(result, 0);
 }
 
-export function getBooleanPropertyValue(propertyName: string) {
+export function getBooleanPropertyValue(propertyName: string): boolean {
   const result = process.env[propertyName];
   return result === 'true';
 }

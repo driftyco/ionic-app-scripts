@@ -391,7 +391,9 @@ window.IonicDevServer = {
       }
     });
 
-    this.enableShake();
+    if (location.href.indexOf('devapp=true') < 0) {
+      this.enableShake();
+    }
   },
 
   enableShake: function() {

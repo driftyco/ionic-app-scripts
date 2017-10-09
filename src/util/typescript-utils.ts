@@ -273,4 +273,4 @@ export function appendNgModuleExports(filePath: string, fileContent: string, dec
 
 }
 
-const NG_MODULE_DECORATOR_TEXT = 'NgModule';
+export const NG_MODULE_DECORATOR_TEXT = 'NgModule';

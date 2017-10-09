@@ -13,7 +13,8 @@ process.on('message', (incomingMsg: TranspileWorkerMessage) => {
     writeInMemory: false,
     sourceMaps: false,
     cache: false,
-    inlineTemplate: false
+    inlineTemplate: false,
+    useTransforms: false
   };
 
   transpileWorker(context, workerConfig)

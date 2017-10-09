@@ -1,3 +1,38 @@
+<a name="3.0.0"></a>
+# [3.0.0](https://github.com/ionic-team/ionic-app-scripts/compare/v2.1.4...v3.0.0) (2017-09-28)
+
+### Breaking Changes
+The `webpack` config format changed from being a config that is exported to being a dictionary of configs. Basically, the default config now exports a `dev` and `prod` property with a config assigned to each. See an example of the change [here](https://github.com/ionic-team/ionic-app-scripts/blob/master/config/webpack.config.js#L143-L146). This change is setting the stage for adding multiple "environment" support for the next app-scripts release.
+
+### New Features
+This release adds support for `ngo`, the Angular team's build optimizer tool. `ngo` is enabled by default on `--prod` builds. In the event that `ngo` is not working for your app or something goes wrong, it can be disabled by running the following build command.
+
+```
+ionic build ios --aot --minifyJs --minifyCss
+```
+
+Using the `--aot` flag enables the `AoT Compiler`. `--minifyJs` and `--minifyCss` minify the outputted code.
+
+### Notes
+Version `3.0.0` deprecated support for Rollup, Closure Compiler, and Babili. The support for these was poor and they were not used by many developers. `uglifyjs` was replaced with the newer `uglifyes`, which supports ES2015.
+
+### Bug Fixes
+
+* **aot:** normalize paths to fix path issues on windows ([b766037](https://github.com/ionic-team/ionic-app-scripts/commit/b766037))
+* **build:** scan deeplink dir too if different from srcDir ([8929265](https://github.com/ionic-team/ionic-app-scripts/commit/8929265))
+* **deep-linking:** convert deep linking to use TS Transform. DeepLinking now works on TypeScript src instead of on transpiled JS code ([63c4c7f](https://github.com/ionic-team/ionic-app-scripts/commit/63c4c7f))
+* **deep-linking:** remove IonicPage import statement in transform/non-transform approachs to work better with strict TS settings ([84d9ec7](https://github.com/ionic-team/ionic-app-scripts/commit/84d9ec7))
+* **devapp:** do not enable shake ([#1215](https://github.com/ionic-team/ionic-app-scripts/issues/1215)) ([118189c](https://github.com/ionic-team/ionic-app-scripts/commit/118189c))
+* **generators:** correct pipes default folder name ([f0ea0da](https://github.com/ionic-team/ionic-app-scripts/commit/f0ea0da))
+* **ngc:** don't replace deeplink config if an existing one exists ([eeed98b](https://github.com/ionic-team/ionic-app-scripts/commit/eeed98b))
+* **optimization:** removing optimizations in preparation for ngo, updating to latest deps ([90eb8b3](https://github.com/ionic-team/ionic-app-scripts/commit/90eb8b3))
+* **postprocess:** fix and add tests for the logic surrounding purging fonts ([0dd1b22](https://github.com/ionic-team/ionic-app-scripts/commit/0dd1b22))
+* **sass:** include the platforms dir by default ([0da47cb](https://github.com/ionic-team/ionic-app-scripts/commit/0da47cb))
+* **transpile:** check for existing deep link config before using generated one ([c51ac93](https://github.com/ionic-team/ionic-app-scripts/commit/c51ac93))
+* **webpack:** when analyzing stats, factor in new shape of ModuleConcatenation info ([00cf038](https://github.com/ionic-team/ionic-app-scripts/commit/00cf038))
+
+
+
 <a name="2.1.4"></a>
 ## [2.1.4](https://github.com/ionic-team/ionic-app-scripts/compare/v2.1.3...v2.1.4) (2017-08-16)
 

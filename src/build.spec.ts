@@ -2,10 +2,12 @@ import * as Constants from './util/constants';
 import { BuildContext } from './util/interfaces';
 import * as helpers from './util/helpers';
 import * as build from './build';
+import * as buildUtils from './build/util';
 
 import * as bundle from './bundle';
 import * as copy from './copy';
 import * as clean from './clean';
+import * as deepLinking from './deep-linking';
 import * as lint from './lint';
 import * as minify from './minify';
 import * as ngc from './ngc';
@@ -26,8 +28,10 @@ describe('build', () => {
       });
     });
 
+    spyOn(buildUtils, buildUtils.scanSrcTsFiles.name).and.returnValue(Promise.resolve());
     spyOn(bundle, bundle.bundle.name).and.returnValue(Promise.resolve());
     spyOn(copy, copy.copy.name).and.returnValue(Promise.resolve());
+    spyOn(deepLinking, deepLinking.deepLinking.name).and.returnValue(Promise.resolve());
     spyOn(minify, minify.minifyCss.name).and.returnValue(Promise.resolve());
     spyOn(minify, minify.minifyJs.name).and.returnValue(Promise.resolve());
     spyOn(lint, lint.lint.name).and.returnValue(Promise.resolve());
@@ -50,19 +54,19 @@ describe('build', () => {
     const getBooleanPropertyValueSpy = spyOn(helpers, helpers.getBooleanPropertyValue.name).and.returnValue(true);
 
     return build.build(context).then(() => {
+      expect(buildUtils.scanSrcTsFiles).toHaveBeenCalled();
       expect(helpers.readFileAsync).toHaveBeenCalled();
       expect(copy.copy).toHaveBeenCalled();
+      expect(deepLinking.deepLinking).toHaveBeenCalled();
       expect(ngc.ngc).toHaveBeenCalled();
       expect(bundle.bundle).toHaveBeenCalled();
       expect(minify.minifyJs).toHaveBeenCalled();
       expect(sass.sass).toHaveBeenCalled();
       expect(minify.minifyCss).toHaveBeenCalled();
       expect(lint.lint).toHaveBeenCalled();
-      expect(getBooleanPropertyValueSpy.calls.first().args[0]).toEqual(Constants.ENV_ENABLE_LINT);
+      expect(getBooleanPropertyValueSpy.calls.all()[1].args[0]).toEqual(Constants.ENV_ENABLE_LINT);
 
       expect(transpile.transpile).not.toHaveBeenCalled();
-    }).catch(err => {
-      expect(true).toEqual(false);
     });
   });
 
@@ -78,20 +82,20 @@ describe('build', () => {
     const getBooleanPropertyValueSpy = spyOn(helpers, helpers.getBooleanPropertyValue.name).and.returnValue(true);
 
     return build.build(context).then(() => {
+      expect(buildUtils.scanSrcTsFiles).toHaveBeenCalled();
       expect(helpers.readFileAsync).toHaveBeenCalled();
       expect(copy.copy).toHaveBeenCalled();
+      expect(deepLinking.deepLinking).toHaveBeenCalled();
       expect(transpile.transpile).toHaveBeenCalled();
       expect(bundle.bundle).toHaveBeenCalled();
       expect(sass.sass).toHaveBeenCalled();
       expect(lint.lint).toHaveBeenCalled();
-      expect(getBooleanPropertyValueSpy.calls.first().args[0]).toEqual(Constants.ENV_ENABLE_LINT);
+      expect(getBooleanPropertyValueSpy.calls.all()[1].args[0]).toEqual(Constants.ENV_ENABLE_LINT);
       expect(postprocess.postprocess).toHaveBeenCalled();
       expect(preprocess.preprocess).toHaveBeenCalled();
       expect(ngc.ngc).not.toHaveBeenCalled();
       expect(minify.minifyJs).not.toHaveBeenCalled();
       expect(minify.minifyCss).not.toHaveBeenCalled();
-    }).catch(err => {
-      expect(true).toEqual(false);
     });
   });
 
@@ -107,20 +111,19 @@ describe('build', () => {
     const getBooleanPropertyValueSpy = spyOn(helpers, helpers.getBooleanPropertyValue.name).and.returnValue(false);
 
     return build.build(context).then(() => {
+      expect(buildUtils.scanSrcTsFiles).toHaveBeenCalled();
       expect(helpers.readFileAsync).toHaveBeenCalled();
       expect(copy.copy).toHaveBeenCalled();
       expect(transpile.transpile).toHaveBeenCalled();
       expect(bundle.bundle).toHaveBeenCalled();
       expect(sass.sass).toHaveBeenCalled();
       expect(lint.lint).not.toHaveBeenCalled();
-      expect(getBooleanPropertyValueSpy.calls.first().args[0]).toEqual(Constants.ENV_ENABLE_LINT);
+      expect(getBooleanPropertyValueSpy.calls.all()[1].args[0]).toEqual(Constants.ENV_ENABLE_LINT);
       expect(postprocess.postprocess).toHaveBeenCalled();
       expect(preprocess.preprocess).toHaveBeenCalled();
       expect(ngc.ngc).not.toHaveBeenCalled();
       expect(minify.minifyJs).not.toHaveBeenCalled();
       expect(minify.minifyCss).not.toHaveBeenCalled();
-    }).catch(err => {
-      expect(true).toEqual(false);
     });
   });
 });
@@ -190,10 +193,11 @@ describe('test project requirements before building', () => {
     });
   });
 
-  it('should succeed if IONIC_TS_CONFIG file contains compilerOptions.sourceMap === true', () => {
+  it('should succeed if IONIC_TS_CONFIG file contains compilerOptions.sourceMap is true', () => {
     process.env[Constants.ENV_APP_ENTRY_POINT] = 'src/app/main.ts';
     process.env[Constants.ENV_TS_CONFIG] = 'tsConfig.js';
 
+    spyOn(buildUtils, buildUtils.scanSrcTsFiles.name).and.returnValue(Promise.resolve());
     spyOn(bundle, bundle.bundle.name).and.returnValue(Promise.resolve());
     spyOn(clean, clean.clean.name);
     spyOn(copy, copy.copy.name).and.returnValue(Promise.resolve());

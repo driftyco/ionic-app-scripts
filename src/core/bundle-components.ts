@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as nodeSass from 'node-sass';
 import * as rollup from 'rollup';
 import * as typescript from 'typescript';
-import * as uglify from 'uglify-js';
+import * as uglify from 'uglify-es';
 import * as cleanCss from 'clean-css';
 
 

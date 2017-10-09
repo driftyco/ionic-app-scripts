@@ -1,91 +1,68 @@
-import { BuildContext } from '../util/interfaces';
-import { join } from 'path';
+import { extname, join } from 'path';
+
 import { Logger } from '../logger/logger';
-import { unlinkAsync } from '../util/helpers';
-import * as glob from 'glob';
+import * as Constants from '../util/constants';
+import { getStringPropertyValue, readDirAsync, unlinkAsync } from '../util/helpers';
+import { BuildContext } from '../util/interfaces';
 
 
-export function removeUnusedFonts(context: BuildContext) {
-  // For webapps, we pretty much need all fonts to be available because
-  // the web server deployment never knows which browser/platform is
-  // opening the app. Additionally, webapps will request fonts on-demand,
-  // so having them all sit in the www/assets/fonts directory doesn’t
-  // hurt anything if it’s never being requested.
+// For webapps, we pretty much need all fonts to be available because
+// the web server deployment never knows which browser/platform is
+// opening the app. Additionally, webapps will request fonts on-demand,
+// so having them all sit in the www/assets/fonts directory doesn’t
+// hurt anything if it’s never being requested.
 
-  // However, with Cordova, the entire directory gets bundled and
-  // shipped in the ipa/apk, but we also know exactly which platform
-  // is opening the webapp. For this reason we can safely delete font
-  // files we know would never be opened by the platform. So app-scripts
-  // will continue to copy all font files over, but the cordova build
-  // process would delete those we know are useless and just taking up
-  // space. End goal is that the Cordova ipa/apk filesize is smaller.
+// However, with Cordova, the entire directory gets bundled and
+// shipped in the ipa/apk, but we also know exactly which platform
+// is opening the webapp. For this reason we can safely delete font
+// files we know would never be opened by the platform. So app-scripts
+// will continue to copy all font files over, but the cordova build
+// process would delete those we know are useless and just taking up
+// space. End goal is that the Cordova ipa/apk filesize is smaller.
 
-  // Font Format Support:
-  // ttf: http://caniuse.com/#feat=ttf
-  // woff: http://caniuse.com/#feat=woff
-  // woff2: http://caniuse.com/#feat=woff2
+// Font Format Support:
+// ttf: http://caniuse.com/#feat=ttf
+// woff: http://caniuse.com/#feat=woff
+// woff2: http://caniuse.com/#feat=woff2
+export function removeUnusedFonts(context: BuildContext): Promise<any> {
+  const fontDir = getStringPropertyValue(Constants.ENV_VAR_FONTS_DIR);
+  return readDirAsync(fontDir).then((fileNames: string[]) => {
+    fileNames = fileNames.sort();
+    const toPurge = getFontFileNamesToPurge(context.target, context.platform, fileNames);
+    const fullPaths = toPurge.map(fileName => join(fontDir, fileName));
+    const promises = fullPaths.map(fullPath => unlinkAsync(fullPath));
+    return Promise.all(promises);
+  });
+}
 
-  if (context.target === 'cordova') {
-    const fontsRemoved: string[] = [];
-    // all cordova builds should remove .eot, .svg, .ttf, and .scss files
-    fontsRemoved.push('*.eot');
-    fontsRemoved.push('*.ttf');
-    fontsRemoved.push('*.svg');
-    fontsRemoved.push('*.scss');
-
-    // all cordova builds should remove Noto-Sans
-    // Only windows would use Noto-Sans, and it already comes with
-    // a system font so it wouldn't need our own copy.
-    fontsRemoved.push('noto-sans*');
-
-    if (context.platform === 'android') {
-      // Remove all Roboto fonts. Android already comes with Roboto system
-      // fonts so shipping our own is unnecessary. Including roboto fonts
-      // is only useful for PWAs and during development.
-      fontsRemoved.push('roboto*');
-
-    } else if (context.platform === 'ios') {
-      // Keep Roboto for now. Apps built for iOS may still use Material Design,
-      // so in that case Roboto should be available. Later we can improve the
-      // CLI to be smarter and read the user’s ionic config. Also, the roboto
-      // fonts themselves are pretty small.
-    }
-
-    let filesToDelete: string[] = [];
-
-    let promises = fontsRemoved.map(pattern => {
-      return new Promise(resolve => {
-        let searchPattern = join(context.wwwDir, 'assets', 'fonts', pattern);
-
-        glob(searchPattern, (err, files) => {
-          if (err) {
-            Logger.error(`removeUnusedFonts: ${err}`);
-
-          } else {
-            files.forEach(f => {
-              if (filesToDelete.indexOf(f) === -1) {
-                filesToDelete.push(f);
-              }
-            });
-          }
-
-          resolve();
-        });
-
-      });
-    });
-
-    return Promise.all(promises).then(() => {
-      return unlinkAsync(filesToDelete).then(() => {
-        if (filesToDelete.length) {
-          Logger.info(`removed unused font files`);
-          return true;
-        }
-        return false;
-      });
-    });
+export function getFontFileNamesToPurge(target: string, platform: string, fileNames: string[]): string[] {
+  if (target !== Constants.CORDOVA) {
+    return [];
   }
+  const filesToDelete = new Set<string>();
+  for (const fileName of fileNames) {
+    if (platform === 'android') {
+      // remove noto-sans, roboto, and non-woff ionicons
+      if (fileName.startsWith('noto-sans') || fileName.startsWith('roboto') || (isIonicons(fileName) && !isWoof(fileName))) {
+        filesToDelete.add(fileName);
+      }
+    } else if (platform === 'ios') {
+      // remove noto-sans, non-woff ionicons
+      if (fileName.startsWith('noto-sans') || (fileName.startsWith('roboto') && !isWoof(fileName)) || (isIonicons(fileName) && !isWoof(fileName))) {
+        filesToDelete.add(fileName);
+      }
+    }
+    // for now don't bother deleting anything for windows, need to get some info first
 
-  // nothing to do here, carry on
-  return Promise.resolve();
+  }
+  return Array.from(filesToDelete);
+}
+
+function isIonicons(fileName: string) {
+  return fileName.startsWith('ionicons');
+}
+
+// woof woof
+function isWoof(fileName: string) {
+  return extname(fileName) === '.woff' || extname(fileName) === '.woff2';
 }
