@@ -73,7 +73,7 @@ var devConfig = {
   devtool: process.env.IONIC_SOURCE_MAP_TYPE,
 
   resolve: {
-    extensions: ['.ts', '.js', '.json'],
+    extensions: ['.js', '.ts', '.json'],
     modules: [path.resolve('node_modules')]
   },
 
