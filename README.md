@@ -65,8 +65,6 @@ Ionic projects use the `package.json` file for configuration. There's a handy [c
 
 ```
   "config": {
-    "ionic_bundler": "rollup",
-    "ionic_source_map_type": "source-map",
     "ionic_cleancss": "./config/cleancss.config.js"
   },
 ```
@@ -77,7 +75,7 @@ Remember how we're actually running `ionic-app-scripts` from the `scripts` prope
 
 ```
   "scripts": {
-    "build": "ionic-app-scripts build --rollup ./config/rollup.config.js",
+    "build": "ionic-app-scripts build --webpack ./config/webpack.dev.config.js",
     "minify": "ionic-app-scripts minify --cleancss ./config/cleancss.config.js",
   },
 ```
@@ -85,7 +83,7 @@ Remember how we're actually running `ionic-app-scripts` from the `scripts` prope
 The same command-line flags can be also applied to `npm run` commands too, such as:
 
 ```
-npm run build --rollup ./config/rollup.config.js
+npm run build --webpack ./config/webpack.dev.config.js
 ```
 
 
@@ -93,13 +91,10 @@ npm run build --rollup ./config/rollup.config.js
 
 | Config File | package.json Config | Cmd-line Flag         |
 |-------------|---------------------|-----------------------|
-| Babili      | `ionic_use_experimental_babili`  | `--babili`            |
 | CleanCss    | `ionic_cleancss`    | `--cleancss` or `-e`  |
 | Copy        | `ionic_copy`        | `--copy` or `-y`      |
-| Closure     | `ionic_closure`     | `--closure` or `-l`   |
 | Generator   | `ionic_generator`   | `--generator` or `-g` |
 | NGC         | `ionic_ngc`         | `--ngc` or `-n`       |
-| Rollup      | `ionic_rollup`      | `--rollup` or `-r`    |
 | Sass        | `ionic_sass`        | `--sass` or `-s`      |
 | TSLint      | `ionic_tslint`      | `--tslint` or `-i`    |
 | UglifyJS    | `ionic_uglifyjs`    | `--uglifyjs` or `-u`  |
@@ -118,7 +113,6 @@ npm run build --rollup ./config/rollup.config.js
 | temp directory   | `ionic_tmp_dir`     | `--tmpDir`    | `.tmp`           | Temporary directory for writing files for debugging and various build tasks |
 | ionic-angular directory | `ionic_angular_dir` | `--ionicAngularDir` | `ionic-angular` | ionic-angular directory |
 | ionic-angular entry point | `ionic_angular_entry_point` | `--ionicAngularEntryPoint` | `index.js` | entry point file for ionic-angular |
-| bundler         | `ionic_bundler`     | `--bundler`   | `webpack`       | Chooses which bundler to use: `webpack` or `rollup` |
 | source map type | `ionic_source_map_type`  | `--sourceMapType` | `source-map` | Chooses the webpack `devtool` option. `eval` and `source-map` are supported |
 | generate source map | `ionic_generate_source_map`  | `--generateSourceMap` | `true` | Determines whether to generate a source map or not |
 | tsconfig path | `ionic_ts_config`  | `--tsconfig` | `{{rootDir}}/tsconfig.json` | absolute path to tsconfig.json |
@@ -131,15 +125,9 @@ npm run build --rollup ./config/rollup.config.js
 | bail on lint error | `ionic_bail_on_lint_error`  | `--bailOnLintError` | `null` | Set to `true` to make stand-alone lint commands fail with non-zero status code |
 | enable type checking during lint | `ionic_type_check_on_lint`  | `--typeCheckOnLint` | `null` | Set to `true` to enable [type checking](https://palantir.github.io/tslint/usage/type-checking) during lint |
 | write AoT files to disk | `ionic_aot_write_to_disk` | `--aotWriteToDisk` | `null` | Set to `true` to write files to disk for debugging |
-| print dependency tree | `ionic_print_original_dependency_tree` | `--printOriginalDependencyTree` | `null` | Set to `true` to print out the original dependency tree calculated during the optimize step |
-| print modified dependency tree | `ionic_print_modified_dependency_tree` | `--printModifiedDependencyTree` | `null` | Set to `true` to print out the modified dependency tree after purging unused modules |
 | print webpack dependency tree | `ionic_print_webpack_dependency_tree` | `--printWebpackDependencyTree` | `null` | Set to `true` to print out a dependency tree after running Webpack |
 | parse deeplink config | `ionic_parse_deeplinks` | `--parseDeepLinks` | `true` | Parses and extracts data from the `@IonicPage` decorator |
-| manual tree shaking | `ionic_manual_treeshaking` | `--manualTreeshaking` | `true` | Set to `true` to purge unused Ionic components/code |
-| purge decorators | `ionic_purge_decorators` | `--purgeDecorators` | `true` | Set to `true` to purge unneeded decorators to improve tree shakeability of code |
-| experimental closure compiler | `ionic_use_experimental_closure` | `--useExperimentalClosure` | `null` | Set to `true` to use closure compiler to minify the final bundle |
-| experimental babili | `ionic_use_experimental_babili` | `--useExperimentalBabili` | `null` | Set to `true` to use babili to minify es2015 code |
-| convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for for production deployments |
+| convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for production deployments |
 | default watch timeout | `ionic_start_watch_timeout` | `--startWatchTimeout` | `3000` | Milliseconds controlling the default watch timeout |
 | choose the polyfill  | `ionic_polyfill_name` | `--polyfillName` | `polyfills` | Change with polyfills.modern or polyfills.ng (all options)[https://github.com/driftyco/ionic/tree/master/scripts/polyfill] |
 | enable linting | `ionic_enable_lint` | `--enableLint` | `true` | Set to `false` for skipping the linting after the build |
@@ -179,21 +167,15 @@ These environment variables are automatically set to [Node's `process.env`](http
 | `IONIC_BAIL_ON_LINT_ERROR`     | Boolean determining whether to exit with a non-zero status code on error |
 | `IONIC_TYPE_CHECK_ON_LINT` | Boolean determining whether to type check code during lint or not |
 | `IONIC_AOT_WRITE_TO_DISK` | `--aotWriteToDisk` | `null` | Set to `true` to write files to disk for debugging |
-| `IONIC_PRINT_ORIGINAL_DEPENDENCY_TREE` | boolean to print out the original dependency tree calculated during the optimize step |
-| `IONIC_PRINT_MODIFIED_DEPENDENCY_TREE` | boolean to print out the modified dependency tree after purging unused modules |
 | `IONIC_PRINT_WEBPACK_DEPENDENCY_TREE` | boolean to print out a dependency tree after running Webpack |
 | `IONIC_PARSE_DEEPLINKS` | boolean to enable parsing the Ionic 3.x deep links API for lazy loading |
-| `IONIC_MANUAL_TREESHAKING` | boolean to enable purging unused Ionic components/code |
-| `IONIC_PURGE_DECORATORS` | boolean to enable purging unneeded decorators from source code |
-| `IONIC_USE_EXPERIMENTAL_CLOSURE` | boolean to enable use of closure compiler to minify the final bundle |
-| `IONIC_USE_EXPERIMENTAL_BABILI` | boolean to enable use of babili to minify es2015 code |
-| `IONIC_BUILD_TO_ES5` | boolean to enable converting bundle to ES5 for for production deployments |
+| `IONIC_BUILD_TO_ES5` | boolean to enable converting bundle to ES5 for production deployments |
 | `IONIC_START_WATCH_TIMEOUT` | Milliseconds controlling the default watch timeout |
 
 
 The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` and `serve` tasks produce `dev` builds (a build that does not include Ahead of Time (AoT) compilation or minification). To force a `prod` build you should use the `--prod` command line flag.
 
-Please take a look at the bottom of the [default Rollup config file](https://github.com/ionic-team/ionic-app-scripts/blob/master/config/rollup.config.js) to see how the `IONIC_ENV` environment variable is being used to conditionally change config values for production builds.
+`process.env.IONIC_ENV` environment variable is set to `prod` for `--prod` builds, otherwise `dev` for all other builds.
 
 
 ## All Available Tasks
@@ -240,7 +222,7 @@ npm run lint --bailOnLintError true
 - [Ionic Framework](https://ionicframework.com/)
 - [TypeScript Compiler](https://www.typescriptlang.org/)
 - [Angular Compiler (NGC)](https://github.com/angular/angular/tree/master/modules/%40angular/compiler-cli)
-- [Rollup Module Bundler](https://rollupjs.org/)
+- [Webpack Module Bundler](https://webpack.js.org/)
 - Ionic Component Sass
 - [Node Sass](https://www.npmjs.com/package/node-sass)
 - [Autoprefixer](https://github.com/postcss/autoprefixer)

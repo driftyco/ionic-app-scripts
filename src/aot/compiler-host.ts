@@ -1,3 +1,4 @@
+import { normalize } from 'path';
 import { CancellationToken, CompilerHost, CompilerOptions, createCompilerHost, ScriptTarget, SourceFile } from 'typescript';
 import { VirtualFileSystem } from '../util/interfaces';
 import { getTypescriptSourceFile } from '../util/typescript-utils';
@@ -7,7 +8,7 @@ export interface OnErrorFn {
   (message: string): void;
 }
 
-export class NgcCompilerHost implements CompilerHost {
+export class InMemoryCompilerHost implements CompilerHost {
   private sourceFileMap: Map<string, SourceFile>;
   private diskCompilerHost: CompilerHost;
 
@@ -17,6 +18,7 @@ export class NgcCompilerHost implements CompilerHost {
   }
 
   fileExists(filePath: string): boolean {
+    filePath = normalize(filePath);
     const fileContent = this.fileSystem.getFileContent(filePath);
     if (fileContent) {
       return true;
@@ -25,6 +27,7 @@ export class NgcCompilerHost implements CompilerHost {
   }
 
   readFile(filePath: string): string {
+    filePath = normalize(filePath);
     const fileContent = this.fileSystem.getFileContent(filePath);
     if (fileContent) {
       return fileContent;
@@ -33,6 +36,7 @@ export class NgcCompilerHost implements CompilerHost {
   }
 
   directoryExists(directoryPath: string): boolean {
+    directoryPath = normalize(directoryPath);
     const stats = this.fileSystem.getDirectoryStats(directoryPath);
     if (stats) {
       return true;
@@ -41,10 +45,12 @@ export class NgcCompilerHost implements CompilerHost {
   }
 
   getFiles(directoryPath: string): string[] {
+    directoryPath = normalize(directoryPath);
     return this.fileSystem.getFileNamesInDirectory(directoryPath);
   }
 
   getDirectories(directoryPath: string): string[] {
+    directoryPath = normalize(directoryPath);
     const subdirs = this.fileSystem.getSubDirs(directoryPath);
 
     let delegated: string[];
@@ -57,6 +63,7 @@ export class NgcCompilerHost implements CompilerHost {
   }
 
   getSourceFile(filePath: string, languageVersion: ScriptTarget, onError?: OnErrorFn) {
+    filePath = normalize(filePath);
     const existingSourceFile = this.sourceFileMap.get(filePath);
     if (existingSourceFile) {
       return existingSourceFile;
@@ -68,7 +75,6 @@ export class NgcCompilerHost implements CompilerHost {
       this.sourceFileMap.set(filePath, typescriptSourceFile);
       return typescriptSourceFile;
     }
-    // dang, it's not in memory, load it from disk and cache it
     const diskSourceFile = this.diskCompilerHost.getSourceFile(filePath, languageVersion, onError);
     this.sourceFileMap.set(filePath, diskSourceFile);
     return diskSourceFile;
@@ -83,6 +89,7 @@ export class NgcCompilerHost implements CompilerHost {
   }
 
   writeFile(fileName: string, data: string, writeByteOrderMark: boolean, onError?: OnErrorFn) {
+    fileName = normalize(fileName);
     Logger.debug(`[NgcCompilerHost] writeFile: adding ${fileName} to virtual file system`);
     this.fileSystem.addVirtualFile(fileName, data);
   }

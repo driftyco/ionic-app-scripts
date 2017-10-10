@@ -1,3 +1,5 @@
+import { join } from 'path';
+import { scanSrcTsFiles } from './build/util';
 import * as Constants from './util/constants';
 import { BuildContext, BuildState, BuildUpdateMessage, ChangedFile } from './util/interfaces';
 import { BuildError } from './util/errors';
@@ -6,6 +8,7 @@ import { getBooleanPropertyValue, readFileAsync, setContext } from './util/helpe
 import { bundle, bundleUpdate } from './bundle';
 import { clean } from './clean';
 import { copy } from './copy';
+import { deepLinking, deepLinkingUpdate } from './deep-linking';
 import { lint, lintUpdate } from './lint';
 import { Logger } from './logger/logger';
 import { minifyCss, minifyJs } from './minify';
@@ -98,9 +101,17 @@ function buildProject(context: BuildContext) {
   buildId++;
 
   const copyPromise = copy(context);
-  const compilePromise = (context.runAot) ? ngc(context) : transpile(context);
 
-  return compilePromise
+  return scanSrcTsFiles(context)
+    .then(() => {
+      if (getBooleanPropertyValue(Constants.ENV_PARSE_DEEPLINKS)) {
+        return deepLinking(context);
+      }
+    })
+    .then(() => {
+      const compilePromise = (context.runAot) ? ngc(context) : transpile(context);
+      return compilePromise;
+    })
     .then(() => {
       return preprocess(context);
     })
@@ -224,6 +235,12 @@ function buildUpdateTasks(changedFiles: ChangedFile[], context: BuildContext) {
   };
 
   return loadFiles(changedFiles, context)
+    .then(() => {
+      // DEEP LINKING
+      if (getBooleanPropertyValue(Constants.ENV_PARSE_DEEPLINKS)) {
+        return deepLinkingUpdate(changedFiles, context);
+      }
+    })
     .then(() => {
       // TEMPLATE
       if (context.templateState === BuildState.RequiresUpdate) {

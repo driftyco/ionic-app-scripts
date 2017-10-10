@@ -5,7 +5,6 @@ import * as Constants from './util/constants';
 import { BuildContext, BuildState, ChangedFile, File } from './util/interfaces';
 import { changeExtension, getStringPropertyValue } from './util/helpers';
 import { Logger } from './logger/logger';
-import { invalidateCache } from './rollup';
 
 
 
@@ -33,9 +32,6 @@ export function templateUpdate(changedFiles: ChangedFile[], context: BuildContex
         }
       }
     }
-
-    // invaldiate any rollup bundles, if they're not using rollup no harm done
-    invalidateCache();
 
     // awesome, all good and template updated in the bundle file
     const logger = new Logger(`template update`);

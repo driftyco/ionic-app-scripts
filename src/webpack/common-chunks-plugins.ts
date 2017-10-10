@@ -1,4 +1,4 @@
-import * as CommonChunksPlugin from 'webpack/lib/optimize/CommonsChunkPlugin';
+ const CommonChunksPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
 
 import * as Constants from '../util/constants';
 import { getStringPropertyValue } from '../util/helpers';

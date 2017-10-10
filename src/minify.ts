@@ -1,9 +1,7 @@
 import * as Constants from './util/constants';
 import { getBooleanPropertyValue } from './util/helpers';
 import { BuildContext } from './util/interfaces';
-import { babili } from './babili';
 import { cleancss } from './cleancss';
-import { closure, isClosureSupported } from './closure';
 import { Logger } from './logger/logger';
 import { uglifyjs } from './uglifyjs';
 
@@ -30,19 +28,8 @@ function minifyWorker(context: BuildContext) {
   ]);
 }
 
-
-export function minifyJs(context: BuildContext): Promise<void> {
-  return isClosureSupported(context).then((result: boolean) => {
-    if (result) {
-      return closure(context);
-    }
-
-    if (getBooleanPropertyValue(Constants.ENV_USE_EXPERIMENTAL_BABILI)) {
-      return babili(context);
-    }
-
-    return runUglify(context);
-  });
+export function minifyJs(context: BuildContext): Promise<any> {
+  return runUglify(context);
 }
 
 function runUglify(context: BuildContext) {

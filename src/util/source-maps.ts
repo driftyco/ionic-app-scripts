@@ -1,31 +1,44 @@
 import { join, relative, basename } from 'path';
-import { mkdirpSync } from 'fs-extra';
+import { ensureDir, mkdirpSync } from 'fs-extra';
 import * as Constants from './constants';
-import { copyFileAsync, getBooleanPropertyValue, readDirAsync, unlinkAsync } from './helpers';
+import { copyFileAsync, getBooleanPropertyValue, mkDirpAsync, readDirAsync, unlinkAsync } from './helpers';
 import { BuildContext } from './interfaces';
 
-function copySourcemaps(context: BuildContext, shouldPurge: boolean) {
-  return readDirAsync(context.buildDir).then((fileNames) => {
-    const sourceMaps = fileNames.filter(fileName => fileName.endsWith('.map'));
-    const fullPaths = sourceMaps.map(sourceMap => join(context.buildDir, sourceMap));
-    const promises: Promise<void>[] = [];
-    const copyBeforePurge = getBooleanPropertyValue(Constants.ENV_VAR_MOVE_SOURCE_MAPS);
-    for (const fullPath of fullPaths) {
-      if (copyBeforePurge) {
-        mkdirpSync(context.sourcemapDir)
-        const relativeTo = relative(fullPath, context.sourcemapDir)
-        const fileName = basename(fullPath);
-        if (fileName.indexOf('vendor.js') < 0) {
-          promises.push(copyFileAsync(fullPath, join(context.sourcemapDir, fileName)));
-        }
-      }
+export async function copySourcemaps(context: BuildContext, shouldPurge: boolean) {
+  const copyBeforePurge = getBooleanPropertyValue(Constants.ENV_VAR_MOVE_SOURCE_MAPS);
+  if (copyBeforePurge) {
+    await mkDirpAsync(context.sourcemapDir);
+  }
 
-      if (shouldPurge) {
-        promises.push(unlinkAsync(fullPath))
-      }
+  const fileNames = await readDirAsync(context.buildDir);
+
+  // only include js source maps
+  const sourceMaps = fileNames.filter(fileName => fileName.endsWith('.map'));
+
+  const toCopy = sourceMaps.filter(fileName => fileName.indexOf('vendor.js') < 0 && fileName.endsWith('.js.map'));
+  const toCopyFullPaths = toCopy.map(fileName => join(context.buildDir, fileName));
+
+  const toPurge = sourceMaps.map(sourceMap => join(context.buildDir, sourceMap));
+
+  const copyFilePromises: Promise<any>[] = [];
+  if (copyBeforePurge) {
+    for (const fullPath of toCopyFullPaths) {
+      const fileName = basename(fullPath);
+      copyFilePromises.push(copyFileAsync(fullPath, join(context.sourcemapDir, fileName)));
     }
-    return Promise.all(promises);
-  });
+  }
+
+  await Promise.all(copyFilePromises);
+
+  // okay cool, all of the files have been copied over, so go ahead and blow them all away
+  const purgeFilePromises: Promise<any>[] = [];
+  if (shouldPurge) {
+    for (const fullPath of toPurge) {
+      purgeFilePromises.push(unlinkAsync(fullPath));
+    }
+  }
+
+  return await Promise.all(purgeFilePromises);
 }
 
 export function purgeSourceMapsIfNeeded(context: BuildContext): Promise<any> {
@@ -33,6 +46,5 @@ export function purgeSourceMapsIfNeeded(context: BuildContext): Promise<any> {
     // keep the source maps and just return
     return copySourcemaps(context, false);
   }
-
   return copySourcemaps(context, true);
 }

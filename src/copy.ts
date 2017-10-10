@@ -92,7 +92,7 @@ export function copyUpdate(changedFiles: ChangedFile[], context: BuildContext) {
     return Promise.all(promises);
   }).then(() => {
     // process any deleted files
-    const promises: Promise<void>[] = [];
+    const promises: Promise<any>[] = [];
     const fileDeletions = changedFiles.filter(changedFile => changedFile.event === 'unlink');
     fileDeletions.forEach(changedFile => promises.push(processRemoveFile(changedFile)));
     return Promise.all(promises);
