@@ -104,7 +104,11 @@ export function filterOutTemplates(request: HydratedGeneratorRequest, templates:
   const templatesToUseMap = new Map<string, string>();
   templates.forEach((fileContent: string, filePath: string) => {
     const newFileExtension = basename(filePath, GeneratorConstants.KNOWN_FILE_EXTENSION);
-    const shouldSkip = (!request.includeNgModule && newFileExtension === GeneratorConstants.NG_MODULE_FILE_EXTENSION) || (!request.includeSpec && newFileExtension === GeneratorConstants.SPEC_FILE_EXTENSION);
+    const isMinimalTemplate = newFileExtension.endsWith(GeneratorConstants.MINIMAL_FILE_PRE_EXTENSION);
+    const shouldSkip = (!request.includeNgModule && newFileExtension === GeneratorConstants.NG_MODULE_FILE_EXTENSION)
+      || (!request.includeSpec && newFileExtension === GeneratorConstants.SPEC_FILE_EXTENSION)
+      || (!request.minimal && isMinimalTemplate)
+      || (request.minimal && !isMinimalTemplate);
     if (!shouldSkip) {
       templatesToUseMap.set(filePath, fileContent);
     }
