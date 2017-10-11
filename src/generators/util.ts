@@ -291,6 +291,7 @@ export interface GeneratorRequest {
   name?: string;
   includeSpec?: boolean;
   includeNgModule?: boolean;
+  minimal?: boolean;
 }
 
 export interface GeneratorTabRequest extends GeneratorRequest {
