@@ -369,6 +369,39 @@ describe('util', () => {
       expect(newMap.get(join(templateDir, knownValues[3]))).toBeTruthy();
       expect(newMap.get(join(templateDir, knownValues[4]))).toBeFalsy();
     });
+    
+    it('should apply minimal flag', () => {
+      const map = new Map<string, string>();
+      const templateDir =
+        '/Users/noone/project/node_modules/ionic-angular/templates/component';
+      const fileContent = 'SomeContent';
+      const knownValues = [
+        'html.tmpl',
+        'scss.tmpl',
+        'spec.ts.tmpl',
+        'ts.tmpl',
+        'ts.minimal.tmpl',
+        'module.ts.tmpl'
+      ];
+      map.set(join(templateDir, knownValues[0]), fileContent);
+      map.set(join(templateDir, knownValues[1]), fileContent);
+      map.set(join(templateDir, knownValues[2]), fileContent);
+      map.set(join(templateDir, knownValues[3]), fileContent);
+      map.set(join(templateDir, knownValues[4]), fileContent);
+      map.set(join(templateDir, knownValues[5]), fileContent);
+      
+      const newMap = util.filterOutTemplates(
+        { includeNgModule: true, includeSpec: true, minimal: true },
+        map
+      );
+      expect(newMap.size).toEqual(1);
+      expect(newMap.get(join(templateDir, knownValues[0]))).toBeFalsy();
+      expect(newMap.get(join(templateDir, knownValues[1]))).toBeFalsy();
+      expect(newMap.get(join(templateDir, knownValues[2]))).toBeFalsy();
+      expect(newMap.get(join(templateDir, knownValues[3]))).toBeFalsy();
+      expect(newMap.get(join(templateDir, knownValues[4]))).toBeTruthy();
+      expect(newMap.get(join(templateDir, knownValues[5]))).toBeFalsy();
+    });
   });
 
   describe('applyTemplates', () => {
