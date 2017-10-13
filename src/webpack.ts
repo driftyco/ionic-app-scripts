@@ -95,20 +95,22 @@ function webpackBuildComplete(stats: any, context: BuildContext, webpackConfig: 
 
   // set the module files used in this bundle
   // this reference can be used elsewhere in the build (sass)
-  if (!context.isProd || !context.optimizeJs) {
-    const files: string[] = stats.compilation.modules.map((webpackObj: any) => {
-      if (webpackObj.resource) {
-        return webpackObj.resource;
-      } else {
-        return webpackObj.context;
-      }
-    }).filter((path: string) => {
-      // just make sure the path is not null
-      return path && path.length > 0;
-    });
+  const files: string[] = [];
+  stats.compilation.modules.forEach((webpackModule: any) => {
+    if (webpackModule.resource) {
+      files.push(webpackModule.resource);
+    } else if (webpackModule.context) {
+      files.push(webpackModule.context);
+    } else if (webpackModule.fileDependencies) {
+      webpackModule.fileDependencies.forEach((filePath: string) => {
+        files.push(filePath);
+      });
+    }
+  });
 
-    context.moduleFiles = files;
-  }
+  const trimmedFiles = files.filter(file => file && file.length > 0);
+
+  context.moduleFiles = trimmedFiles;
 
   return setBundledFiles(context);
 }
@@ -205,18 +207,20 @@ function startWebpackWatch(context: BuildContext, config: WebpackConfig) {
 
 export function getWebpackConfig(context: BuildContext, configFile: string): WebpackConfig {
   configFile = getUserConfigFile(context, taskInfo, configFile);
-  const webpackConfig: WebpackConfig = fillConfigDefaults(configFile, getDefaultConfigFileName(context));
+  const webpackConfigDictionary = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+  const webpackConfig: WebpackConfig = getWebpackConfigFromDictionary(context, webpackConfigDictionary);
   webpackConfig.entry = replacePathVars(context, webpackConfig.entry);
   webpackConfig.output.path = replacePathVars(context, webpackConfig.output.path);
 
   return webpackConfig;
 }
 
-export function getDefaultConfigFileName(context: BuildContext) {
+export function getWebpackConfigFromDictionary(context: BuildContext, webpackConfigDictionary: any): WebpackConfig {
+  // todo, support more ENV here
   if (context.runAot) {
-    return taskInfo.defaultConfigFile + '.prod';
+    return webpackConfigDictionary['prod'];
   }
-  return taskInfo.defaultConfigFile + '.dev';
+  return webpackConfigDictionary['dev'];
 }
 
 

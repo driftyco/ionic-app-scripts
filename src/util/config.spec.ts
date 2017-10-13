@@ -67,6 +67,11 @@ describe('config', () => {
       expect(context.optimizeJs).toEqual(false);
       expect(fakeConfig[Constants.ENV_VAR_IONIC_ENV]).toEqual(Constants.ENV_VAR_DEV);
 
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_AOT]).toEqual('false');
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_MINIFY_JS]).toEqual('false');
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_MINIFY_CSS]).toEqual('false');
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_OPTIMIZE_JS]).toEqual('false');
+
       expect(context.rootDir).toEqual(process.cwd());
       expect(context.tmpDir).toEqual(join(process.cwd(), Constants.TMP_DIR));
       expect(context.srcDir).toEqual(join(process.cwd(), Constants.SRC_DIR));
@@ -180,6 +185,10 @@ describe('config', () => {
       expect(context.runMinifyJs).toEqual(true);
       expect(context.runMinifyCss).toEqual(true);
       expect(context.optimizeJs).toEqual(true);
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_AOT]).toEqual('true');
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_MINIFY_JS]).toEqual('true');
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_MINIFY_CSS]).toEqual('true');
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_OPTIMIZE_JS]).toEqual('true');
       expect(fakeConfig[Constants.ENV_VAR_IONIC_ENV]).toEqual(Constants.ENV_VAR_PROD);
       expect(fakeConfig[Constants.ENV_VAR_GENERATE_SOURCE_MAP]).toBeFalsy();
     });

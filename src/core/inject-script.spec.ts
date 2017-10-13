@@ -33,6 +33,40 @@ describe('Inject Scripts', () => {
         '</html>');
     });
 
+    it('should replace only one existed injected script tag', () => {
+      const inputHtml = '' +
+        '<html>\n' +
+        '<head>\n' +
+        '  <script data-ionic="inject">\n' +
+        '    alert(11111);\n' +
+        '  </script>\n' +
+        '  <script>\n' +
+        '    alert(222);\n' +
+        '  </script>\n' +
+        '</head>\n' +
+        '<body>\n' +
+        '</body>\n' +
+        '</html>';
+
+      const output = injectCoreHtml(inputHtml, '  <script data-ionic="inject">\n' +
+                                               '    alert(55555);\n' +
+                                               '  </script>');
+
+      expect(output).toEqual(
+        '<html>\n' +
+        '<head>\n' +
+        '  <script data-ionic="inject">\n' +
+        '    alert(55555);\n' +
+        '  </script>\n' +
+        '  <script>\n' +
+        '    alert(222);\n' +
+        '  </script>\n' +
+        '</head>\n' +
+        '<body>\n' +
+        '</body>\n' +
+        '</html>');
+    });
+
     it('should add script to top of file when no html tag', () => {
       const inputHtml = '' +
         '<body>\n' +

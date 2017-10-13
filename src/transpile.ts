@@ -16,6 +16,7 @@ import {
   convertDeepLinkConfigEntriesToString,
   getUpdatedAppNgModuleContentWithDeepLinkConfig,
   filterTypescriptFilesForDeepLinks,
+  hasExistingDeepLinkConfig,
   isDeepLinkingFile,
   purgeDeepLinkDecorator
 } from './deep-linking/util';
@@ -133,8 +134,11 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
       });
 
       const file = context.fileCache.get(getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH));
-      const deepLinkString = convertDeepLinkConfigEntriesToString(getParsedDeepLinkConfig());
-      file.content = getUpdatedAppNgModuleContentWithDeepLinkConfig(file.path, file.content, deepLinkString);
+      const hasExisting = hasExistingDeepLinkConfig(file.path, file.content);
+      if (!hasExisting) {
+        const deepLinkString = convertDeepLinkConfigEntriesToString(getParsedDeepLinkConfig());
+        file.content = getUpdatedAppNgModuleContentWithDeepLinkConfig(file.path, file.content, deepLinkString);
+      }
     }
 
     const program = ts.createProgram(tsFileNames, tsConfig.options, host, cachedProgram);
@@ -399,7 +403,7 @@ export function transpileTsString(context: BuildContext, filePath: string, strin
 export function transformSource(filePath: string, input: string) {
   if (isDeepLinkingFile(filePath) ) {
     input = purgeDeepLinkDecorator(input);
-  } else if (filePath === getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH)) {
+  } else if (filePath === getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH) && !hasExistingDeepLinkConfig(filePath, input)) {
     const deepLinkString = convertDeepLinkConfigEntriesToString(getParsedDeepLinkConfig());
     input = getUpdatedAppNgModuleContentWithDeepLinkConfig(filePath, input, deepLinkString);
   }

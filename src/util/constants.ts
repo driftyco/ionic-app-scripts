@@ -27,6 +27,12 @@ export const CORDOVA = 'cordova';
 export const ENV_VAR_PROD = 'prod';
 export const ENV_VAR_DEV = 'dev';
 export const ENV_VAR_IONIC_ENV = 'IONIC_ENV';
+
+export const ENV_VAR_IONIC_AOT = 'IONIC_AOT';
+export const ENV_VAR_IONIC_MINIFY_JS = 'IONIC_MINIFY_JS';
+export const ENV_VAR_IONIC_MINIFY_CSS = 'IONIC_MINIFY_CSS';
+export const ENV_VAR_IONIC_OPTIMIZE_JS = 'IONIC_OPTIMIZE_JS';
+
 export const ENV_VAR_ROOT_DIR = 'IONIC_ROOT_DIR';
 export const ENV_VAR_SRC_DIR = 'IONIC_SRC_DIR';
 export const ENV_VAR_DEEPLINKS_DIR = 'IONIC_DEEPLINKS_DIR';

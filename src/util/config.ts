@@ -62,6 +62,21 @@ export function generateContext(context?: BuildContext): BuildContext {
     context.isWatch = hasArg('--watch');
   }
 
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_AOT, `${context.runAot}`);
+  Logger.debug(`${Constants.ENV_VAR_IONIC_AOT} set to ${context.runAot}`);
+
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_MINIFY_JS, `${context.runMinifyJs}`);
+  Logger.debug(`${Constants.ENV_VAR_IONIC_MINIFY_JS} set to ${context.runMinifyJs}`);
+
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_MINIFY_CSS, `${context.runMinifyCss}`);
+  Logger.debug(`${Constants.ENV_VAR_IONIC_MINIFY_CSS} set to ${context.runMinifyCss}`);
+
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_OPTIMIZE_JS, `${context.optimizeJs}`);
+  Logger.debug(`${Constants.ENV_VAR_IONIC_OPTIMIZE_JS} set to ${context.optimizeJs}`);
+
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_MINIFY_JS, `${context.runMinifyJs}`);
+  Logger.debug(`${Constants.ENV_VAR_IONIC_MINIFY_JS} set to ${context.runMinifyJs}`);
+
   context.rootDir = resolve(context.rootDir || getConfigValue(context, '--rootDir', null, Constants.ENV_VAR_ROOT_DIR, Constants.ENV_VAR_ROOT_DIR.toLowerCase(), processCwd));
   setProcessEnvVar(Constants.ENV_VAR_ROOT_DIR, context.rootDir);
   Logger.debug(`rootDir set to ${context.rootDir}`);

@@ -5,6 +5,7 @@ import {
   convertDeepLinkConfigEntriesToString,
   getUpdatedAppNgModuleContentWithDeepLinkConfig,
   filterTypescriptFilesForDeepLinks,
+  hasExistingDeepLinkConfig,
   purgeDeepLinkDecorator
 } from './deep-linking/util';
 import { Logger } from './logger/logger';
@@ -50,8 +51,10 @@ export function transformTsForDeepLinking(context: BuildContext) {
       tsFile.content = purgeDeepLinkDecorator(tsFile.content);
     });
     const tsFile = context.fileCache.get(getStringPropertyValue(Constants.ENV_APP_NG_MODULE_PATH));
-    const deepLinkString = convertDeepLinkConfigEntriesToString(getParsedDeepLinkConfig());
-    tsFile.content = getUpdatedAppNgModuleContentWithDeepLinkConfig(tsFile.path, tsFile.content, deepLinkString);
+    if (!hasExistingDeepLinkConfig(tsFile.path, tsFile.content)) {
+      const deepLinkString = convertDeepLinkConfigEntriesToString(getParsedDeepLinkConfig());
+      tsFile.content = getUpdatedAppNgModuleContentWithDeepLinkConfig(tsFile.path, tsFile.content, deepLinkString);
+    }
   }
   return Promise.resolve();
 }

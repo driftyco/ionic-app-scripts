@@ -1,4 +1,4 @@
-import { basename, dirname, extname, relative } from 'path';
+import { basename, dirname, extname, relative, sep } from 'path';
 
 import {
   ArrayLiteralExpression,
@@ -88,7 +88,7 @@ export function filterTypescriptFilesForDeepLinks(fileCache: FileCache): File[] 
 }
 
 export function isDeepLinkingFile(filePath: string) {
-  const deepLinksDir = getStringPropertyValue(Constants.ENV_VAR_DEEPLINKS_DIR);
+  const deepLinksDir = getStringPropertyValue(Constants.ENV_VAR_DEEPLINKS_DIR) + sep;
   const moduleSuffix = getStringPropertyValue(Constants.ENV_NG_MODULE_FILE_NAME_SUFFIX);
   const result = extname(filePath) === '.ts' && filePath.indexOf(moduleSuffix) === -1 && filePath.indexOf(deepLinksDir) >= 0;
   return result;
@@ -234,7 +234,17 @@ export function hasExistingDeepLinkConfig(appNgModuleFilePath: string, appNgModu
   }
 
   const deepLinkConfigArg = functionCall.arguments[2];
-  return deepLinkConfigArg.kind === SyntaxKind.ObjectLiteralExpression;
+  if (deepLinkConfigArg.kind === SyntaxKind.NullKeyword || deepLinkConfigArg.kind === SyntaxKind.UndefinedKeyword) {
+    return false;
+  }
+
+  if (deepLinkConfigArg.kind === SyntaxKind.ObjectLiteralExpression) {
+    return true;
+  }
+
+  if ((deepLinkConfigArg as Identifier).text && (deepLinkConfigArg as Identifier).text.length > 0) {
+    return true;
+  }
 }
 
 function getIonicModuleForRootCall(decorator: Decorator) {

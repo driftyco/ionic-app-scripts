@@ -280,17 +280,17 @@ export function generateRandomHexString(numCharacters: number) {
   return randomBytes(Math.ceil(numCharacters / 2)).toString('hex').slice(0, numCharacters);
 }
 
-export function getStringPropertyValue(propertyName: string) {
+export function getStringPropertyValue(propertyName: string): string {
   const result = process.env[propertyName];
   return result;
 }
 
-export function getIntPropertyValue(propertyName: string) {
+export function getIntPropertyValue(propertyName: string): number {
   const result = process.env[propertyName];
   return parseInt(result, 0);
 }
 
-export function getBooleanPropertyValue(propertyName: string) {
+export function getBooleanPropertyValue(propertyName: string): boolean {
   const result = process.env[propertyName];
   return result === 'true';
 }

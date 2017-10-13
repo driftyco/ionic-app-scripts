@@ -20,7 +20,7 @@ export * from './generators';
 export { getDeepLinkData } from './deep-linking/util';
 
 import { generateContext } from './util/config';
-import { getAppScriptsVersion } from './util/helpers';
+import { getAppScriptsVersion, setContext } from './util/helpers';
 import { Logger } from './logger/logger';
 
 export function run(task: string) {
@@ -30,6 +30,7 @@ export function run(task: string) {
 
   try {
     const context = generateContext(null);
+    setContext(context);
     require(`../dist/${task}`)[task](context).catch((err: any) => {
       errorLog(task, err);
     });

@@ -65,8 +65,6 @@ Ionic projects use the `package.json` file for configuration. There's a handy [c
 
 ```
   "config": {
-    "ionic_bundler": "rollup",
-    "ionic_source_map_type": "source-map",
     "ionic_cleancss": "./config/cleancss.config.js"
   },
 ```
@@ -77,7 +75,7 @@ Remember how we're actually running `ionic-app-scripts` from the `scripts` prope
 
 ```
   "scripts": {
-    "build": "ionic-app-scripts build --rollup ./config/rollup.config.js",
+    "build": "ionic-app-scripts build --webpack ./config/webpack.dev.config.js",
     "minify": "ionic-app-scripts minify --cleancss ./config/cleancss.config.js",
   },
 ```
@@ -85,7 +83,7 @@ Remember how we're actually running `ionic-app-scripts` from the `scripts` prope
 The same command-line flags can be also applied to `npm run` commands too, such as:
 
 ```
-npm run build --rollup ./config/rollup.config.js
+npm run build --webpack ./config/webpack.dev.config.js
 ```
 
 
@@ -115,7 +113,6 @@ npm run build --rollup ./config/rollup.config.js
 | temp directory   | `ionic_tmp_dir`     | `--tmpDir`    | `.tmp`           | Temporary directory for writing files for debugging and various build tasks |
 | ionic-angular directory | `ionic_angular_dir` | `--ionicAngularDir` | `ionic-angular` | ionic-angular directory |
 | ionic-angular entry point | `ionic_angular_entry_point` | `--ionicAngularEntryPoint` | `index.js` | entry point file for ionic-angular |
-| bundler         | `ionic_bundler`     | `--bundler`   | `webpack`       | Chooses which bundler to use: `webpack` or `rollup` |
 | source map type | `ionic_source_map_type`  | `--sourceMapType` | `source-map` | Chooses the webpack `devtool` option. `eval` and `source-map` are supported |
 | generate source map | `ionic_generate_source_map`  | `--generateSourceMap` | `true` | Determines whether to generate a source map or not |
 | tsconfig path | `ionic_ts_config`  | `--tsconfig` | `{{rootDir}}/tsconfig.json` | absolute path to tsconfig.json |
@@ -130,7 +127,7 @@ npm run build --rollup ./config/rollup.config.js
 | write AoT files to disk | `ionic_aot_write_to_disk` | `--aotWriteToDisk` | `null` | Set to `true` to write files to disk for debugging |
 | print webpack dependency tree | `ionic_print_webpack_dependency_tree` | `--printWebpackDependencyTree` | `null` | Set to `true` to print out a dependency tree after running Webpack |
 | parse deeplink config | `ionic_parse_deeplinks` | `--parseDeepLinks` | `true` | Parses and extracts data from the `@IonicPage` decorator |
-| convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for for production deployments |
+| convert bundle to ES5 | `ionic_build_to_es5` | `--buildToEs5` | `true` | Convert bundle to ES5 for production deployments |
 | default watch timeout | `ionic_start_watch_timeout` | `--startWatchTimeout` | `3000` | Milliseconds controlling the default watch timeout |
 | choose the polyfill  | `ionic_polyfill_name` | `--polyfillName` | `polyfills` | Change with polyfills.modern or polyfills.ng (all options)[https://github.com/driftyco/ionic/tree/master/scripts/polyfill] |
 | enable linting | `ionic_enable_lint` | `--enableLint` | `true` | Set to `false` for skipping the linting after the build |
@@ -172,13 +169,13 @@ These environment variables are automatically set to [Node's `process.env`](http
 | `IONIC_AOT_WRITE_TO_DISK` | `--aotWriteToDisk` | `null` | Set to `true` to write files to disk for debugging |
 | `IONIC_PRINT_WEBPACK_DEPENDENCY_TREE` | boolean to print out a dependency tree after running Webpack |
 | `IONIC_PARSE_DEEPLINKS` | boolean to enable parsing the Ionic 3.x deep links API for lazy loading |
-| `IONIC_BUILD_TO_ES5` | boolean to enable converting bundle to ES5 for for production deployments |
+| `IONIC_BUILD_TO_ES5` | boolean to enable converting bundle to ES5 for production deployments |
 | `IONIC_START_WATCH_TIMEOUT` | Milliseconds controlling the default watch timeout |
 
 
 The `process.env.IONIC_ENV` environment variable can be used to test whether it is a `prod` or `dev` build, which automatically gets set by any command. By default the `build` and `serve` tasks produce `dev` builds (a build that does not include Ahead of Time (AoT) compilation or minification). To force a `prod` build you should use the `--prod` command line flag.
 
-Please take a look at the bottom of the [default Rollup config file](https://github.com/ionic-team/ionic-app-scripts/blob/master/config/rollup.config.js) to see how the `IONIC_ENV` environment variable is being used to conditionally change config values for production builds.
+`process.env.IONIC_ENV` environment variable is set to `prod` for `--prod` builds, otherwise `dev` for all other builds.
 
 
 ## All Available Tasks

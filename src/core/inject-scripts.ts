@@ -34,7 +34,7 @@ export function injectCoreScripts(context: BuildContext, indexHtml: string) {
 
 export function injectCoreHtml(indexHtml: string, inject: string) {
   // see if we can find an existing ionic script tag and replace it entirely
-  const existingTag = indexHtml.match(/<script data-ionic="inject">[\s\S]*<\/script>/gi);
+  const existingTag = indexHtml.match(/<script data-ionic="inject">[\s\S]*?<\/script>/gi);
   if (existingTag) {
     return indexHtml.replace(existingTag[0], inject.trim());
   }

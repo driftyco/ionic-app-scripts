@@ -12,7 +12,7 @@ import { runWorker } from './worker-client';
 export function uglifyjs(context: BuildContext, configFile?: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
 
-  const logger = new Logger('uglifyjs');
+  const logger = new Logger('uglify');
 
   return runWorker('uglifyjs', 'uglifyjsWorker', context, configFile)
     .then(() => {

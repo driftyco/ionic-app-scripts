@@ -1545,6 +1545,45 @@ export class AppModule {}
       const result = util.hasExistingDeepLinkConfig(knownPath, knownContent);
       expect(result).toEqual(false);
     });
+
+    it('should return true where there is an existing deep link config associated with a variable', () => {
+      const knownContent = `
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { IonicApp, IonicModule } from 'ionic-angular';
+import { MyApp } from './app.component';
+
+import { HomePageModule } from '../pages/home/home.module';
+
+const deepLinkConfig = {
+  links: [
+    { loadChildren: '../pages/page-one/page-one.module#PageOneModule', name: 'PageOne' },
+    { loadChildren: '../pages/page-two/page-two.module#PageTwoModule', name: 'PageTwo' },
+    { loadChildren: '../pages/page-three/page-three.module#PageThreeModule', name: 'PageThree' }
+  ]
+};
+
+@NgModule({
+  declarations: [
+    MyApp,
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp, {}, deepLinkConfig),
+    HomePageModule,
+  ],
+  bootstrap: [IonicApp],
+  providers: []
+})
+export class AppModule {}
+      `;
+
+      const knownPath = join(process.cwd(), 'idk', 'some', 'fake', 'path');
+
+      const result = util.hasExistingDeepLinkConfig(knownPath, knownContent);
+      expect(result).toEqual(true);
+    });
+
   });
 
   describe('convertDeepLinkEntryToJsObjectString', () => {
