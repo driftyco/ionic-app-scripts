@@ -83,6 +83,11 @@ function serveIndex(req: express.Request, res: express.Response)  {
   // respond with the index.html file
   const indexFileName = path.join(config.wwwDir, process.env[Constants.ENV_VAR_HTML_TO_SERVE]);
   fs.readFile(indexFileName, (err, indexHtml) => {
+    if (!indexHtml) {
+      Logger.error(`Failed to load index.html`);
+      res.send('try again later');
+      return;
+    }
     if (config.useLiveReload) {
       indexHtml = injectLiveReloadScript(indexHtml, req.hostname, config.liveReloadPort);
       indexHtml = injectNotificationScript(config.rootDir, indexHtml, config.notifyOnConsoleLog, config.notificationPort);
