@@ -47,7 +47,6 @@ export async function uglifyjsWorkerImpl(context: BuildContext, uglifyJsConfig: 
 }
 
 async function runUglifyInternal(sourceFilePath: string, destFilePath: string, sourceMapPath: string, destMapPath: string, configObject: any): Promise<any> {
-  const sourceFileContentPromise = readFileAsync(sourceFilePath);
   const [sourceFileContent, sourceMapContent] = await Promise.all([readFileAsync(sourceFilePath), readFileAsync(sourceMapPath)]);
   const uglifyConfig = Object.assign({}, configObject, {
     sourceMap: {
