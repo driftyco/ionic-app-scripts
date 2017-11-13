@@ -176,7 +176,7 @@ export function getTemplateFormat(htmlFilePath: string, content: string) {
   content = content.replace(/\r|\n/g, '\\n');
   content = content.replace(/\'/g, '\\\'');
 
-  return `${getTemplatePrefix(htmlFilePath)}\'${content}\'${getTemplateSuffix(htmlFilePath)}`;
+  return getTemplatePrefix(htmlFilePath) + "'" + content + "'" + getTemplateSuffix(htmlFilePath);
 }
 
 
