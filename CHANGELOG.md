@@ -1,3 +1,14 @@
+<a name="3.1.1"></a>
+## [3.1.1](https://github.com/ionic-team/ionic-app-scripts/compare/v3.1.0...v3.1.1) (2017-11-13)
+
+
+### Bug Fixes
+
+* **AoT:** properly check for ngmodule declaration errors from the AoT build ([a47f120](https://github.com/ionic-team/ionic-app-scripts/commit/a47f120))
+* **template:** fix bug with using dollar sign within templates ([de09048](https://github.com/ionic-team/ionic-app-scripts/commit/de09048))
+
+
+
 <a name="3.1.0"></a>
 # [3.1.0](https://github.com/ionic-team/ionic-app-scripts/compare/v3.0.1...v3.1.0) (2017-11-08)
 

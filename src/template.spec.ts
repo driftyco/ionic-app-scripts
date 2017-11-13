@@ -27,7 +27,7 @@ describe('template', () => {
 
       const results = inlineTemplate(sourceText, join(baseDir, 'some-file.ts'));
 
-      expect(results).toEqual(`/*someprefix*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file.html')}"*/\`<div>A</div>\`/*ion-inline-end:"${join(baseDir, 'some-file.html')}"*/ });/*somebetween*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file.html')}"*/\`<div>A</div>\`/*ion-inline-end:"${join(baseDir, 'some-file.html')}"*/ })/*somesuffix*/`);
+      expect(results).toEqual(`/*someprefix*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file.html')}"*/\'<div>A</div>\'/*ion-inline-end:"${join(baseDir, 'some-file.html')}"*/ });/*somebetween*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file.html')}"*/\'<div>A</div>\'/*ion-inline-end:"${join(baseDir, 'some-file.html')}"*/ })/*somesuffix*/`);
       mockFs.restore();
     });
 
@@ -47,7 +47,7 @@ describe('template', () => {
 
       const results = inlineTemplate(sourceText, join(baseDir, 'some-file.ts'));
 
-      expect(results).toEqual(`/*someprefix*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file1.html')}"*/\`<div>A</div>\`/*ion-inline-end:"${join(baseDir, 'some-file1.html')}"*/ });/*somebetween*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file2.html')}"*/\`<div>B</div>\`/*ion-inline-end:"${join(baseDir, 'some-file2.html')}"*/ })/*somesuffix*/`);
+      expect(results).toEqual(`/*someprefix*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file1.html')}"*/\'<div>A</div>\'/*ion-inline-end:"${join(baseDir, 'some-file1.html')}"*/ });/*somebetween*/@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file2.html')}"*/\'<div>B</div>\'/*ion-inline-end:"${join(baseDir, 'some-file2.html')}"*/ })/*somesuffix*/`);
       mockFs.restore();
     });
 
@@ -67,7 +67,7 @@ describe('template', () => {
 
       const results = inlineTemplate(sourceText, join(baseDir, 'some-file.ts'));
 
-      expect(results).toEqual(`@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file.html')}"*/\`<div>hello</div>\`/*ion-inline-end:"${join(baseDir, 'some-file.html')}"*/ })`);
+      expect(results).toEqual(`@Component({template:/*ion-inline-start:"${join(baseDir, 'some-file.html')}"*/\'<div>hello</div>\'/*ion-inline-end:"${join(baseDir, 'some-file.html')}"*/ })`);
       mockFs.restore();
     });
 
@@ -149,7 +149,7 @@ describe('template', () => {
       const match = getTemplateMatch(str);
       const result = replaceTemplateUrl(match, htmlFilePath, templateContent);
 
-      const expected = `Component({template:/*ion-inline-start:"${join(process.cwd(), 'full', 'path', 'to', 'somepage.html')}"*/\`\\n        <div>\t\\n          this is "multiline" \\'content\\'\\n        </div>\\n\\n      \`/*ion-inline-end:"${join(process.cwd(), 'full', 'path', 'to', 'somepage.html')}"*/})`;
+      const expected = `Component({template:/*ion-inline-start:"${join(process.cwd(), 'full', 'path', 'to', 'somepage.html')}"*/\'\\n        <div>\t\\n          this is "multiline" \\'content\\'\\n        </div>\\n\\n      \'/*ion-inline-end:"${join(process.cwd(), 'full', 'path', 'to', 'somepage.html')}"*/})`;
 
       expect(result).toEqual(expected);
     });
@@ -163,7 +163,7 @@ describe('template', () => {
       const resolvedPath = resolve(path);
       const results = getTemplateFormat(path, 'filibuster');
       expect(path).not.toEqual(resolvedPath);
-      expect(results).toEqual(`template:/*ion-inline-start:"${resolvedPath}"*/\`filibuster\`/*ion-inline-end:"${resolvedPath}"*/`);
+      expect(results).toEqual(`template:/*ion-inline-start:"${resolvedPath}"*/\'filibuster\'/*ion-inline-end:"${resolvedPath}"*/`);
     });
 
   });
