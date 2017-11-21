@@ -29,8 +29,10 @@ function loadDiagnostic(context: BuildContext, tsDiagnostic: ts.Diagnostic) {
     absFileName: null,
     lines: []
   };
-
-  if (tsDiagnostic.file) {
+/**
+* Fix issue https://github.com/ionic-team/ionic-cli/issues/2889
+*/
+  if (tsDiagnostic.file && tsDiagnostic.file.getText) {
     d.absFileName = tsDiagnostic.file.fileName;
     d.relFileName = Logger.formatFileName(context.rootDir, d.absFileName);
 
