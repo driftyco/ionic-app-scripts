@@ -46,7 +46,8 @@ export function serve(context: BuildContext) {
         useServerLogs: useServerLogs(context),
         useProxy: useProxy(context),
         notifyOnConsoleLog: sendClientConsoleLogs(context),
-        devapp: false
+        devapp: false,
+        isPathLocationStrategy: isPathLocationStrategy(context)
       };
 
       createNotificationServer(config);
@@ -162,4 +163,8 @@ function useProxy(context: BuildContext): boolean {
 
 function sendClientConsoleLogs(context: BuildContext): boolean {
   return hasConfigValue(context, '--consolelogs', '-c', 'ionic_consolelogs', false);
+}
+
+function isPathLocationStrategy(context: BuildContext): boolean {
+  return hasConfigValue(context, '--pathlocationstrategy', null, 'ionic_pathlocationstrategy', false);
 }
