@@ -51,7 +51,7 @@ export function createHttpServer(config: ServeConfig): express.Application {
   }
 
   if (config.isPathLocationStrategy) {
-    app.all('/*', serveIndex);
+    app.get('*', serveIndex);
   }
 
   return app;
