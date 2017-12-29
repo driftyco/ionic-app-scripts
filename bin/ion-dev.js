@@ -98,7 +98,8 @@ window.IonicDevServer = {
 
   openConnection: function() {
     var self = this;
-    this.socket = new WebSocket('ws://' + window.location.hostname + ':' + IonicDevServerConfig.wsPort);
+    var socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    this.socket = new WebSocket(socketProtocol + '//' + window.location.hostname + ':' + IonicDevServerConfig.wsPort);
 
     this.socket.onopen = function(ev) {
       self.socketReady = true;
