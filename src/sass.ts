@@ -281,7 +281,8 @@ function renderSassSuccess(context: BuildContext, sassResult: Result, sassConfig
 
     const postcssOptions: any = {
       to: basename(sassConfig.outFile),
-      map: autoPrefixerMapOptions
+      map: autoPrefixerMapOptions,
+      from: void 0
     };
 
     Logger.debug(`sass, start postcss/autoprefixer`);
