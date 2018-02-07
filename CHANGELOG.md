@@ -1,3 +1,19 @@
+<a name="3.1.8"></a>
+## [3.1.8](https://github.com/ionic-team/ionic-app-scripts/compare/v3.1.7...v3.1.8) (2018-01-18)
+
+This release includes a bump in the version of node-sass. This adds support for node 9.
+
+
+<a name="3.1.7"></a>
+## [3.1.7](https://github.com/ionic-team/ionic-app-scripts/compare/v3.1.6...v3.1.7) (2017-12-27)
+
+
+### Bug Fixes
+
+* pin uglify-es ([dacf080](https://github.com/ionic-team/ionic-app-scripts/commit/dacf080)), closes [#1353](https://github.com/ionic-team/ionic-app-scripts/issues/1353)
+
+
+
 <a name="3.1.6"></a>
 ## [3.1.6](https://github.com/ionic-team/ionic-app-scripts/compare/v3.1.5...v3.1.6) (2017-12-18)
 

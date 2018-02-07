@@ -28,9 +28,6 @@ export function createHttpServer(config: ServeConfig): express.Application {
 
   const app = express();
   app.set('serveConfig', config);
-  app.listen(config.httpPort, config.host, function() {
-    Logger.debug(`listening on ${config.httpPort}`);
-  });
 
   app.get('/', serveIndex);
   app.use('/', express.static(config.wwwDir));
