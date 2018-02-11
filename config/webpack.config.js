@@ -14,14 +14,16 @@ var ionicWebpackFactory = require(process.env.IONIC_WEBPACK_FACTORY);
 var ModuleConcatPlugin = require('webpack/lib/optimize/ModuleConcatenationPlugin');
 var PurifyPlugin = require('@angular-devkit/build-optimizer').PurifyPlugin;
 
-var optimizedProdLoaders = [
+var optimizedProdRules = [
   {
     test: /\.json$/,
-    loader: 'json-loader'
+    use: [
+      'json-loader',
+    ]
   },
   {
     test: /\.js$/,
-    loader: [
+    use: [
       {
         loader: process.env.IONIC_CACHE_LOADER
       },
@@ -36,7 +38,7 @@ var optimizedProdLoaders = [
   },
   {
     test: /\.ts$/,
-    loader: [
+    use: [
       {
         loader: process.env.IONIC_CACHE_LOADER
       },
@@ -55,11 +57,11 @@ var optimizedProdLoaders = [
   }
 ];
 
-function getProdLoaders() {
+function getProdRules() {
   if (process.env.IONIC_OPTIMIZE_JS === 'true') {
-    return optimizedProdLoaders;
+    return optimizedProdRules;
   }
-  return devConfig.module.loaders;
+  return devConfig.module.rules;
 }
 
 var devConfig = {
@@ -78,16 +80,20 @@ var devConfig = {
   },
 
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.json$/,
-        loader: 'json-loader'
+        use: [
+          'json-loader',
+        ]
       },
       {
         test: /\.ts$/,
-        loader: process.env.IONIC_WEBPACK_LOADER
+        use: [
+          process.env.IONIC_WEBPACK_LOADER,
+        ]
       }
-    ]
+    ],
   },
 
   plugins: [
@@ -120,7 +126,7 @@ var prodConfig = {
   },
 
   module: {
-    loaders: getProdLoaders()
+    rules: getProdRules()
   },
 
   plugins: [
