@@ -22,13 +22,12 @@ export function templateUpdate(changedFiles: ChangedFile[], context: BuildContex
       if (!updateCorrespondingJsFile(context, file.content, changedTemplateFile.filePath)) {
         throw new Error(`Failed to inline template ${changedTemplateFile.filePath}`);
       }
-      // find the corresponding bundle
+      // find the corresponding bundles
       for (const bundleFile of bundleFiles) {
         const newContent = replaceExistingJsTemplate(bundleFile.content, file.content, changedTemplateFile.filePath);
         if (newContent && newContent !== bundleFile.content) {
           context.fileCache.set(bundleFile.path, { path: bundleFile.path, content: newContent});
           writeFileSync(bundleFile.path, newContent);
-          break;
         }
       }
     }
