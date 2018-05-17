@@ -41,7 +41,7 @@
     "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
     "json-loader": "^0.5.7",
-    "node-sass": "4.7.2",
+    "node-sass": "4.9.0",
     "os-name": "^2.0.1",
     "postcss": "^6.0.13",
     "proxy-middleware": "^0.15.0",
