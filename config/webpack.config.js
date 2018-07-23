@@ -91,6 +91,11 @@ var devConfig = {
   },
 
   plugins: [
+    new webpack.ContextReplacementPlugin(
+      /(ionic-angular)|(angular(\\|\/)core(\\|\/)@angular)/,
+      root('./src'), // location of your src
+      {} // a map of your routes
+    ),
     ionicWebpackFactory.getIonicEnvironmentPlugin(),
     ionicWebpackFactory.getCommonChunksPlugin()
   ],
