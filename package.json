@@ -37,6 +37,7 @@
     "chokidar": "^1.7.0",
     "clean-css": "^4.1.11",
     "cross-spawn": "^5.1.0",
+    "dotenv-webpack": "^1.5.7",
     "express": "^4.16.3",
     "fs-extra": "^4.0.2",
     "glob": "^7.1.2",

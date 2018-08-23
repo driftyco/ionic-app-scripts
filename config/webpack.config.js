@@ -10,6 +10,7 @@
 var path = require('path');
 var webpack = require('webpack');
 var ionicWebpackFactory = require(process.env.IONIC_WEBPACK_FACTORY);
+const Dotenv = require('dotenv-webpack');
 
 var ModuleConcatPlugin = require('webpack/lib/optimize/ModuleConcatenationPlugin');
 var PurifyPlugin = require('@angular-devkit/build-optimizer').PurifyPlugin;
@@ -91,6 +92,11 @@ var devConfig = {
   },
 
   plugins: [
+    new Dotenv({
+      path: '.env.dev', // load this now instead of the ones in '.env'
+      systemvars: true, // load all the predefined 'process.env' variables which will trump anything local per dotenv specs.
+      silent: true // hide any errors
+    }),
     ionicWebpackFactory.getIonicEnvironmentPlugin(),
     ionicWebpackFactory.getCommonChunksPlugin()
   ],
@@ -124,6 +130,11 @@ var prodConfig = {
   },
 
   plugins: [
+    new Dotenv({
+      path: '.env.prod', // load this now instead of the ones in '.env'
+      systemvars: true, // load all the predefined 'process.env' variables which will trump anything local per dotenv specs.
+      silent: true // hide any errors
+    }),
     ionicWebpackFactory.getIonicEnvironmentPlugin(),
     ionicWebpackFactory.getCommonChunksPlugin(),
     new ModuleConcatPlugin(),
