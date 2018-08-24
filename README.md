@@ -52,6 +52,19 @@ To run the `build` script found in the `package.json` `scripts` property, execut
 npm run build
 ```
 
+## Environments
+
+You can use Node style `process.env.MY_VAR` syntax directly in your typescript
+and when the application is bundled it'll be replaced with the following order of precedence:
+* If the variable exists in the process environment it will be replaced with that value.
+* If the variable is not defined in the process environment it will be read from a `.env.dev`
+file for dev builds or `.env.prod` file for prod builds which are located in the root of the app
+* If the variable is not defined in either place it will be `undefined`
+
+In order to take advantage of this apps will need a `src/declarations.d.ts` file with the following declaration:
+```typescript
+declare var process: { env: { [key: string]: string | undefined; } };
+```
 
 ## Custom Configuration
 
