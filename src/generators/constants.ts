@@ -8,6 +8,7 @@ export const SUPPLIEDNAME_VARIABLE = '$SUPPLIEDNAME';
 export const IMPORTSTATEMENT_VARIABLE = '$IMPORTSTATEMENT';
 export const IONICPAGE_VARIABLE = '$IONICPAGE';
 export const KNOWN_FILE_EXTENSION = '.tmpl';
+export const MINIMAL_FILE_PRE_EXTENSION = '.minimal';
 
 export const SPEC_FILE_EXTENSION = 'spec.ts';
 export const NG_MODULE_FILE_EXTENSION = 'module.ts';
