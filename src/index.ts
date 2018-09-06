@@ -25,7 +25,7 @@ import { Logger } from './logger/logger';
 
 export function run(task: string) {
   try {
-    Logger.info(`ionic-app-scripts ${getAppScriptsVersion()}`, 'cyan');
+    Logger.info(`@ionic/app-sripts ${getAppScriptsVersion()}`, 'cyan');
   } catch (e) {}
 
   try {
@@ -40,7 +40,7 @@ export function run(task: string) {
 }
 
 function errorLog(task: string, e: any) {
-  Logger.error(`ionic-app-script task: "${task}"`);
+  Logger.error(`@ionic/app-sripts task: "${task}"`);
   if (e && e.toString() !== 'Error') {
     Logger.error(`${e}`);
   }
