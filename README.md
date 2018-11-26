@@ -1,5 +1,7 @@
 [![npm version](https://img.shields.io/npm/v/@ionic/app-scripts.svg)](https://www.npmjs.com/package/@ionic/app-scripts)
 [![Circle CI](https://circleci.com/gh/ionic-team/ionic-app-scripts.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/ionic-team/ionic-app-scripts)
+[![Code Quality: Javascript](https://img.shields.io/lgtm/grade/javascript/g/ionic-team/ionic-app-scripts.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ionic-team/ionic-app-scripts/context:javascript)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/ionic-team/ionic-app-scripts.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ionic-team/ionic-app-scripts/alerts)
 # Ionic App Scripts
 
 Helper scripts to get [Ionic apps](https://ionicframework.com/) up and running quickly (minus the config overload).
