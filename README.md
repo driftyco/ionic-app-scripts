@@ -1,6 +1,5 @@
 [![npm version](https://img.shields.io/npm/v/@ionic/app-scripts.svg)](https://www.npmjs.com/package/@ionic/app-scripts)
 [![Circle CI](https://circleci.com/gh/ionic-team/ionic-app-scripts.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/ionic-team/ionic-app-scripts)
-
 # Ionic App Scripts
 
 Helper scripts to get [Ionic apps](https://ionicframework.com/) up and running quickly (minus the config overload).
@@ -252,27 +251,17 @@ We welcome any PRs, issues, and feedback! Please be respectful and follow the [C
 
 We use Node 6, and NPM 5 for contributing.
 
-### Publish a Nightly Build
-
-1. Run `npm run build` to generate the `dist` directory
-2. Run `npm run test` to validate the `dist` works
-3. Tick the `package.json` version
-4. Run `npm run nightly` to generate a nightly build on npm
-
-
-
 ### Publish a release
 
 Execute the following steps to publish a release:
 
-1. Ensure your branch has been merged into `master`
-2. Run `npm run build` to generate the `dist` directory
-3. Run `npm run test` to validate the `dist` works
-4. Temporarily tick the `package.json` version
-5. Run `npm run changelog` to append the latest additions to the changelog
-6. Manually verify and commit the changelog changes. Often times you'll want to manually add content/instructions
-7. Revert the `package.json` version to the original version
-8. Run `npm version patch` to tick the version and generate a git tag
-9. Run `npm run github-release` to create the github release entry
-10. Run `npm publish` to publish the package to npm
-11. `git push origin master` - push changes to master
+1. Run `npm run build` to generate the `dist` directory
+2. Run `npm run test` to validate the `dist` works
+3. Temporarily tick the `package.json` version
+4. Run `npm run changelog` to append the latest additions to the changelog
+5. Manually verify and commit the changelog changes. Often times you'll want to manually add content/instructions
+6. Revert the `package.json` version to the original version
+7. Run `npm version patch` to tick the version and generate a git tag
+8. Run `npm run github-release` to create the github release entry
+9. Run `npm publish` to publish the package to npm
+10. `git push origin master` - push changes to master
