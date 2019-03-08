@@ -8,13 +8,11 @@ export interface OnErrorFn {
   (message: string): void;
 }
 
-export class InMemoryCompilerHost implements CompilerHost {
-  private sourceFileMap: Map<string, SourceFile>;
+export class FileSystemCompilerHost implements CompilerHost {
   private diskCompilerHost: CompilerHost;
 
   constructor(private options: CompilerOptions, private fileSystem: VirtualFileSystem, private setParentNodes = true) {
     this.diskCompilerHost = createCompilerHost(this.options, this.setParentNodes);
-    this.sourceFileMap = new Map<string, SourceFile>();
   }
 
   fileExists(filePath: string): boolean {
@@ -64,19 +62,13 @@ export class InMemoryCompilerHost implements CompilerHost {
 
   getSourceFile(filePath: string, languageVersion: ScriptTarget, onError?: OnErrorFn) {
     filePath = normalize(filePath);
-    const existingSourceFile = this.sourceFileMap.get(filePath);
-    if (existingSourceFile) {
-      return existingSourceFile;
-    }
     // we haven't created a source file for this yet, so try to use what's in memory
     const fileContentFromMemory = this.fileSystem.getFileContent(filePath);
     if (fileContentFromMemory) {
       const typescriptSourceFile = getTypescriptSourceFile(filePath, fileContentFromMemory, languageVersion, this.setParentNodes);
-      this.sourceFileMap.set(filePath, typescriptSourceFile);
       return typescriptSourceFile;
     }
     const diskSourceFile = this.diskCompilerHost.getSourceFile(filePath, languageVersion, onError);
-    this.sourceFileMap.set(filePath, diskSourceFile);
     return diskSourceFile;
   }
 

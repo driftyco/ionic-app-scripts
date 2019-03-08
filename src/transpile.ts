@@ -5,7 +5,7 @@ import * as path from 'path';
 
 import * as ts from 'typescript';
 
-import { getInMemoryCompilerHostInstance } from './aot/compiler-host-factory';
+import { getFileSystemCompilerHostInstance } from './aot/compiler-host-factory';
 import { buildJsSourceMaps } from './bundle';
 import {
   getInjectDeepLinkConfigTypescriptTransform,
@@ -117,7 +117,7 @@ export function transpileWorker(context: BuildContext, workerConfig: TranspileWo
     tsConfig.options.declaration = undefined;
 
     // let's start a new tsFiles object to cache all the transpiled files in
-    const host = getInMemoryCompilerHostInstance(tsConfig.options);
+    const host = getFileSystemCompilerHostInstance(tsConfig.options);
 
     if (workerConfig.useTransforms && getBooleanPropertyValue(Constants.ENV_PARSE_DEEPLINKS)) {
       // beforeArray.push(purgeDeepLinkDecoratorTSTransform());

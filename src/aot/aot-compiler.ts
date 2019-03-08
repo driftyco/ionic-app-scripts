@@ -17,8 +17,8 @@ import {
 
 import { HybridFileSystem } from '../util/hybrid-file-system';
 import { getInstance as getHybridFileSystem } from '../util/hybrid-file-system-factory';
-import { getInMemoryCompilerHostInstance } from './compiler-host-factory';
-import { InMemoryCompilerHost } from './compiler-host';
+import { getFileSystemCompilerHostInstance } from './compiler-host-factory';
+import { FileSystemCompilerHost } from './compiler-host';
 import { getFallbackMainContent, replaceBootstrapImpl } from './utils';
 import { Logger } from '../logger/logger';
 import { printDiagnostics, clearDiagnostics, DiagnosticsType } from '../logger/logger-diagnostics';
@@ -40,7 +40,7 @@ export async function runAot(context: BuildContext, options: AotOptions) {
   const aggregateCompilerOption = Object.assign(tsConfig.options, angularCompilerOptions);
 
   const fileSystem = getHybridFileSystem(false);
-  const compilerHost = getInMemoryCompilerHostInstance(tsConfig.options);
+  const compilerHost = getFileSystemCompilerHostInstance(tsConfig.options);
   // todo, consider refactoring at some point
   const tsProgram = createProgram(tsConfig.fileNames, tsConfig.options, compilerHost);
 
@@ -77,7 +77,7 @@ export async function runAot(context: BuildContext, options: AotOptions) {
   }
 }
 
-function errorCheckProgram(context: BuildContext, tsConfig: TsConfig, compilerHost: InMemoryCompilerHost, cachedProgram: Program) {
+function errorCheckProgram(context: BuildContext, tsConfig: TsConfig, compilerHost: FileSystemCompilerHost, cachedProgram: Program) {
   // Create a new Program, based on the old one. This will trigger a resolution of all
   // transitive modules, which include files that might just have been generated.
   const program = createProgram(tsConfig.fileNames, tsConfig.options, compilerHost, cachedProgram);
