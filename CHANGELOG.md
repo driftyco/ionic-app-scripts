@@ -1,3 +1,13 @@
+<a name="3.2.5"></a>
+## [3.2.5](https://github.com/ionic-team/ionic-app-scripts/compare/v3.2.4...v3.2.5) (2020-01-20)
+
+
+### Bug Fixes
+
+*  **serve:** enable 404 redirects to allow `locationStrategy: 'path'` to work with deeplinks  ([#10565](https://github.com/ionic-team/ionic/issues/10565#issuecomment-307420460))
+
+
+
 <a name="3.2.4"></a>
 ## [3.2.4](https://github.com/ionic-team/ionic-app-scripts/compare/v3.2.3...v3.2.4) (2019-05-24)
 
