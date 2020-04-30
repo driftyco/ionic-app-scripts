@@ -49,3 +49,4 @@ bin/ion-dev.css
 
 # WebStorm
 .idea
+/.vs
