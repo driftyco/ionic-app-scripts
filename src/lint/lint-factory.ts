@@ -79,7 +79,10 @@ export function getFileNames(context: BuildContext, program: Program): string[] 
  */
 export function getTsLintConfig(tsLintConfig: string, linterOptions?: LinterOptions): LinterConfig {
   const config = Configuration.loadConfigurationFromPath(tsLintConfig);
-  Object.assign(config, isObject(linterOptions) ? {linterOptions} : {});
+  const configLinterOptions = isObject(config.linterOptions) ? config.linterOptions : {}
+  const ionicLinterOptions = isObject(linterOptions) ? linterOptions : {}
+  Object.assign(configLinterOptions, ionicLinterOptions);
+  Object.assign(config, isObject(linterOptions) ? {linterOptions: configLinterOptions} : {});
   return config;
 }
 
