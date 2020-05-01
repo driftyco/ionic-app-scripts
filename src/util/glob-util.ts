@@ -29,6 +29,7 @@ export function generateGlobTasks(patterns: string[], opts: any) {
     statCache: Object.create(null),
     realpathCache: Object.create(null),
     symlinks: Object.create(null),
+    follow: true,
     ignore: []
   }, opts);
 
