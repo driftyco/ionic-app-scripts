@@ -38,7 +38,7 @@ function getDevLoggerScript(rootDir: string, notifyOnConsoleLog: boolean, notifi
   return `
   ${LOGGER_HEADER}
   <script>var IonicDevServerConfig=${ionDevServer};</script>
-  <link href="${LOGGER_DIR}/ion-dev.css?v=${appScriptsVersion}" rel="stylesheet">
-  <script src="${LOGGER_DIR}/ion-dev.js?v=${appScriptsVersion}"></script>
+  <link href="/${LOGGER_DIR}/ion-dev.css?v=${appScriptsVersion}" rel="stylesheet">
+  <script src="/${LOGGER_DIR}/ion-dev.js?v=${appScriptsVersion}"></script>
   `;
 }

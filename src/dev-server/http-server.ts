@@ -47,6 +47,10 @@ export function createHttpServer(config: ServeConfig): express.Application {
     setupProxies(app);
   }
 
+  if (config.isPathLocationStrategy) {
+    app.get('*', serveIndex);
+  }
+
   return app;
 }
 
