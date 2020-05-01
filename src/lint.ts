@@ -4,7 +4,7 @@ import { join } from 'path';
 import { lintFiles } from './lint/lint-utils';
 import { createProgram, getFileNames } from './lint/lint-factory';
 import { Logger } from './logger/logger';
-import { getUserConfigFile } from './util/config';
+import { getUserConfigFile, fillConfigDefaults } from './util/config';
 import { ENV_BAIL_ON_LINT_ERROR, ENV_TYPE_CHECK_ON_LINT } from './util/constants';
 import { getBooleanPropertyValue } from './util/helpers';
 import { getTsConfigPath } from './transpile';
@@ -15,17 +15,19 @@ import { runWorker } from './worker-client';
 export interface LintWorkerConfig {
   tsConfig: string;
   tsLintConfig: string | null;
+  configFile?: string | null;
   filePaths?: string[];
   typeCheck?: boolean;
+  exclude?: string[];
 }
 
 
 const taskInfo: TaskInfo = {
   fullArg: '--tslint',
   shortArg: '-i',
-  envVar: 'ionic_tslint',
-  packageConfig: 'IONIC_TSLINT',
-  defaultConfigFile: '../tslint'
+  envVar: 'IONIC_TSLINT',
+  packageConfig: 'ionic_tslint',
+  defaultConfigFile: 'tslint.config'
 };
 
 
@@ -44,11 +46,15 @@ export function lint(context: BuildContext, tsLintConfig?: string | null, typeCh
 }
 
 export function lintWorker(context: BuildContext, {tsConfig, tsLintConfig, typeCheck}: LintWorkerConfig) {
+  const configFile: string = getUserConfigFile(context, taskInfo, null);
+  const { tsLintCofig: tsLintDefaultConfig, exclude } = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+  tsLintConfig = tsLintConfig || tsLintDefaultConfig;
   return getLintConfig(context, tsLintConfig)
     .then(tsLintConfig => lintApp(context, {
       tsConfig,
       tsLintConfig,
-      typeCheck
+      typeCheck,
+      exclude
     }));
 }
 
@@ -58,7 +64,7 @@ export function lintUpdate(changedFiles: ChangedFile[], context: BuildContext, t
   return runWorker('lint', 'lintUpdateWorker', context, {
     typeCheck,
     tsConfig: getTsConfigPath(context),
-    tsLintConfig: getUserConfigFile(context, taskInfo, null),
+    tsLintConfig: getTsLintConfig(context, null),
     filePaths: changedTypescriptFiles.map(changedTypescriptFile => changedTypescriptFile.filePath)
   });
 }
@@ -72,16 +78,16 @@ export function lintUpdateWorker(context: BuildContext, {tsConfig, tsLintConfig,
 }
 
 
-function lintApp(context: BuildContext, {tsConfig, tsLintConfig, typeCheck}: LintWorkerConfig) {
+function lintApp(context: BuildContext, {tsConfig, tsLintConfig, typeCheck, exclude}: LintWorkerConfig) {
   const program = createProgram(context, tsConfig);
-  const files = getFileNames(context, program);
+  const files = getFileNames(context, program, exclude);
   return lintFiles(context, program, tsLintConfig, files, {typeCheck});
 }
 
 
 function getLintConfig(context: BuildContext, tsLintConfig: string | null): Promise<string> {
   return new Promise((resolve, reject) => {
-    tsLintConfig = getUserConfigFile(context, taskInfo, tsLintConfig);
+    tsLintConfig = getTsLintConfig(context);
     if (!tsLintConfig) {
       tsLintConfig = join(context.rootDir, 'tslint.json');
     }
@@ -99,4 +105,13 @@ function getLintConfig(context: BuildContext, tsLintConfig: string | null): Prom
       resolve(tsLintConfig);
     });
   });
+}
+
+function getTsLintConfig(context: BuildContext, configFile?: string): string {
+  configFile = getUserConfigFile(context, taskInfo, configFile);
+  let { tsLintConfig } = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+  if (tsLintConfig) {
+    tsLintConfig = join(context.rootDir, tsLintConfig);
+  }
+  return tsLintConfig;
 }

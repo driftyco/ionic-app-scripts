@@ -1,6 +1,7 @@
 import { Configuration, Linter } from 'tslint';
 import { DiagnosticCategory } from 'typescript';
 import * as ts from 'typescript';
+import * as glob from 'glob';
 import { isObject } from 'util';
 import {
   createLinter,
@@ -77,6 +78,27 @@ describe('lint factory', () => {
 
       expect(Array.isArray(files)).toBeTruthy();
       expect(files).toEqual(mockFiles);
+    });
+
+    it('should exclude the files matching the ignore pattern', () => {
+      const context: any = {rootDir: ''};
+      const program = createProgram(context, '');
+      const mockFiles = ['test.ts', 'node_modules/folder/file.ts'];
+
+      spyOn(Linter, 'getFileNames').and.returnValue(mockFiles);
+      const globSyncSpy = spyOn(glob, 'sync').and.callFake((file: string, options: any) => {
+        return file === mockFiles[0] ? [mockFiles[0]] : [];
+      });
+
+      const files = getFileNames(context, program, ['**/node_modules/**/*']);
+
+      expect(Array.isArray(files)).toBeTruthy();
+      expect(files).toEqual(mockFiles.slice(0, 1));
+      expect(globSyncSpy).toHaveBeenCalledTimes(2);
+      globSyncSpy.calls.allArgs().map((args, index) => {
+        expect(args[0]).toBe(mockFiles[index]);
+        expect(args[1]).toEqual({ignore: ['**/node_modules/**/*'], nodir: true});
+      });
     });
   });
 
