@@ -15,7 +15,7 @@ export async function copySourcemaps(context: BuildContext, shouldPurge: boolean
   // only include js source maps
   const sourceMaps = fileNames.filter(fileName => fileName.endsWith('.map'));
 
-  const toCopy = sourceMaps.filter(fileName => fileName.indexOf('vendor.js') < 0 && fileName.endsWith('.js.map'));
+  const toCopy = sourceMaps.filter(fileName => fileName.endsWith('.js.map'));
   const toCopyFullPaths = toCopy.map(fileName => join(context.buildDir, fileName));
 
   const toPurge = sourceMaps.map(sourceMap => join(context.buildDir, sourceMap));
